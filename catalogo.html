@@ -7,6 +7,17 @@ fbq('init','1720591949105146');fbq('track','PageView');
 </script>
 <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1720591949105146&ev=PageView&noscript=1"/></noscript>
 <!-- End Meta Pixel Code -->
+<!-- KL Lead tracking (clique WhatsApp) -->
+<script>
+document.addEventListener('click',function(e){
+  var a=e.target.closest?e.target.closest('a[href*="wa.me"],a[href*="whatsapp.com"]'):null;
+  if(!a||typeof fbq!=='function')return;
+  var h=decodeURIComponent(a.getAttribute('href')||'');
+  var m=h.match(/\b([A-Z]{2,3}-\d{2,4})\b/);
+  fbq('track','Lead',{content_name:(m?m[1]:(a.textContent||'').trim().slice(0,40)||'whatsapp'),content_category:(m?'peca':'contato')});
+},true);
+</script>
+<!-- End KL Lead tracking -->
 <meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="img/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png"><link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16.png"><link rel="apple-touch-icon" href="img/apple-touch-icon.png"><title>Catálogo — Koisa Linda Barra</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Arapey:ital@0;1&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Questrial&display=swap" rel="stylesheet"><style>
 :root{
  --ruby:#722F37;--ruby-dark:#5a242b;--baunilha:#F4E5C4;--cream:#FBF7EF;--paper:#fff;
