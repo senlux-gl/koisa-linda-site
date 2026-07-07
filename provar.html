@@ -202,7 +202,13 @@ $('ptroca').onclick = () => { $('c-dress').scrollIntoView({behavior:'smooth'}); 
 $('file').onchange = (e) => {
   const f = e.target.files[0]; if (!f) return;
   const r = new FileReader();
-  r.onload = () => { photo = r.result; $('uplabel').innerHTML = `<img class="prev" src="${photo}"><div class="hint">toque pra trocar</div>`; $('uplabel').appendChild($('file')); refresh(); };
+  r.onload = () => {
+    photo = r.result;
+    const inp = $('file'); // guarda a referência ANTES do innerHTML destruir o input
+    $('uplabel').innerHTML = `<img class="prev" src="${photo}"><div class="hint">toque pra trocar</div>`;
+    $('uplabel').appendChild(inp);
+    refresh();
+  };
   r.readAsDataURL(f);
 };
 
