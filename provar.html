@@ -1,23 +1,38 @@
 <!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Prova Virtual — Koisa Linda</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="img/favicon.ico" sizes="any">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Questrial&display=swap" rel="stylesheet">
 <style>
 :root{--ruby:#722F37;--cream:#FBF7EF;--ink:#2c2326;--muted:#9a8d80;--line:#e7ded1;--sans:'Questrial',sans-serif;--serif:'Playfair Display',serif}
 *{box-sizing:border-box}
 body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
-.wrap{max-width:760px;margin:0 auto;padding:28px 20px 80px}
+.wrap{max-width:860px;margin:0 auto;padding:28px 20px 90px}
 .eyebrow{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);text-align:center}
 h1{font-family:var(--serif);font-weight:600;font-size:34px;text-align:center;margin:8px 0 4px}
-.sub{text-align:center;color:var(--muted);font-size:15px;max-width:460px;margin:0 auto 26px}
-.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:18px}
+.sub{text-align:center;color:var(--muted);font-size:15px;max-width:480px;margin:0 auto 26px}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:18px}
 .step-t{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--ruby);margin-bottom:14px}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-family:var(--sans);font-size:13px;color:var(--ink);cursor:pointer}
+.pill.on{background:var(--ruby);border-color:var(--ruby);color:#fff}
+.pill small{color:inherit;opacity:.65;margin-left:4px}
+.search{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-family:var(--sans);font-size:14px;background:#fff;color:var(--ink);margin-bottom:14px}
+.search:focus{outline:none;border-color:var(--ruby)}
 .dresses{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .dress{border:2px solid transparent;border-radius:12px;overflow:hidden;cursor:pointer;background:#f3ece0;aspect-ratio:3/4;position:relative}
 .dress img{width:100%;height:100%;object-fit:cover;display:block}
 .dress.sel{border-color:var(--ruby)}
-.dress .cap{position:absolute;bottom:0;left:0;right:0;background:rgba(114,47,55,.85);color:#fff;font-size:10px;text-align:center;padding:3px}
-.up{display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--line);border-radius:14px;padding:26px;text-align:center;cursor:pointer;transition:.2s}
+.dress.sel::after{content:'✓';position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:var(--ruby);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center}
+.dress .cap{position:absolute;bottom:0;left:0;right:0;background:rgba(114,47,55,.85);color:#fff;font-size:10px;text-align:center;padding:3px 2px}
+.empty-msg{color:var(--muted);text-align:center;padding:20px 0;font-size:14px}
+.picked-bar{position:sticky;bottom:12px;z-index:5;background:var(--ink);color:#fff;border-radius:999px;padding:10px 18px;display:none;align-items:center;gap:10px;font-size:13px;box-shadow:0 10px 26px rgba(44,35,38,.3)}
+.picked-bar.on{display:flex}
+.picked-bar img{width:34px;height:34px;border-radius:50%;object-fit:cover}
+.picked-bar b{font-weight:normal;color:#f4e5c4}
+.picked-bar a{margin-left:auto;color:#fff;font-size:12px;text-decoration:underline;cursor:pointer}
+.up{display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--line);border-radius:14px;padding:24px;text-align:center;cursor:pointer;transition:.2s}
 .up:hover{border-color:var(--ruby);background:#fbf5ec}
 .up img.prev{max-height:220px;border-radius:10px;margin-bottom:8px}
 .up .ico{font-size:30px}
@@ -25,7 +40,7 @@ h1{font-family:var(--serif);font-weight:600;font-size:34px;text-align:center;mar
 .btn{display:block;width:100%;border:0;border-radius:999px;background:var(--ruby);color:#fff;font-family:var(--sans);font-size:15px;letter-spacing:1px;padding:15px;cursor:pointer;transition:.2s}
 .btn:disabled{opacity:.4;cursor:not-allowed}
 .btn.ghost{background:#fff;color:var(--ruby);border:1px solid var(--ruby)}
-.mini{background:none;border:0;color:var(--muted);font-family:var(--sans);font-size:13px;cursor:pointer;text-decoration:underline;padding:8px}
+.more{display:block;margin:14px auto 0;background:none;border:1px solid var(--line);border-radius:999px;padding:10px 22px;font-family:var(--sans);font-size:13px;color:var(--ink);cursor:pointer}
 .center{text-align:center}
 .stage{text-align:center;padding:20px 0}
 .spinner{width:44px;height:44px;border:3px solid var(--line);border-top-color:var(--ruby);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 14px}
@@ -36,18 +51,23 @@ h1{font-family:var(--serif);font-weight:600;font-size:34px;text-align:center;mar
 .err{background:#fbeced;border:1px solid #e7b9bd;color:var(--ruby);border-radius:12px;padding:16px;text-align:center;font-size:15px}
 .hidden{display:none}
 .disclaimer{font-size:11px;color:var(--muted);text-align:center;font-style:italic;margin-top:10px}
-@media(max-width:520px){.dresses{grid-template-columns:repeat(2,1fr)}h1{font-size:28px}}
+@media(max-width:620px){.dresses{grid-template-columns:repeat(2,1fr)}h1{font-size:28px}}
+@media(min-width:621px) and (max-width:860px){.dresses{grid-template-columns:repeat(3,1fr)}}
 </style></head>
 <body>
 <div class="wrap">
   <div class="eyebrow">Koisa Linda</div>
   <h1>Prova Virtual</h1>
-  <p class="sub">Envie uma foto sua de corpo inteiro e veja como o vestido fica em você — antes mesmo de ir à loja.</p>
+  <p class="sub">Escolha qualquer vestido do nosso acervo, envie uma foto sua de corpo inteiro e veja como ele fica em você.</p>
 
-  <!-- ETAPA 1: escolher vestido -->
+  <!-- ETAPA 1: escolher vestido (catálogo completo) -->
   <div class="card" id="c-dress">
     <div class="step-t">1 · Escolha o vestido</div>
+    <div class="pills" id="pills"></div>
+    <input class="search" id="q" type="search" placeholder="Buscar por código (ex: MD-006) ou cor…" aria-label="Buscar vestido">
     <div class="dresses" id="dresses"></div>
+    <div class="empty-msg hidden" id="noresult">Nenhum vestido encontrado — tente outra busca.</div>
+    <button class="more hidden" id="more">Ver mais vestidos</button>
   </div>
 
   <!-- ETAPA 2: foto -->
@@ -59,11 +79,12 @@ h1{font-family:var(--serif);font-weight:600;font-size:34px;text-align:center;mar
       <div class="hint">de corpo inteiro, de frente, boa luz</div>
       <input type="file" accept="image/*" id="file" class="hidden">
     </label>
-    <button class="mini" id="sample" style="display:block;margin:10px auto 0">ou usar uma foto de exemplo</button>
   </div>
 
+  <div class="picked-bar" id="pbar"><img id="pimg" alt=""><span>Selecionado: <b id="pcode"></b></span><a id="ptroca">trocar</a></div>
+
   <button class="btn" id="go" disabled>Provar em mim ✨</button>
-  <div class="disclaimer">É uma simulação por IA pra você se imaginar no vestido — o caimento real, só provando na loja 💜</div>
+  <div class="disclaimer">É uma simulação por IA pra você se imaginar no vestido — o caimento real, só provando na loja 💜 Sua foto não fica salva.</div>
 
   <!-- LOADING -->
   <div class="card hidden" id="c-load">
@@ -87,75 +108,136 @@ h1{font-family:var(--serif);font-weight:600;font-size:34px;text-align:center;mar
 
 <script>
 const WORKER = (localStorage.getItem('tryon_worker')) || 'https://kl-tryon.contato-4d7.workers.dev';
-const WA_NUM = '5521966475383'; // Barra (padrão); no site real vem da unidade da peça
-const SB = 'https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra';
-const DRESSES = [
-  {k:'DB-001', cap:'Debutante', url:`${SB}/vestidos-debutante/DB-001-ia.jpg`, thumb:`${SB}/vestidos-debutante/DB-001-ia-thumb.jpg`},
-  {k:'MD-006', cap:'Madrinha', url:`${SB}/vestidos-madrinha/MD-006-ia.jpg`, thumb:`${SB}/vestidos-madrinha/MD-006-ia-thumb.jpg`},
-  {k:'MD-005', cap:'Madrinha', url:`${SB}/vestidos-madrinha/MD-005-ia.jpg`, thumb:`${SB}/vestidos-madrinha/MD-005-ia-thumb.jpg`},
-  {k:'NV-001', cap:'Noiva', url:`${SB}/vestidos-noiva/NV-001-ia.jpg`, thumb:`${SB}/vestidos-noiva/NV-001-ia-thumb.jpg`},
-];
-const SAMPLE_PERSON = `${SB}/vestidos-noiva/040302-ia.jpg`;
-
-let picked = null, photo = null;
+const UNITS = {sf:{label:'São Francisco', wa:'5521970858787'}, barra:{label:'Barra da Tijuca', wa:'5521966475383'}};
+const CATS = [['all','Todos'],['vestidos-noiva','Noivas'],['vestidos-madrinha','Madrinhas & Festa'],['vestidos-debutante','Debutantes']];
+const BATCH = 24;
 const $ = (id) => document.getElementById(id);
 
-// render vestidos
-DRESSES.forEach((d,i)=>{
-  const el = document.createElement('div');
-  el.className = 'dress'; el.dataset.k = d.k;
-  el.innerHTML = `<img loading="lazy" src="${d.thumb}" alt="${d.cap} ${d.k}"><div class="cap">${d.cap}</div>`;
-  el.onclick = ()=>{ picked = d; document.querySelectorAll('.dress').forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); refresh(); };
-  $('dresses').appendChild(el);
-});
+let ALL = [];          // todos os vestidos do catálogo
+let filtered = [];
+let shown = 0;
+let cat = 'all', term = '';
+let picked = null, photo = null;
 
-$('file').onchange = (e)=>{
-  const f = e.target.files[0]; if(!f) return;
+const thumbU = (u) => u.split('?')[0].replace(/\.jpg$/i, '-thumb.jpg');
+const nome = (c) => ({'vestidos-noiva':'Vestido de Noiva','vestidos-madrinha':'Vestido Madrinha & Festa','vestidos-debutante':'Vestido de Debutante'})[c] || 'Vestido';
+
+// carrega o catálogo real do site — nunca desatualiza
+async function loadCatalog(){
+  const res = await fetch('catalogo.html', {cache:'no-store'});
+  const html = await res.text();
+  const m = html.match(/const DATA=(\[.*?\]);/s);
+  const data = JSON.parse(m[1]);
+  ALL = data.filter(d => ['vestidos-noiva','vestidos-madrinha','vestidos-debutante'].includes(d.c));
+  renderPills(); applyFilter();
+  // deep-link ?p=CODIGO vindo do catálogo
+  const p = new URLSearchParams(location.search).get('p');
+  if (p) { const d = ALL.find(x => x.k.toUpperCase() === p.toUpperCase()); if (d) select(d, true); }
+}
+
+function renderPills(){
+  $('pills').innerHTML = '';
+  CATS.forEach(([id,label]) => {
+    const n = id==='all' ? ALL.length : ALL.filter(d=>d.c===id).length;
+    const b = document.createElement('button');
+    b.className = 'pill' + (cat===id?' on':'');
+    b.innerHTML = `${label}<small>${n}</small>`;
+    b.onclick = () => { cat = id; renderPills(); applyFilter(); };
+    $('pills').appendChild(b);
+  });
+}
+
+function applyFilter(){
+  const t = term.trim().toLowerCase();
+  filtered = ALL.filter(d =>
+    (cat==='all' || d.c===cat) &&
+    (!t || d.k.toLowerCase().includes(t) || (d.co||'').toLowerCase().includes(t))
+  );
+  shown = 0; $('dresses').innerHTML = '';
+  renderBatch();
+}
+
+function renderBatch(){
+  const slice = filtered.slice(shown, shown + BATCH);
+  slice.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'dress' + (picked && picked.k===d.k ? ' sel':'');
+    el.dataset.k = d.k;
+    el.innerHTML = `<img loading="lazy" decoding="async" src="${thumbU(d.u)}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='${d.u}'}" alt="${nome(d.c)} ${d.k}"><div class="cap">${d.k}</div>`;
+    el.onclick = () => select(d);
+    $('dresses').appendChild(el);
+  });
+  shown += slice.length;
+  $('more').classList.toggle('hidden', shown >= filtered.length);
+  $('noresult').classList.toggle('hidden', filtered.length > 0);
+}
+
+function select(d, fromLink){
+  picked = d;
+  document.querySelectorAll('.dress').forEach(x => x.classList.toggle('sel', x.dataset.k===d.k));
+  $('pimg').src = thumbU(d.u); $('pcode').textContent = `${nome(d.c)} ${d.k}`;
+  $('pbar').classList.add('on');
+  try { const u = new URL(location); u.searchParams.set('p', d.k); history.replaceState(null,'',u); } catch(e){}
+  refresh();
+  if (!fromLink) $('c-photo').scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+$('q').addEventListener('input', (e) => { term = e.target.value; applyFilter(); });
+$('more').onclick = renderBatch;
+$('ptroca').onclick = () => { $('c-dress').scrollIntoView({behavior:'smooth'}); };
+
+$('file').onchange = (e) => {
+  const f = e.target.files[0]; if (!f) return;
   const r = new FileReader();
-  r.onload = ()=>{ photo = r.result; $('uplabel').innerHTML = `<img class="prev" src="${photo}"><div class="hint">toque pra trocar</div>`; $('uplabel').appendChild($('file')); refresh(); };
+  r.onload = () => { photo = r.result; $('uplabel').innerHTML = `<img class="prev" src="${photo}"><div class="hint">toque pra trocar</div>`; $('uplabel').appendChild($('file')); refresh(); };
   r.readAsDataURL(f);
 };
-$('sample').onclick = ()=>{ photo = SAMPLE_PERSON; $('uptext').textContent='Foto de exemplo selecionada ✓'; $('uplabel').querySelector('.ico').textContent='🧍‍♀️'; refresh(); };
 
 function refresh(){ $('go').disabled = !(picked && photo); }
 
-$('go').onclick = async ()=>{
+$('go').onclick = async () => {
   show('load');
-  try{
-    const payload = picked && photo ? { garment_url: picked.url, [photo.startsWith('http')?'image_url':'image_b64']: photo } : null;
+  try {
+    const payload = { garment_url: picked.u.split('?')[0], [photo.startsWith('http') ? 'image_url' : 'image_b64']: photo };
     const res = await fetch(`${WORKER}/tryon`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
     const data = await res.json();
-    if(!res.ok){ return fail(data.motivo || data.error || 'Algo deu errado. Tente de novo.'); }
-    // poll
+    if (!res.ok) { return fail(data.motivo || data.error || 'Algo deu errado. Tente de novo.'); }
     const id = data.id; const t0 = Date.now();
-    while(true){
-      await new Promise(r=>setTimeout(r, 2500));
+    while (true) {
+      await new Promise(r => setTimeout(r, 2500));
       const s = await (await fetch(`${WORKER}/status?id=${id}`)).json();
-      if(s.status === 'done'){ return done(s.image, data.restam_voce); }
-      if(s.status === 'error'){ return fail('Não consegui gerar dessa vez. Tente outra foto.'); }
-      if(Date.now()-t0 > 90000){ return fail('Demorou demais. Tente de novo.'); }
+      if (s.status === 'done') { return done(s.image, data.restam_voce); }
+      if (s.status === 'error') { return fail('Não consegui gerar dessa vez. Tente outra foto (corpo inteiro, de frente).'); }
+      if (Date.now() - t0 > 90000) { return fail('Demorou demais. Tente de novo.'); }
     }
-  }catch(e){ fail('Sem conexão com o serviço. Tente de novo.'); }
+  } catch(e) { fail('Sem conexão com o serviço. Tente de novo.'); }
 };
 
-function waLink(){ const m = encodeURIComponent(`Oi! Fiz a prova virtual do vestido ${picked?picked.k:''} e amei. Quero provar de verdade 💜`); return `https://wa.me/${WA_NUM}?text=${m}`; }
+function waLink(){
+  const un = picked && UNITS[picked.un] ? UNITS[picked.un] : UNITS.barra;
+  const m = encodeURIComponent(`Oi! Fiz a prova virtual do vestido ${picked ? picked.k : ''} (${un.label}) e amei. Quero provar de verdade 💜`);
+  return `https://wa.me/${un.wa}?text=${m}`;
+}
 
 function done(img, restam){
   $('rimg').src = img; $('wa').href = waLink();
-  $('remain').textContent = restam>0 ? `Você ainda pode provar mais ${restam} ${restam===1?'vestido':'vestidos'} hoje.` : 'Essa foi sua última prova de hoje 💜';
-  $('again').style.display = restam>0 ? 'block':'none';
+  $('remain').textContent = restam > 0 ? `Você ainda pode provar mais ${restam} ${restam===1?'vestido':'vestidos'} hoje.` : 'Essa foi sua última prova de hoje 💜';
+  $('again').style.display = restam > 0 ? 'block' : 'none';
   show('result');
 }
 function fail(msg){ $('errmsg').textContent = msg; $('wa2').href = waLink(); show('err'); }
-$('again').onclick = ()=>{ show('form'); };
+$('again').onclick = () => { show('form'); $('c-dress').scrollIntoView(); };
 
 function show(state){
-  const forms = ['c-dress','c-photo','go'];
-  const setF = (v)=>forms.forEach(id=>$(id).classList.toggle('hidden', !v)) || ($('go').style.display = v?'block':'none');
-  $('c-load').classList.add('hidden'); $('c-result').classList.add('hidden'); $('c-err').classList.add('hidden');
+  ['c-dress','c-photo'].forEach(id => $(id).classList.toggle('hidden', state!=='form'));
+  $('go').style.display = state==='form' ? 'block' : 'none';
+  $('pbar').classList.toggle('on', state==='form' && !!picked);
   document.querySelector('.disclaimer').classList.toggle('hidden', state!=='form');
-  if(state==='form'){ setF(true); }
-  else { setF(false); $('c-'+ (state==='load'?'load':state)).classList.remove('hidden'); }
+  $('c-load').classList.add('hidden'); $('c-result').classList.add('hidden'); $('c-err').classList.add('hidden');
+  if (state!=='form') $('c-' + (state==='load' ? 'load' : state)).classList.remove('hidden');
+  window.scrollTo({top:0, behavior:'smooth'});
 }
+
+loadCatalog();
 </script>
 </body></html>
