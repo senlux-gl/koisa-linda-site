@@ -53,7 +53,7 @@ h1{font-family:var(--serif);font-weight:600;font-size:34px;text-align:center;mar
 .disclaimer{font-size:11px;color:var(--muted);text-align:center;font-style:italic;margin-top:10px}
 @media(max-width:620px){.dresses{grid-template-columns:repeat(2,1fr)}h1{font-size:28px}}
 @media(min-width:621px) and (max-width:860px){.dresses{grid-template-columns:repeat(3,1fr)}}
-</style><script defer src="kl-tracking.js?v=20260710deep3"></script></head>
+</style><script defer src="kl-catalog-data.js?v=20260710p3"></script><script defer src="kl-tracking.js?v=20260710deep3"></script><link rel="stylesheet" href="kl-site-enhance.css?v=20260710p3"></head>
 <body>
 <div class="wrap">
   <div class="eyebrow">Koisa Linda</div>
@@ -135,12 +135,9 @@ let picked = null, photo = null;
 const thumbU = (u) => u.split('?')[0].replace(/\.jpg$/i, '-thumb.jpg');
 const nome = (c) => ({'vestidos-noiva':'Vestido de Noiva','vestidos-madrinha':'Vestido Madrinha & Festa','vestidos-debutante':'Vestido de Debutante'})[c] || 'Vestido';
 
-// carrega o catálogo real do site — nunca desatualiza
+// carrega o catálogo compartilhado do site — cacheável e sem parse de HTML
 async function loadCatalog(){
-  const res = await fetch('catalogo.html', {cache:'no-store'});
-  const html = await res.text();
-  const m = html.match(/const DATA=(\[.*?\]);/s);
-  const data = JSON.parse(m[1]);
+  const data = window.KL_DATA || [];
   ALL = data.filter(d => ['vestidos-noiva','vestidos-madrinha','vestidos-debutante'].includes(d.c));
   renderPills(); applyFilter();
   // deep-link ?p=CODIGO vindo do catálogo
@@ -259,4 +256,4 @@ function show(state){
 
 loadCatalog();
 </script>
-</body></html>
+<script src="kl-site-enhance.js?v=20260710p3"></script></body></html>
