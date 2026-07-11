@@ -254,6 +254,8 @@ function show(state){
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
-loadCatalog();
+// kl-catalog-data.js é defer (define window.KL_DATA depois do parse) — só carregar o catálogo quando ele existir
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadCatalog);
+else loadCatalog();
 </script>
 <script src="kl-site-enhance.js?v=20260710p3"></script></body></html>
