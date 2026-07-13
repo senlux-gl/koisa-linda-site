@@ -38,9 +38,12 @@ header{position:sticky;top:0;z-index:50;background:rgba(251,247,239,.94);backdro
 .logo{display:flex;align-items:center;gap:12px}.logo img{height:46px}
 .logo .wm{font-family:var(--serif);font-weight:600;font-size:19px;letter-spacing:6px;color:var(--ruby);line-height:1}
 .logo .wm small{display:block;font-family:var(--sans);font-size:8.5px;letter-spacing:4px;color:var(--muted);margin-top:3px}
-.menu{display:flex;gap:30px;font-family:var(--sans);font-size:13.5px;letter-spacing:1.5px;text-transform:uppercase;color:#5f534b}
+.menu{display:flex;gap:30px;margin-left:auto;font-family:var(--sans);font-size:13.5px;letter-spacing:1.5px;text-transform:uppercase;color:#5f534b}
 .menu a{position:relative;padding:4px 0;transition:.15s}.menu a:hover{color:var(--ruby)}
 .menu a.cur{color:var(--ruby)}.menu a.cur::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:1px;background:var(--gold)}
+.ig-btn{display:inline-flex;align-items:center;gap:7px;margin-left:16px;color:#5f534b;font-family:var(--sans);font-size:12.5px;letter-spacing:1px;text-transform:uppercase;padding:9px 15px;border:1px solid var(--line);border-radius:999px;min-height:44px;transition:.15s}
+.ig-btn:hover{color:var(--ruby);border-color:var(--ruby)}.ig-btn svg{flex-shrink:0}
+@media(max-width:860px){.menu{margin-left:0}.ig-btn{margin-left:auto;margin-right:6px;padding:9px 11px}.ig-btn span{display:none}}
 /* FOOTER */
 footer{background:var(--ruby);color:#e9d9bd;padding:56px 32px 34px;text-align:center}
 footer .fimg{height:60px;margin:0 auto 14px;opacity:.95}
@@ -171,7 +174,7 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 .svcs{gap:30px}
 .units{gap:30px}
 </style>
-<script defer src="kl-tracking.js?v=20260710deep3"></script><link rel="stylesheet" href="kl-site-enhance.css?v=20260710p3"></head><body><header><div class="nav"><a class="logo" href="index.html"><img src="img/logo-kl-main.png" alt="KL"><div class="wm">KOISA LINDA<small>DESDE 1994</small></div></a><nav class="menu"><a href="index.html" class="cur">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav><button class="mtog" aria-label="Abrir menu" aria-expanded="false"><span class="bars"><span></span><span></span><span></span></span><b class="mtog-lbl">Menu</b></button></div><nav class="mnav"><a href="index.html" class="cur">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav></header>
+<script defer src="kl-tracking.js?v=20260710deep3"></script><link rel="stylesheet" href="kl-site-enhance.css?v=20260713r3"></head><body><header><div class="nav"><a class="logo" href="index.html"><img src="img/logo-kl-main.png" alt="KL"><div class="wm">KOISA LINDA<small>DESDE 1994</small></div></a><nav class="menu"><a href="index.html" class="cur">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav><a class="ig-btn" href="https://www.instagram.com/koisalinda_oficial/" target="_blank" rel="noopener" aria-label="Ver o Instagram da Koisa Linda"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.4"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1.1" fill="currentColor" stroke="none"/></svg><span>Instagram</span></a><button class="mtog" aria-label="Abrir menu" aria-expanded="false"><span class="bars"><span></span><span></span><span></span></span><b class="mtog-lbl">Menu</b></button></div><nav class="mnav"><a href="index.html" class="cur">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav></header>
 <section class="hero">
   <div class="panels"><div class="panel" style="background-image:url('img/hero-noiva.webp')"></div><div class="panel" data-bg="img/hero-debutante.webp"></div><div class="panel" data-bg="img/hero-madrinha.webp"></div></div>
   <div class="scrim"></div>
@@ -318,6 +321,7 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
     <div class="cli"><img loading="lazy" src="img/cliente-noiva-4.webp" alt="Noiva Koisa Linda"></div>
     <div class="cli wide"><img loading="lazy" src="img/cliente-deb-4.webp" alt="Debutante Koisa Linda"></div>
   </div>
+  <a class="btn-out" style="margin-top:34px" href="https://www.instagram.com/koisalinda_oficial/" target="_blank" rel="noopener">Ver mais no Instagram</a>
 </section>
 <section class="section center">
   <div class="eyebrow">Loja Barra · Shopping Downtown</div>
@@ -370,4 +374,4 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
   new IntersectionObserver(function(es){h.classList.toggle('kl-shrink',!es[0].isIntersecting);},{threshold:0}).observe(s);}
 })();
 </script>
-<script>(function(){var b=document.querySelector(".mtog");if(!b)return;b.addEventListener("click",function(){var o=document.body.classList.toggle("mopen");b.setAttribute("aria-expanded",o?"true":"false")});document.querySelectorAll(".mnav a").forEach(function(a){a.addEventListener("click",function(){document.body.classList.remove("mopen")})})})();</script><script>(function(){function loadHeroPanels(){document.querySelectorAll('.hero .panel[data-bg]').forEach(function(p){p.style.backgroundImage="url('"+p.getAttribute('data-bg')+"')";p.removeAttribute('data-bg');});}window.addEventListener('load',function(){setTimeout(loadHeroPanels,2500);});})();</script><script src="kl-site-enhance.js?v=20260710p3"></script></body></html>
+<script>(function(){var b=document.querySelector(".mtog");if(!b)return;b.addEventListener("click",function(){var o=document.body.classList.toggle("mopen");b.setAttribute("aria-expanded",o?"true":"false")});document.querySelectorAll(".mnav a").forEach(function(a){a.addEventListener("click",function(){document.body.classList.remove("mopen")})})})();</script><script>(function(){function loadHeroPanels(){document.querySelectorAll('.hero .panel[data-bg]').forEach(function(p){p.style.backgroundImage="url('"+p.getAttribute('data-bg')+"')";p.removeAttribute('data-bg');});}window.addEventListener('load',function(){setTimeout(loadHeroPanels,2500);});})();</script><script src="kl-site-enhance.js?v=20260713r3"></script></body></html>

@@ -36,8 +36,8 @@
     box.appendChild(label); box.appendChild(cat); box.appendChild(w); box.appendChild(close);
     document.body.appendChild(box);
     var shown=false;
-    function update(){var y=window.scrollY||0; if(!shown && y>420){box.classList.add('is-on'); shown=true;}}
-    window.addEventListener('scroll',update,{passive:true}); setTimeout(update,900);
+    function update(){var y=window.scrollY||0; if(!shown && y>140){box.classList.add('is-on'); shown=true;}}
+    window.addEventListener('scroll',update,{passive:true}); setTimeout(function(){box.classList.add('is-on'); shown=true;},1400);
     box.querySelector('.kl-sticky-x').onclick=function(){box.classList.remove('is-on'); sessionStorage.setItem('klStickyClosed','1')};
     box.addEventListener('click',function(e){var a=e.target.closest('a'); if(!a) return; try{ if(typeof fbq==='function') fbq('trackCustom','KL_Sticky_CTA_Click',{cta_label:(a.textContent||'').trim(),page_path:location.pathname}); }catch(_){}});
   }
