@@ -53,6 +53,20 @@ h1{font-family:var(--serif);font-weight:600;font-size:34px;text-align:center;mar
 .disclaimer{font-size:11px;color:var(--muted);text-align:center;font-style:italic;margin-top:10px}
 @media(max-width:620px){.dresses{grid-template-columns:repeat(2,1fr)}h1{font-size:28px}}
 @media(min-width:621px) and (max-width:860px){.dresses{grid-template-columns:repeat(3,1fr)}}
+.fitrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.fitlbl{font-size:13px;color:var(--muted)}
+.sizes{display:flex;gap:6px;flex-wrap:wrap}
+.sz{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 13px;font-family:var(--sans);font-size:13px;color:var(--ink);cursor:pointer;transition:.15s}
+.sz.on{background:var(--ruby);border-color:var(--ruby);color:#fff}
+.sz.clear{border-style:dashed;color:var(--muted);font-size:12px}
+.fitleg{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;font-size:11.5px;color:var(--muted)}
+.fitleg span{display:inline-flex;align-items:center;gap:5px}
+.fitleg i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.dot-ok{background:#1c6b30}.dot-adj{background:#c8862a}.dot-med{background:var(--ruby)}
+.fit{position:absolute;top:6px;left:6px;z-index:2;font-size:9px;letter-spacing:.2px;padding:3px 7px;border-radius:999px;font-family:var(--sans);line-height:1;white-space:nowrap}
+.fit-ok{background:#1c6b30;color:#fff}
+.fit-adj{background:#c8862a;color:#fff}
+.fit-med{background:rgba(114,47,55,.92);color:#f4e5c4}
 </style><script defer src="kl-catalog-data.js?v=20260711sf"></script><script defer src="kl-tracking.js?v=20260710deep3"></script><link rel="stylesheet" href="kl-site-enhance.css?v=20260710p3"></head>
 <body>
 <div class="wrap">
@@ -63,6 +77,8 @@ h1{font-family:var(--serif);font-weight:600;font-size:34px;text-align:center;mar
   <!-- ETAPA 1: escolher vestido (catálogo completo) -->
   <div class="card" id="c-dress">
     <div class="step-t">1 · Escolha o vestido</div>
+    <div class="fitrow"><span class="fitlbl">Seu manequim:</span><div class="sizes" id="sizes"></div></div>
+    <div class="fitleg hidden" id="fitleg"><span><i class="dot-ok"></i>veste seu tamanho</span><span><i class="dot-adj"></i>a gente ajusta pra você</span><span><i class="dot-med"></i>sob medida</span></div>
     <div class="pills" id="pills"></div>
     <input class="search" id="q" type="search" placeholder="Buscar por código (ex: MD-006) ou cor…" aria-label="Buscar vestido">
     <div class="dresses" id="dresses"></div>
@@ -132,6 +148,40 @@ let shown = 0;
 let cat = 'all', term = '';
 let picked = null, photo = null;
 
+// guia de tamanho (v1): a cliente informa o manequim, o grid marca a compatibilidade
+const SIZES = ['PP','P','M','G','GG'];
+let myFit = null;
+try { myFit = localStorage.getItem('kl_manequim') || null; } catch(e){}
+function renderSizes(){
+  const box = $('sizes'); box.innerHTML = '';
+  SIZES.forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'sz' + (myFit===s ? ' on' : '');
+    b.textContent = s;
+    b.onclick = () => setFit(s);
+    box.appendChild(b);
+  });
+  const clr = document.createElement('button');
+  clr.className = 'sz clear';
+  clr.textContent = myFit ? 'limpar' : 'não sei';
+  clr.onclick = () => setFit(null);
+  box.appendChild(clr);
+  $('fitleg').classList.toggle('hidden', !myFit);
+}
+function setFit(s){
+  myFit = s;
+  try { s ? localStorage.setItem('kl_manequim', s) : localStorage.removeItem('kl_manequim'); } catch(e){}
+  renderSizes(); applyFilter();
+}
+// noiva/único/numérico → sob medida · letra igual → cabe · letra diferente → ajustável. Nunca "não serve".
+function fitFor(d){
+  if (!myFit) return null;
+  const t = (d.t||'').trim().toUpperCase();
+  if (!t || t==='ÚNICO' || t==='UNICO' || !/^(PP|P|M|G|GG|XG)$/.test(t)) return {c:'med', x:'sob medida'};
+  if (t === myFit) return {c:'ok', x:'cabe'};
+  return {c:'adj', x:'ajustável'};
+}
+
 const thumbU = (u) => u.split('?')[0].replace(/\.jpg$/i, '-thumb.jpg');
 const nome = (c) => ({'vestidos-noiva':'Vestido de Noiva','vestidos-madrinha':'Vestido Madrinha & Festa','vestidos-debutante':'Vestido de Debutante'})[c] || 'Vestido';
 
@@ -139,7 +189,7 @@ const nome = (c) => ({'vestidos-noiva':'Vestido de Noiva','vestidos-madrinha':'V
 async function loadCatalog(){
   const data = window.KL_DATA || [];
   ALL = data.filter(d => ['vestidos-noiva','vestidos-madrinha','vestidos-debutante'].includes(d.c));
-  renderPills(); applyFilter();
+  renderSizes(); renderPills(); applyFilter();
   // deep-link ?p=CODIGO vindo do catálogo
   const p = new URLSearchParams(location.search).get('p');
   if (p) { const d = ALL.find(x => x.k.toUpperCase() === p.toUpperCase()); if (d) select(d, true); }
@@ -173,7 +223,9 @@ function renderBatch(){
     const el = document.createElement('div');
     el.className = 'dress' + (picked && picked.k===d.k ? ' sel':'');
     el.dataset.k = d.k;
-    el.innerHTML = `<img loading="lazy" decoding="async" src="${thumbU(d.u)}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='${d.u}'}" alt="${nome(d.c)} ${d.k}"><div class="cap">${d.k}</div>`;
+    const fit = fitFor(d);
+    const fitBadge = fit ? `<span class="fit fit-${fit.c}">${fit.x}</span>` : '';
+    el.innerHTML = `${fitBadge}<img loading="lazy" decoding="async" src="${thumbU(d.u)}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='${d.u}'}" alt="${nome(d.c)} ${d.k}"><div class="cap">${d.k}</div>`;
     el.onclick = () => select(d);
     $('dresses').appendChild(el);
   });
