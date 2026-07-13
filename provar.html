@@ -15,17 +15,17 @@ h1{font-family:var(--serif);font-weight:600;font-size:34px;text-align:center;mar
 .card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:18px}
 .step-t{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--ruby);margin-bottom:14px}
 .pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-family:var(--sans);font-size:13px;color:var(--ink);cursor:pointer}
+.pill{display:inline-flex;align-items:center;min-height:46px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 16px;font-family:var(--sans);font-size:13.5px;color:var(--ink);cursor:pointer}
 .pill.on{background:var(--ruby);border-color:var(--ruby);color:#fff}
 .pill small{color:inherit;opacity:.65;margin-left:4px}
-.search{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-family:var(--sans);font-size:14px;background:#fff;color:var(--ink);margin-bottom:14px}
+.search{width:100%;min-height:48px;border:1px solid var(--line);border-radius:12px;padding:13px 16px;font-family:var(--sans);font-size:16px;background:#fff;color:var(--ink);margin-bottom:14px}
 .search:focus{outline:none;border-color:var(--ruby)}
 .dresses{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .dress{border:2px solid transparent;border-radius:12px;overflow:hidden;cursor:pointer;background:#f3ece0;aspect-ratio:3/4;position:relative}
 .dress img{width:100%;height:100%;object-fit:cover;display:block}
 .dress.sel{border-color:var(--ruby)}
 .dress.sel::after{content:'✓';position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:var(--ruby);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center}
-.dress .cap{position:absolute;bottom:0;left:0;right:0;background:rgba(114,47,55,.85);color:#fff;font-size:10px;text-align:center;padding:3px 2px}
+.dress .cap{position:absolute;bottom:0;left:0;right:0;background:rgba(114,47,55,.88);color:#fff;font-size:11.5px;text-align:center;padding:5px 2px}
 .empty-msg{color:var(--muted);text-align:center;padding:20px 0;font-size:14px}
 .picked-bar{position:sticky;bottom:12px;z-index:5;background:var(--ink);color:#fff;border-radius:999px;padding:10px 18px;display:none;align-items:center;gap:10px;font-size:13px;box-shadow:0 10px 26px rgba(44,35,38,.3)}
 .picked-bar.on{display:flex}
@@ -56,7 +56,7 @@ h1{font-family:var(--serif);font-weight:600;font-size:34px;text-align:center;mar
 .fitrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 .fitlbl{font-size:13px;color:var(--muted)}
 .sizes{display:flex;gap:6px;flex-wrap:wrap}
-.sz{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 13px;font-family:var(--sans);font-size:13px;color:var(--ink);cursor:pointer;transition:.15s}
+.sz{display:inline-flex;align-items:center;min-height:46px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 17px;font-family:var(--sans);font-size:14px;color:var(--ink);cursor:pointer;transition:.15s}
 .sz.on{background:var(--ruby);border-color:var(--ruby);color:#fff}
 .sz.clear{border-style:dashed;color:var(--muted);font-size:12px}
 .fitleg{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;font-size:11.5px;color:var(--muted)}
@@ -67,11 +67,22 @@ h1{font-family:var(--serif);font-weight:600;font-size:34px;text-align:center;mar
 .fit-ok{background:#1c6b30;color:#fff}
 .fit-adj{background:#c8862a;color:#fff}
 .fit-med{background:rgba(114,47,55,.92);color:#f4e5c4}
+.site-head{position:sticky;top:0;z-index:60;background:rgba(251,247,239,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 18px}
+.site-logo{display:flex;align-items:center;gap:9px;font-family:var(--serif);font-weight:600;font-size:16px;letter-spacing:3px;color:var(--ruby);text-decoration:none}
+.site-logo img{height:34px}
+.site-nav{display:flex;gap:6px}
+.site-nav a{display:inline-flex;align-items:center;min-height:44px;padding:8px 15px;font-family:var(--sans);font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#5f534b;text-decoration:none;border-radius:999px;transition:.15s}
+.site-nav a:hover{color:var(--ruby);background:#fff}
+@media(max-width:520px){.site-logo span{display:none}.site-nav a{padding:8px 12px;font-size:12px;letter-spacing:.5px}}
 </style><script defer src="kl-catalog-data.js?v=20260711sf"></script><script defer src="kl-tracking.js?v=20260710deep3"></script><link rel="stylesheet" href="kl-site-enhance.css?v=20260713r3"></head>
 <body>
+<header class="site-head">
+  <a class="site-logo" href="index.html"><img src="img/logo-kl-main.png" alt="Koisa Linda"><span>Koisa Linda</span></a>
+  <nav class="site-nav"><a href="index.html">Início</a><a href="catalogo.html">Catálogo</a></nav>
+</header>
 <div class="wrap">
-  <div class="eyebrow">Koisa Linda</div>
-  <h1>Prova Virtual</h1>
+  <div class="eyebrow">Prova Virtual ✨ · grátis</div>
+  <h1>Prove o vestido em você</h1>
   <p class="sub">Escolha qualquer vestido do nosso acervo, envie uma foto sua de corpo inteiro e veja como ele fica em você.</p>
 
   <!-- ETAPA 1: escolher vestido (catálogo completo) -->
