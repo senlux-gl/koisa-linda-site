@@ -106,6 +106,17 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 .band-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 .band-sec{margin-top:16px}.band-sec a{color:var(--baunilha);text-decoration:underline;font-family:var(--sans);font-size:15px;letter-spacing:1px}
 
+/* PROVA VIRTUAL — composição editorial (antes/depois) */
+.tryon-duo{display:flex;align-items:center;justify-content:center;gap:18px}
+.tryon-card{background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 10px 14px;box-shadow:0 14px 34px rgba(90,36,43,.08)}
+.tryon-card.result{border-color:#e2cfa4;transform:translateY(-14px);box-shadow:0 18px 40px rgba(90,36,43,.12)}
+.tryon-ph{width:min(24vw,190px);aspect-ratio:2/5;background-image:url('img/prova-virtual-exemplo.webp');background-repeat:no-repeat;background-size:232.5% auto;border-radius:3px}
+.tryon-ph.antes{background-position:3.9% 68.8%}
+.tryon-ph.depois{background-position:96.1% 68.8%}
+.tryon-cap{margin-top:12px;text-align:center;font-family:var(--sans);font-size:11px;letter-spacing:2.4px;text-transform:uppercase;color:#8a7a66}
+.tryon-card.result .tryon-cap{color:var(--ruby)}
+.tryon-arrow{color:var(--gold);flex-shrink:0}
+@media(max-width:860px){.tryon-duo{gap:9px}.tryon-ph{width:min(29vw,124px)}.tryon-card{padding:8px 8px 11px}.tryon-card.result{transform:translateY(-8px)}.tryon-cap{font-size:10.5px;letter-spacing:1.6px;margin-top:9px}.tryon-arrow{width:22px}}
 .clientes{max-width:1200px;margin:34px auto 0;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 .cli{overflow:hidden;border-radius:4px;aspect-ratio:3/4;background:var(--baunilha)}
 .cli.wide{grid-column:span 2;aspect-ratio:3/2}
@@ -201,12 +212,17 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 
 <section class="section">
   <div class="split">
-    <img src="img/prova-virtual-exemplo.webp" alt="Prova virtual: sua foto vira você vestindo o vestido" loading="lazy">
+    <div class="tryon-duo" role="img" aria-label="Prova virtual: sua foto vira você vestindo o vestido">
+      <div class="tryon-card"><div class="tryon-ph antes"></div><div class="tryon-cap">Sua foto</div></div>
+      <svg class="tryon-arrow" width="34" height="16" viewBox="0 0 34 16" fill="none" aria-hidden="true"><path d="M0 8h30M24 1.5 32 8l-8 6.5" stroke="currentColor" stroke-width="1.4"/></svg>
+      <div class="tryon-card result"><div class="tryon-ph depois"></div><div class="tryon-cap">Você no vestido</div></div>
+    </div>
     <div class="tx">
-      <div class="eyebrow">Novidade ✨</div>
+      <div class="eyebrow">Novidade · Prova virtual</div>
       <div class="sec-title" style="text-align:left;margin-top:8px">Prove o vestido<br>sem sair de casa</div>
-      <p>Escolha qualquer vestido do nosso acervo, envie uma foto sua de corpo inteiro e veja em segundos como ele fica em você — grátis, direto do celular. Amou? A prova de verdade te espera na loja.</p>
-      <a class="btn-pri" href="provar.html">Provar em mim ✨</a>
+      <p>Escolha um vestido do acervo, envie uma foto sua de corpo inteiro e veja em segundos como ele fica em você. Grátis, direto do celular.</p>
+      <p style="margin-top:10px">Amou? A prova de verdade te espera na loja.</p>
+      <a class="btn-pri" style="margin-top:22px" href="provar.html">Provar em mim</a>
     </div>
   </div>
 </section>
