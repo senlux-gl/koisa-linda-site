@@ -25,9 +25,9 @@ document.addEventListener('click',function(e){
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--body);color:var(--ink);background:var(--cream);-webkit-font-smoothing:antialiased;line-height:1.5}
 a{color:inherit;text-decoration:none}img{display:block}
-.btn-pri{display:inline-block;background:var(--ruby);color:#fff;font-family:var(--sans);font-size:13px;letter-spacing:2px;text-transform:uppercase;padding:14px 30px;border-radius:30px;border:1px solid var(--ruby);transition:.18s;cursor:pointer}
+.btn-pri{display:inline-flex;align-items:center;justify-content:center;min-height:48px;background:var(--ruby);color:#fff;font-family:var(--sans);font-size:14px;letter-spacing:2px;text-transform:uppercase;padding:12px 30px;border-radius:30px;border:1px solid var(--ruby);transition:.18s;cursor:pointer}
 .btn-pri:hover{background:var(--ruby-dark);letter-spacing:2.6px}
-.btn-out{display:inline-block;background:transparent;color:var(--ruby);font-family:var(--sans);font-size:13px;letter-spacing:2px;text-transform:uppercase;padding:14px 30px;border-radius:30px;border:1px solid var(--ruby);transition:.18s;cursor:pointer}
+.btn-out{display:inline-flex;align-items:center;justify-content:center;min-height:48px;background:transparent;color:var(--ruby);font-family:var(--sans);font-size:14px;letter-spacing:2px;text-transform:uppercase;padding:12px 30px;border-radius:30px;border:1px solid var(--ruby);transition:.18s;cursor:pointer}
 .btn-out:hover{background:var(--ruby);color:#fff}
 .eyebrow{font-family:var(--sans);font-size:11.5px;letter-spacing:5px;text-transform:uppercase;color:var(--gold)}
 .sec-title{font-family:var(--serif);font-style:italic;font-weight:500;font-size:42px;color:var(--ink);line-height:1.05}
@@ -38,7 +38,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(251,247,239,.94);backdro
 .logo{display:flex;align-items:center;gap:12px}.logo img{height:46px}
 .logo .wm{font-family:var(--serif);font-weight:600;font-size:19px;letter-spacing:6px;color:var(--ruby);line-height:1}
 .logo .wm small{display:block;font-family:var(--sans);font-size:8.5px;letter-spacing:4px;color:var(--muted);margin-top:3px}
-.menu{display:flex;gap:32px;font-family:var(--sans);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#7d7068}
+.menu{display:flex;gap:30px;font-family:var(--sans);font-size:13.5px;letter-spacing:1.5px;text-transform:uppercase;color:#5f534b}
 .menu a{position:relative;padding:4px 0;transition:.15s}.menu a:hover{color:var(--ruby)}
 .menu a.cur{color:var(--ruby)}.menu a.cur::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:1px;background:var(--gold)}
 /* FOOTER */
@@ -51,7 +51,7 @@ footer .fimg{height:60px;margin:0 auto 14px;opacity:.95}
 .fsoc a:hover{color:#fff}
 footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;letter-spacing:1.2px;line-height:1.8}
 /* HERO */
-.hero{position:relative;min-height:84vh;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+.hero{position:relative;min-height:84vh;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;background:#2b1c1f}
 .hero .panels{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr 1fr}
 .hero .panel{background-size:cover;background-position:center 12%}
 .hero .scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(28,21,18,.4) 0%,rgba(28,21,18,.32) 38%,rgba(28,21,18,.62) 100%)}
@@ -74,7 +74,7 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 .col{position:relative;min-height:430px;overflow:hidden;border-radius:10px;display:flex;align-items:flex-end;background:#2b1c1f;box-shadow:0 16px 38px rgba(44,35,38,.10);isolation:isolate}
 .col img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:.55s;z-index:-2}.col:hover img{transform:scale(1.045)}
 .col::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,14,12,.08) 18%,rgba(20,14,12,.38) 54%,rgba(20,14,12,.86));z-index:-1}
-.col .ov{display:block;width:100%;padding:26px;color:#fff}.col .ov small{display:block;font-family:var(--sans);font-size:10px;letter-spacing:2.2px;text-transform:uppercase;color:var(--baunilha);margin-bottom:8px}.col .ov span{display:block;font-family:var(--serif);font-size:28px;letter-spacing:.2px;line-height:1.02}.col .ov p{font-family:var(--body);font-size:16.5px;line-height:1.45;margin:10px 0 18px;color:rgba(255,255,255,.86)}.col .mini-cta{display:inline-flex;align-items:center;gap:8px;font-family:var(--sans);font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;border:1px solid rgba(255,255,255,.48);border-radius:999px;padding:10px 15px;background:rgba(255,255,255,.08);backdrop-filter:blur(4px)}.col:hover .mini-cta{background:#fff;color:var(--ruby)}
+.col .ov{display:block;width:100%;padding:26px;color:#fff}.col .ov small{display:block;font-family:var(--sans);font-size:10px;letter-spacing:2.2px;text-transform:uppercase;color:var(--baunilha);margin-bottom:8px}.col .ov span{display:block;font-family:var(--serif);font-size:28px;letter-spacing:.2px;line-height:1.02}.col .ov p{font-family:var(--body);font-size:16.5px;line-height:1.45;margin:10px 0 18px;color:rgba(255,255,255,.86)}.col .mini-cta{display:inline-flex;align-items:center;gap:8px;min-height:46px;font-family:var(--sans);font-size:12px;letter-spacing:1.6px;text-transform:uppercase;border:1px solid rgba(255,255,255,.6);border-radius:999px;padding:12px 20px;background:rgba(255,255,255,.12);backdrop-filter:blur(4px)}.col:hover .mini-cta{background:#fff;color:var(--ruby)}
 /* SOBRE split */
 .split{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:54px;align-items:center}
 .split img{width:100%;border-radius:4px;aspect-ratio:4/5;object-fit:cover}
@@ -100,6 +100,8 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 .band h2{font-family:var(--serif);font-style:italic;font-size:40px;color:var(--baunilha);margin-bottom:10px}
 .band p{font-family:var(--body);font-size:17px;opacity:.9;margin-bottom:24px}
 .band .btn-pri{background:var(--baunilha);color:var(--dark);border-color:var(--baunilha)}.band .btn-pri:hover{background:#fff}
+.band-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.band-sec{margin-top:16px}.band-sec a{color:var(--baunilha);text-decoration:underline;font-family:var(--sans);font-size:15px;letter-spacing:1px}
 
 .clientes{max-width:1200px;margin:34px auto 0;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 .cli{overflow:hidden;border-radius:4px;aspect-ratio:3/4;background:var(--baunilha)}
@@ -107,7 +109,7 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 .cli img{width:100%;height:100%;object-fit:cover;transition:.5s}
 .cli:hover img{transform:scale(1.05)}
 @media(max-width:1100px){.cols{grid-template-columns:repeat(2,1fr)}.col{min-height:380px}}
-@media(max-width:860px){.clientes{grid-template-columns:repeat(2,1fr)}.menu{display:none}.cols{grid-template-columns:1fr}.col{min-height:360px}.split{grid-template-columns:1fr}.svcs,.units{grid-template-columns:1fr}.hero h1{font-size:44px}.phero h1{font-size:38px}.logo .wm{display:none}.section{padding-top:58px;padding-bottom:58px}.intent-head{margin-bottom:22px}.hero{height:590px;min-height:560px}.hero .copy{padding:0 22px}.hero p{font-size:15px}.sec-title{font-size:34px}.cols{gap:18px}.svcs,.units{gap:18px}.fsoc a{min-height:40px;display:inline-flex;align-items:center}}
+@media(max-width:860px){.clientes{grid-template-columns:repeat(2,1fr)}.menu{display:none}.cols{grid-template-columns:1fr}.col{min-height:360px}.split{grid-template-columns:1fr}.svcs,.units{grid-template-columns:1fr}.hero h1{font-size:44px}.phero h1{font-size:38px}.logo .wm{display:none}.section{padding-top:58px;padding-bottom:58px}.intent-head{margin-bottom:22px}.hero{height:590px;min-height:560px}.hero .panels{grid-template-columns:1fr}.hero .panel:nth-child(2),.hero .panel:nth-child(3){display:none}.hero .copy{padding:0 22px}.hero p{font-size:15px}.sec-title{font-size:34px}.cols{gap:18px}.svcs,.units{gap:18px}.fsoc a{min-height:40px;display:inline-flex;align-items:center}}
 
 /* PACOTES & ACESSÓRIOS */
 .section.pacotes{background:linear-gradient(180deg,#fbf3e3 0%,#f6ead2 100%)}
@@ -138,7 +140,7 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 .pkg-note{font-family:var(--sans);font-size:12px;letter-spacing:1px;color:var(--muted);margin-top:30px;text-transform:uppercase}
 @media(max-width:860px){.pkgs{grid-template-columns:1fr;max-width:420px}}
 
-.mtog{display:none;background:none;border:0;cursor:pointer;padding:10px;margin:-6px -4px}.mtog span{display:block;width:22px;height:2px;background:#2c2326;margin:5px 0;transition:.25s}.mnav{display:none;position:absolute;top:100%;left:0;right:0;background:#FBF7EF;border-bottom:1px solid var(--line);box-shadow:0 14px 30px rgba(44,35,38,.08);flex-direction:column;padding:4px 32px 16px}.mnav a{padding:14px 0;border-bottom:1px solid var(--line);font-family:var(--sans);font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#2c2326}.mnav a:last-child{border-bottom:0}.mnav a.cur{color:#722F37}body.mopen .mnav{display:flex}body.mopen .mtog span:nth-child(1){transform:translateY(7px) rotate(45deg)}body.mopen .mtog span:nth-child(2){opacity:0}body.mopen .mtog span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}@media(max-width:860px){.mtog{display:block}}</style><style id="kl-motion">
+.mtog{display:none;align-items:center;gap:9px;background:none;border:0;cursor:pointer;padding:8px 10px;margin:-4px;min-height:48px}.mtog .bars{display:inline-block}.mtog .bars span{display:block;width:24px;height:2px;background:#2c2326;margin:5px 0;transition:.25s}.mtog-lbl{font-family:var(--sans);font-size:14px;letter-spacing:2px;text-transform:uppercase;color:#5f534b;font-weight:normal}.mnav{display:none;position:absolute;top:100%;left:0;right:0;background:#FBF7EF;border-bottom:1px solid var(--line);box-shadow:0 14px 30px rgba(44,35,38,.08);flex-direction:column;padding:4px 32px 16px}.mnav a{padding:16px 0;border-bottom:1px solid var(--line);font-family:var(--sans);font-size:15px;letter-spacing:2px;text-transform:uppercase;color:#2c2326}.mnav a:last-child{border-bottom:0}.mnav a.cur{color:#722F37}body.mopen .mnav{display:flex}body.mopen .mtog .bars span:nth-child(1){transform:translateY(7px) rotate(45deg)}body.mopen .mtog .bars span:nth-child(2){opacity:0}body.mopen .mtog .bars span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}@media(max-width:860px){.mtog{display:flex}}</style><style id="kl-motion">
 @media (prefers-reduced-motion: no-preference){
  html{scroll-behavior:smooth}
  [data-kl-rev]{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.22,.7,.2,1),transform .7s cubic-bezier(.22,.7,.2,1)}
@@ -169,16 +171,16 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 .svcs{gap:30px}
 .units{gap:30px}
 </style>
-<script defer src="kl-tracking.js?v=20260710deep3"></script><link rel="stylesheet" href="kl-site-enhance.css?v=20260710p3"></head><body><header><div class="nav"><a class="logo" href="index.html"><img src="img/logo-kl-main.png" alt="KL"><div class="wm">KOISA LINDA<small>DESDE 1994</small></div></a><nav class="menu"><a href="index.html" class="cur">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav><button class="mtog" aria-label="Abrir menu" aria-expanded="false"><span></span><span></span><span></span></button></div><nav class="mnav"><a href="index.html" class="cur">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav></header>
+<script defer src="kl-tracking.js?v=20260710deep3"></script><link rel="stylesheet" href="kl-site-enhance.css?v=20260710p3"></head><body><header><div class="nav"><a class="logo" href="index.html"><img src="img/logo-kl-main.png" alt="KL"><div class="wm">KOISA LINDA<small>DESDE 1994</small></div></a><nav class="menu"><a href="index.html" class="cur">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav><button class="mtog" aria-label="Abrir menu" aria-expanded="false"><span class="bars"><span></span><span></span><span></span></span><b class="mtog-lbl">Menu</b></button></div><nav class="mnav"><a href="index.html" class="cur">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav></header>
 <section class="hero">
   <div class="panels"><div class="panel" style="background-image:url('img/hero-noiva.webp')"></div><div class="panel" data-bg="img/hero-debutante.webp"></div><div class="panel" data-bg="img/hero-madrinha.webp"></div></div>
   <div class="scrim"></div>
   <div class="inner">
-    <div class="eyebrow">Beleza Consciente · desde 1994</div>
-    <h1>Costuramos sonhos</h1>
-    <p>Noivas, debutantes, madrinhas e moda masculina — com elegância, cuidado e propósito. Para alugar ou vestir o seu momento.</p>
-    <div class="cta"><a class="btn-pri" href="catalogo.html">Ver catálogo</a>
-      <a class="btn-out" href="https://wa.me/5521966475383" target="_blank">Agende sua prova</a></div>
+    <div class="eyebrow">Costuramos sonhos · desde 1994</div>
+    <h1>Aluguel de vestidos de festa</h1>
+    <p>Noiva, madrinha, debutante e terno, com ajuste no ateliê. Em Niterói e na Barra da Tijuca.</p>
+    <div class="cta"><a class="btn-pri" href="catalogo.html">Ver os vestidos</a>
+      <a class="btn-out" href="unidades.html">Agende sua prova</a></div>
   </div>
 </section>
 
@@ -339,11 +341,14 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 </section>
 <div class="band">
   <h2>Agende a sua prova</h2>
-  <p>Atendimento personalizado em São Francisco e Barra da Tijuca.</p>
-  <a class="btn-pri" href="unidades.html">Ver unidades</a>
-  <a class="btn-pri" href="como-chegar.html" style="margin-left:10px">Como chegar (Barra)</a>
+  <p>Fale com a loja mais perto de você — a gente já te atende no WhatsApp.</p>
+  <div class="band-cta">
+    <a class="btn-pri" href="https://wa.me/5521970858787?text=Ol%C3%A1!%20Quero%20agendar%20uma%20prova%20na%20unidade%20S%C3%A3o%20Francisco" target="_blank">WhatsApp · São Francisco</a>
+    <a class="btn-pri" href="https://wa.me/5521966475383?text=Ol%C3%A1!%20Quero%20agendar%20uma%20prova%20na%20unidade%20Barra" target="_blank">WhatsApp · Barra</a>
+  </div>
+  <div class="band-sec"><a href="unidades.html">Ver endereços e horários</a></div>
 </div>
-<footer><img class="fimg" src="img/logo-kl-footer.png" alt="KL"><div class="fbrand">KOISA LINDA</div><div class="fphrase">Onde cada escolha faz o mundo melhor</div><div class="funits"><span>São Francisco</span><span>Barra da Tijuca</span></div><div class="fsoc"><a href="https://www.instagram.com/koisalinda_oficial/" target="_blank">Instagram</a><a href="https://www.facebook.com/koisalindaoficial/" target="_blank">Facebook</a><a href="https://www.tiktok.com/@koisalindaoficial" target="_blank">TikTok</a><a href="https://br.pinterest.com/koisalinda_oficial/" target="_blank">Pinterest</a></div><small>Costuramos sonhos desde 1994 · Beleza Consciente<br>CNPJ 02.504.054/0001-10 · © 2026 Koisa Linda · Protótipo para avaliação</small></footer><script id="kl-motion-js">
+<footer><img class="fimg" src="img/logo-kl-footer.png" alt="KL"><div class="fbrand">KOISA LINDA</div><div class="fphrase">Onde cada escolha faz o mundo melhor</div><div class="funits"><span>São Francisco</span><span>Barra da Tijuca</span></div><div class="fsoc"><a href="https://www.instagram.com/koisalinda_oficial/" target="_blank">Instagram</a><a href="https://www.facebook.com/koisalindaoficial/" target="_blank">Facebook</a><a href="https://www.tiktok.com/@koisalindaoficial" target="_blank">TikTok</a><a href="https://br.pinterest.com/koisalinda_oficial/" target="_blank">Pinterest</a></div><small>Costuramos sonhos desde 1994 · Beleza Consciente<br>CNPJ 02.504.054/0001-10 · © 2026 Koisa Linda</small></footer><script id="kl-motion-js">
 (function(){
  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
  var sel='.eyebrow,.sec-title,.rule,.split,.col,.svc,.unit,.pkg,.cli,.band h2,.band p';
