@@ -4,7 +4,6 @@
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
 fbq('init','1720591949105146');fbq('track','PageView');
 </script>
-<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1720591949105146&ev=PageView&noscript=1"/></noscript>
 <!-- End Meta Pixel Code -->
 <!-- KL Lead tracking (clique WhatsApp) -->
 <script>
@@ -21,10 +20,11 @@ document.addEventListener('click',function(e){
 :root{
  --ruby:#722F37;--ruby-dark:#5a242b;--baunilha:#F4E5C4;--cream:#FBF7EF;--paper:#fff;
  --ink:#2c2326;--muted:#9a8d80;--line:#e9e0d2;--gold:#B8945F;--dark:#1e1512;
- --serif:'Playfair Display',Georgia,serif;--body:'Arapey',Georgia,serif;--sans:'Questrial',sans-serif;}
+ --serif:'Playfair Display',Georgia,serif;--body:'Arapey',Georgia,serif;--sans:'Questrial',sans-serif;--kl-tap-target:48px;}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--body);color:var(--ink);background:var(--cream);-webkit-font-smoothing:antialiased;line-height:1.5}
 a{color:inherit;text-decoration:none}img{display:block}
+a:focus-visible,button:focus-visible{outline:3px solid var(--ruby);outline-offset:4px;border-radius:4px}
 .btn-pri{display:inline-flex;align-items:center;justify-content:center;min-height:48px;background:var(--ruby);color:#fff;font-family:var(--sans);font-size:14px;letter-spacing:2px;text-transform:uppercase;padding:12px 30px;border-radius:30px;border:1px solid var(--ruby);transition:.18s;cursor:pointer}
 .btn-pri:hover{background:var(--ruby-dark);letter-spacing:2.6px}
 .btn-out{display:inline-flex;align-items:center;justify-content:center;min-height:48px;background:transparent;color:var(--ruby);font-family:var(--sans);font-size:14px;letter-spacing:2px;text-transform:uppercase;padding:12px 30px;border-radius:30px;border:1px solid var(--ruby);transition:.18s;cursor:pointer}
@@ -50,20 +50,34 @@ footer .fimg{height:60px;margin:0 auto 14px;opacity:.95}
 .fbrand{font-family:var(--serif);font-size:14px;letter-spacing:7px;margin-bottom:6px}
 .fphrase{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--baunilha);margin:6px auto 22px;max-width:520px}
 .funits{display:flex;gap:30px;justify-content:center;flex-wrap:wrap;font-family:var(--sans);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;opacity:.92;margin-bottom:18px}
-.fsoc{display:flex;gap:22px;justify-content:center;font-family:var(--sans);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px}
+.fsoc{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;font-family:var(--sans);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px}
 .fsoc a:hover{color:#fff}
+footer a:focus-visible,.band a:focus-visible,.kl-sticky-cta a:focus-visible,.kl-sticky-cta button:focus-visible{outline-color:#fff}
 footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;letter-spacing:1.2px;line-height:1.8}
 /* HERO */
-.hero{position:relative;min-height:84vh;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;background:#2b1c1f}
-.hero .panels{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr 1fr}
-.hero .panel{background-size:cover;background-position:center 12%}
-.hero .scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(28,21,18,.4) 0%,rgba(28,21,18,.32) 38%,rgba(28,21,18,.62) 100%)}
-.hero .inner{position:relative;z-index:2;color:#fff;padding:40px 28px;max-width:780px;margin:0 auto}
-.hero .eyebrow{color:var(--baunilha)}
-.hero h1{font-family:var(--serif);font-style:italic;font-weight:500;font-size:64px;line-height:1.02;margin:16px 0 14px;text-shadow:0 2px 24px rgba(0,0,0,.3)}
-.hero p{font-family:var(--body);font-size:19px;opacity:.95;max-width:560px;margin:0 auto 28px}
-.hero .cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
-.hero .btn-out{color:#fff;border-color:rgba(255,255,255,.7)}.hero .btn-out:hover{background:#fff;color:var(--ruby)}
+.hero.hero-editorial{display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);grid-template-areas:"copy media";min-height:clamp(620px,calc(100svh - 71px),860px);overflow:hidden;background:var(--cream);text-align:left;isolation:isolate}
+.hero-copy{grid-area:copy;min-width:0;padding:clamp(56px,7vw,112px) clamp(32px,6vw,96px);display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
+.hero-copy .eyebrow{color:var(--gold)}
+.hero-copy h1{max-width:620px;margin:18px 0 20px;font-family:var(--serif);font-size:clamp(52px,5.2vw,84px);font-style:italic;font-weight:400;letter-spacing:-1.8px;line-height:.96;color:var(--ruby);text-shadow:none}
+.hero-copy p{max-width:540px;margin:0 0 30px;font-family:var(--body);font-size:clamp(18px,1.6vw,22px);line-height:1.55;color:#5f534b;opacity:1}
+.hero-copy .cta{display:flex;gap:14px;justify-content:flex-start;flex-wrap:wrap}
+.hero-copy .btn-out{color:var(--ruby);border-color:var(--ruby)}
+.hero-media{grid-area:media;position:relative;min-width:0;overflow:hidden;background:#eadbc5}
+.hero-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;transform:scale(1.001)}
+.hero-media::after{content:"";position:absolute;inset:0;z-index:1;background:var(--ruby);pointer-events:none;transform:translateX(101%)}
+@media(max-width:680px){
+ .hero.hero-editorial{grid-template-columns:1fr;grid-template-areas:"media" "copy";min-height:0;height:auto}
+ .hero-media{min-height:0;aspect-ratio:2/3}
+ .hero-copy{padding:48px 22px 58px}
+ .hero-copy h1{font-size:clamp(44px,14vw,60px);letter-spacing:-1.2px}
+ .hero-copy p{font-size:18px}
+ .hero-copy .cta{width:100%;flex-direction:column}
+ .hero-copy .btn-pri,.hero-copy .btn-out{width:100%}
+}
+@media(max-width:860px){
+ .mtog,.mnav a,.ig-btn,.btn-pri,.btn-out,.mini,.mini-cta,.fsoc a{min-height:var(--kl-tap-target)}
+ .mini,.mini-cta,.fsoc a{display:inline-flex;align-items:center;justify-content:center}
+}
 /* PAGE HERO (menor) */
 .phero{text-align:center;padding:66px 28px 26px;max-width:760px;margin:0 auto}
 .phero h1{font-family:var(--serif);font-style:italic;font-weight:500;font-size:54px;color:var(--ink);margin:14px 0 6px}
@@ -134,7 +148,7 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 .cli img{width:100%;height:100%;object-fit:cover;transition:.5s}
 .cli:hover img{transform:scale(1.05)}
 @media(max-width:1100px){.cols{grid-template-columns:repeat(2,1fr)}.col{min-height:380px}}
-@media(max-width:860px){.clientes{grid-template-columns:repeat(2,1fr)}.menu{display:none}.cols{grid-template-columns:1fr}.col{min-height:360px}.split{grid-template-columns:1fr}.svcs,.units{grid-template-columns:1fr}.hero h1{font-size:44px}.phero h1{font-size:38px}.logo .wm{display:none}.section{padding-top:58px;padding-bottom:58px}.intent-head{margin-bottom:22px}.hero{height:590px;min-height:560px}.hero .panels{grid-template-columns:1fr}.hero .panel:nth-child(2),.hero .panel:nth-child(3){display:none}.hero .copy{padding:0 22px}.hero p{font-size:15px}.sec-title{font-size:34px}.cols{gap:18px}.svcs,.units{gap:18px}.fsoc a{min-height:40px;display:inline-flex;align-items:center}}
+@media(max-width:860px){.clientes{grid-template-columns:repeat(2,1fr)}.menu{display:none}.cols{grid-template-columns:1fr}.col{min-height:360px}.split{grid-template-columns:1fr}.svcs,.units{grid-template-columns:1fr}.phero h1{font-size:38px}.logo .wm{display:none}.section{padding-top:58px;padding-bottom:58px}.intent-head{margin-bottom:22px}.sec-title{font-size:34px}.cols{gap:18px}.svcs,.units{gap:18px}}
 
 /* PACOTES & ACESSÓRIOS */
 .section.pacotes{background:linear-gradient(180deg,#fbf3e3 0%,#f6ead2 100%)}
@@ -170,14 +184,21 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
  html{scroll-behavior:smooth}
  [data-kl-rev]{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.22,.7,.2,1),transform .7s cubic-bezier(.22,.7,.2,1)}
  [data-kl-rev].kl-in{opacity:1;transform:none}
- .hero .panel{animation:kl-kb 22s ease-in-out infinite alternate;transform-origin:center}
- .hero .panel:nth-child(2){animation-duration:26s;transform-origin:top center}
- .hero .panel:nth-child(3){animation-duration:24s;transform-origin:bottom center}
- @keyframes kl-kb{from{transform:scale(1.001)}to{transform:scale(1.07)}}
+ .hero-media::after{animation:kl-hero-curtain 1.05s cubic-bezier(.72,0,.2,1) .08s both}
+ .hero-media img{animation:kl-hero-breathe 18s ease-in-out 1.1s infinite alternate}
+ .hero-copy>*{animation:kl-hero-reveal .72s cubic-bezier(.22,.7,.2,1) both}
+ .hero-copy>*:nth-child(1){animation-delay:.28s}.hero-copy>*:nth-child(2){animation-delay:.38s}.hero-copy>*:nth-child(3){animation-delay:.48s}.hero-copy>*:nth-child(4){animation-delay:.58s}
+ @keyframes kl-hero-curtain{from{transform:translateX(0)}to{transform:translateX(101%)}}
+ @keyframes kl-hero-reveal{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+ @keyframes kl-hero-breathe{from{transform:scale(1.001)}to{transform:scale(1.035)}}
  header{transition:box-shadow .3s ease}
  header.kl-shrink{box-shadow:0 6px 22px rgba(90,36,43,.08)}
 }
-@media(max-width:860px){[data-kl-rev]{opacity:1!important;transform:none!important;transition:none!important}.hero .panel{animation:none!important}}
+@media (prefers-reduced-motion: reduce){
+ [data-kl-rev],.hero-media::after,.hero-media img,.hero-copy>*{animation:none!important;transition:none!important;transform:none!important;opacity:1!important}
+ .hero-media::after{display:none}
+}
+@media(max-width:860px){[data-kl-rev]{opacity:1!important;transform:none!important;transition:none!important}}
 </style>
 <style id="kl-editorial">
 /* Curadoria: ElevenLabs (warm editorial) + Claude (serif 400 tracking-) + Mastercard (respiro) + Tesla (galeria) */
@@ -196,16 +217,19 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 .svcs{gap:30px}
 .units{gap:30px}
 </style>
-<script defer src="kl-tracking.js?v=20260710deep3"></script><link rel="stylesheet" href="kl-site-enhance.css?v=20260713r3"></head><body><header><div class="nav"><a class="logo" href="index.html"><img src="img/logo-kl-main.png" alt="KL"><div class="wm">KOISA LINDA<small>DESDE 1994</small></div></a><nav class="menu"><a href="index.html" class="cur">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav><a class="ig-btn" href="https://www.instagram.com/koisalinda_oficial/" target="_blank" rel="noopener" aria-label="Ver o Instagram da Koisa Linda"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.4"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1.1" fill="currentColor" stroke="none"/></svg><span>Instagram</span></a><button class="mtog" aria-label="Abrir menu" aria-expanded="false"><span class="bars"><span></span><span></span><span></span></span><b class="mtog-lbl">Menu</b></button></div><nav class="mnav"><a href="index.html" class="cur">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav></header>
-<section class="hero">
-  <div class="panels"><div class="panel" style="background-image:url('img/hero-noiva.webp')"></div><div class="panel" style="background-image:url('img/hero-debutante.webp')"></div><div class="panel" style="background-image:url('img/hero-madrinha.webp')"></div></div>
-  <div class="scrim"></div>
-  <div class="inner">
-    <div class="eyebrow">Costuramos sonhos · desde 1994</div>
-    <h1>Aluguel de vestidos de festa</h1>
-    <p>Noiva, madrinha, debutante e terno, com ajuste no ateliê. Em Niterói e na Barra da Tijuca.</p>
-    <div class="cta"><a class="btn-pri" href="catalogo.html">Ver os vestidos</a>
-      <a class="btn-out" href="unidades.html">Agende sua prova</a></div>
+<script defer src="kl-tracking.js?v=20260710deep3"></script><link rel="stylesheet" href="kl-site-enhance.css?v=20260713r3"></head><body><noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1720591949105146&ev=PageView&noscript=1"/></noscript><header><div class="nav"><a class="logo" href="index.html"><img src="img/logo-kl-main.png" alt="KL"><div class="wm">KOISA LINDA<small>DESDE 1994</small></div></a><nav class="menu"><a href="index.html" class="cur">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav><a class="ig-btn" href="https://www.instagram.com/koisalinda_oficial/" target="_blank" rel="noopener" aria-label="Ver o Instagram da Koisa Linda"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.4"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1.1" fill="currentColor" stroke="none"/></svg><span>Instagram</span></a><button class="mtog" aria-label="Abrir menu" aria-expanded="false"><span class="bars"><span></span><span></span><span></span></span><b class="mtog-lbl">Menu</b></button></div><nav class="mnav"><a href="index.html" class="cur">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav></header>
+<section class="hero hero-editorial" aria-labelledby="hero-title">
+  <div class="hero-media">
+    <img src="img/hero-noiva.webp" alt="Noiva usando vestido da Koisa Linda" width="820" height="1230" fetchpriority="high">
+  </div>
+  <div class="hero-copy">
+    <div class="eyebrow">Aluguel · sob medida · ajustes</div>
+    <h1 id="hero-title">Seu momento começa na prova.</h1>
+    <p>Encontre o vestido, escolha a unidade e fale direto com quem vai te atender.</p>
+    <div class="cta">
+      <a class="btn-pri" href="catalogo.html">Encontrar meu vestido</a>
+      <a class="btn-out" href="unidades.html">Agendar minha prova</a>
+    </div>
   </div>
 </section>
 
@@ -338,11 +362,11 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
   </div>
   <div class="band-sec"><a href="unidades.html">Ver endereços e horários</a></div>
 </div>
-<footer><img class="fimg" src="img/logo-kl-footer.png" alt="KL"><div class="fbrand">KOISA LINDA</div><div class="fphrase">Onde cada escolha faz o mundo melhor</div><div class="funits"><span>São Francisco</span><span>Barra da Tijuca</span></div><div class="fsoc"><a href="https://www.instagram.com/koisalinda_oficial/" target="_blank">Instagram</a><a href="https://www.facebook.com/koisalindaoficial/" target="_blank">Facebook</a><a href="https://www.tiktok.com/@koisalindaoficial" target="_blank">TikTok</a><a href="https://br.pinterest.com/koisalinda_oficial/" target="_blank">Pinterest</a></div><small>Costuramos sonhos desde 1994 · Beleza Consciente<br>CNPJ 02.504.054/0001-10 · © 2026 Koisa Linda</small></footer><script id="kl-motion-js">
+<footer><img class="fimg" src="img/logo-kl-footer.png" alt="KL"><div class="fbrand">KOISA LINDA</div><div class="fphrase">Unindo famílias. Realizando sonhos.</div><div class="funits"><span>São Francisco</span><span>Barra da Tijuca</span></div><div class="fsoc"><a href="https://www.instagram.com/koisalinda_oficial/" target="_blank">Instagram</a><a href="https://www.facebook.com/koisalindaoficial/" target="_blank">Facebook</a><a href="https://www.tiktok.com/@koisalindaoficial" target="_blank">TikTok</a><a href="https://br.pinterest.com/koisalinda_oficial/" target="_blank">Pinterest</a></div><small>Costuramos sonhos desde 1994.<br>CNPJ 02.504.054/0001-10 · © 2026 Koisa Linda</small></footer><script id="kl-motion-js">
 (function(){
  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
  var sel='.eyebrow,.sec-title,.rule,.split,.col,.svc,.unit,.pkg,.cli,.band h2,.band p';
- var els=[].slice.call(document.querySelectorAll(sel));
+ var els=[].slice.call(document.querySelectorAll(sel)).filter(function(el){return !el.closest('.hero-editorial');});
  els.forEach(function(el){el.setAttribute('data-kl-rev','');});
  if(!('IntersectionObserver' in window)){els.forEach(function(el){el.classList.add('kl-in');});return;}
  var io=new IntersectionObserver(function(ents){
