@@ -106,6 +106,9 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 .band-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 .band-sec{margin-top:16px}.band-sec a{color:var(--baunilha);text-decoration:underline;font-family:var(--sans);font-size:15px;letter-spacing:1px}
 
+/* faixa de serviços em linha (home enxuta) */
+.mini-svcs{display:flex;gap:18px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:22px;font-family:var(--sans);font-size:13px;letter-spacing:1.6px;text-transform:uppercase;color:#6f6258}
+.mini-svcs i{width:4px;height:4px;border-radius:50%;background:var(--gold)}
 /* PROVA VIRTUAL — composição editorial (antes/depois) */
 .tryon-duo{display:flex;align-items:center;justify-content:center;gap:18px}
 .tryon-card{background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 10px 14px;box-shadow:0 14px 34px rgba(90,36,43,.08)}
@@ -201,7 +204,7 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 <section class="section center" id="escolha">
   <div class="intent-head"><div class="eyebrow">Escolha por intenção</div>
   <div class="sec-title" style="margin-top:8px">O que você veio encontrar hoje?</div>
-  <p>Entre pelo seu momento. A gente te leva direto para a seleção certa e já deixa o WhatsApp com o pedido no contexto.</p></div>
+  <p>Toque no seu momento — a gente te leva direto para os vestidos certos.</p></div>
   <div class="cols">
     <a class="col" href="catalogo.html?cat=vestidos-noiva"><img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/render/image/public/koisa-catalogo-barra/vestidos-noiva/NV-001-ia.jpg?width=900&resize=contain&quality=72&format=webp" alt="Vestido de noiva Koisa Linda" loading="lazy"><div class="ov"><small>Casamento</small><span>Sou noiva</span><p>Vestidos para cerimônia, civil, festa e o dia em que tudo precisa vestir bem.</p><div class="mini-cta">Ver noivas →</div></div></a>
     <a class="col" href="catalogo.html?cat=vestidos-debutante"><img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/render/image/public/koisa-catalogo-barra/vestidos-debutante/DB-001-ia.jpg?width=900&resize=contain&quality=72&format=webp" alt="Vestido de debutante Koisa Linda" loading="lazy"><div class="ov"><small>15 anos</small><span>Sou debutante</span><p>Modelos para entrada, valsa, recepção e fotos — com presença sem perder leveza.</p><div class="mini-cta">Ver debutantes →</div></div></a>
@@ -227,28 +230,12 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
   </div>
 </section>
 
-<section class="section alt">
-  <div class="split">
-    <img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/render/image/public/koisa-catalogo-barra/vestidos-noiva/NV-004-ia.jpg?width=900&resize=contain&quality=72&format=webp">
-    <div class="tx">
-      <div class="eyebrow">Nossa história</div>
-      <div class="sec-title" style="text-align:left;margin-top:8px">Desde 1994<br>vestindo sonhos</div>
-      <p>Desde 1994, a Koisa Linda transforma momentos importantes em memórias inesquecíveis. Da estilista e co-fundadora Jussara Pessanha às nossas consultoras, cada peça é escolhida com cuidado.</p>
-      <p>Não vendemos um vestido — facilitamos uma transformação. Essa é a nossa beleza consciente.</p>
-      <a class="btn-out" style="margin-top:22px" href="sobre.html">Conheça a Koisa Linda</a>
-    </div>
-  </div>
-</section>
-
-<section class="section center">
-  <div class="eyebrow">O que oferecemos</div>
-  <div class="sec-title" style="margin-top:8px">Serviços</div>
-  <div class="svcs">
-    <div class="svc"><div class="ic">❀</div><h3>Aluguel</h3><p>Noivas, debutantes, madrinhas e convidadas. O vestido perfeito sem precisar comprar.</p></div>
-    <div class="svc"><div class="ic">✦</div><h3>Sob medida</h3><p>Alta costura com a estilista Jussara Pessanha, ajustando cada detalhe ao seu corpo.</p></div>
-    <div class="svc"><div class="ic">♛</div><h3>Masculino</h3><p>Ternos e trajes para noivos, pais e padrinhos — na unidade Barra da Tijuca.</p></div>
-  </div>
-  <a class="btn-out" style="margin-top:36px" href="servicos.html">Todos os serviços</a>
+<section class="section alt center" style="padding-top:64px;padding-bottom:64px">
+  <div class="eyebrow">Desde 1994</div>
+  <div class="sec-title" style="margin-top:8px">Ateliê que veste a festa inteira</div>
+  <p style="font-family:var(--body);font-size:17.5px;color:#5f534b;max-width:620px;margin:14px auto 0;line-height:1.65">Aluguel e sob medida com a estilista Jussara Pessanha. Noiva, madrinha, debutante e ternos — tudo ajustado no ateliê.</p>
+  <div class="mini-svcs"><span>❀ Aluguel</span><i></i><span>✦ Sob medida</span><i></i><span>♛ Ternos na Barra</span></div>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px"><a class="btn-out" href="sobre.html">Nossa história</a><a class="btn-out" href="servicos.html">Todos os serviços</a></div>
 </section>
 
 <section class="section center" id="aluguel">
@@ -268,6 +255,12 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
   @media(max-width:860px){.pkgs.ternos{grid-template-columns:1fr;max-width:420px}}
   @media(max-width:560px){.pricecard{padding:28px 18px}.pc-pills{gap:8px}.pc-pills span{font-size:19px;padding:12px 4px}}
   @media(max-width:400px){.pc-pills span{font-size:17px}}
+  .pk-row{display:flex;align-items:baseline;gap:14px;padding:13px 2px;border-bottom:1px solid #f0e8da;text-align:left}
+  .pk-row:last-of-type{border-bottom:none}
+  .pk-n{font-family:var(--serif);font-size:20px;color:var(--ink);flex-shrink:0;min-width:96px}
+  .pk-i{font-family:var(--body);font-size:15.5px;color:#6f6258;flex:1}
+  .pk-p{font-family:var(--serif);font-size:22px;color:var(--ruby);white-space:nowrap}
+  @media(max-width:560px){.pk-row{flex-wrap:wrap;gap:4px 10px}.pk-i{flex-basis:100%;order:3}}
   </style>
   <div class="pricecard">
     <h3>Vestidos de festa</h3>
@@ -289,38 +282,14 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
       <a class="btn-out" style="margin-top:auto" href="https://wa.me/5521966475383?text=Ol%C3%A1!%20Quero%20alugar%20o%20terno%20Janota%20na%20Barra" target="_blank">Consultar</a>
     </div>
   </div>
-  <div class="pkg-note">Vestidos de noiva e debutante · valores sob consulta no atendimento</div>
-</section>
-
-<section class="section pacotes center" id="pacotes">
-  <div class="eyebrow">Complete o seu look</div>
-  <div class="sec-title" style="margin-top:8px">Pacotes &amp; Acessórios</div>
-  <p style="color:#6f6258;max-width:560px;margin:12px auto 0;font-family:var(--body);font-size:17px">Bolsa, sandália e joias para alugar junto com o seu vestido — em três combinações.</p>
-  <div class="pkgs">
-    <div class="pkg prata">
-      <span class="tier">Prata</span>
-      <div class="name">Pacote Prata</div>
-      <div class="price">R$ 150<small>o pacote</small></div>
-      <ul><li>Bolsa Blogueira Glitter</li><li>Sandália</li><li>Brincos</li></ul>
-      <a class="btn-out" href="https://wa.me/5521966475383?text=Ol%C3%A1!%20Quero%20saber%20do%20Pacote%20Prata%20de%20acess%C3%B3rios" target="_blank">Consultar</a>
-    </div>
-    <div class="pkg featured ouro">
-      <span class="flag">Mais completo</span>
-      <span class="tier">Diamante</span>
-      <div class="name">Pacote Diamante</div>
-      <div class="price">R$ 250<small>o pacote</small></div>
-      <ul><li>Bolsa Cravejada</li><li>Sandália</li><li>Brincos</li><li>Colar</li></ul>
-      <a class="btn-out" href="https://wa.me/5521966475383?text=Ol%C3%A1!%20Quero%20saber%20do%20Pacote%20Diamante%20de%20acess%C3%B3rios" target="_blank">Consultar</a>
-    </div>
-    <div class="pkg ouro">
-      <span class="tier">Ouro</span>
-      <div class="name">Pacote Ouro</div>
-      <div class="price">R$ 200<small>o pacote</small></div>
-      <ul><li>Bolsa Tecido</li><li>Sandália</li><li>Colar</li></ul>
-      <a class="btn-out" href="https://wa.me/5521966475383?text=Ol%C3%A1!%20Quero%20saber%20do%20Pacote%20Ouro%20de%20acess%C3%B3rios" target="_blank">Consultar</a>
-    </div>
+  <div class="pricecard" id="pacotes" style="margin-top:22px">
+    <h3>Pacotes de acessórios</h3>
+    <div class="pc-sub">Bolsa, sandália e joias para alugar com o vestido · unidade Barra</div>
+    <div class="pk-row"><span class="pk-n">Prata</span><span class="pk-i">bolsa glitter · sandália · brincos</span><span class="pk-p">R$ 150</span></div>
+    <div class="pk-row"><span class="pk-n">Ouro</span><span class="pk-i">bolsa de tecido · sandália · colar</span><span class="pk-p">R$ 200</span></div>
+    <div class="pk-row"><span class="pk-n">Diamante</span><span class="pk-i">bolsa cravejada · sandália · brincos · colar</span><span class="pk-p">R$ 250</span></div>
   </div>
-  <div class="pkg-note">Acessórios para alugar · disponíveis na unidade Barra da Tijuca</div>
+  <div class="pkg-note">Vestidos de noiva e debutante · valores sob consulta</div>
 </section>
 
 <section class="section alt center">
@@ -331,18 +300,13 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
     <div class="cli wide"><img loading="lazy" src="img/cliente-noiva-1.webp" alt="Noiva real Koisa Linda"></div>
     <div class="cli"><img loading="lazy" src="img/cliente-noiva-2.webp" alt="Noiva Koisa Linda"></div>
     <div class="cli"><img loading="lazy" src="img/cliente-deb-1.webp" alt="Debutante Koisa Linda"></div>
-    <div class="cli"><img loading="lazy" src="img/cliente-noiva-3.webp" alt="Noiva Koisa Linda"></div>
-    <div class="cli"><img loading="lazy" src="img/cliente-deb-2.webp" alt="Debutante Koisa Linda"></div>
-    <div class="cli"><img loading="lazy" src="img/cliente-deb-3.webp" alt="Debutante Koisa Linda"></div>
-    <div class="cli"><img loading="lazy" src="img/cliente-noiva-4.webp" alt="Noiva Koisa Linda"></div>
-    <div class="cli wide"><img loading="lazy" src="img/cliente-deb-4.webp" alt="Debutante Koisa Linda"></div>
   </div>
   <a class="btn-out" style="margin-top:34px" href="https://www.instagram.com/koisalinda_oficial/" target="_blank" rel="noopener">Ver mais no Instagram</a>
 </section>
 <section class="section center">
   <div class="eyebrow">Loja Barra · Shopping Downtown</div>
   <div class="sec-title" style="margin-top:8px">Como chegar sem se perder</div>
-  <p style="color:var(--muted);max-width:560px;margin:12px auto 0;font-family:var(--body);font-size:17px">O Downtown é um labirinto — a gente sabe. Nossa consultora gravou os 3 caminhos até a loja: <b style="color:#722F37">Bloco 8, Loja 130</b>.</p>
+  <p style="color:#6f6258;max-width:560px;margin:12px auto 0;font-family:var(--body);font-size:17px">Estamos no <b style="color:#722F37">Bloco 8, Loja 130</b> — veja o caminho em vídeo.</p>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;max-width:860px;margin:26px auto 0">
     <a href="como-chegar.html" style="text-decoration:none;color:inherit">
       <img loading="lazy" src="videos/kl-como-chegar-1-metro-poster.webp" alt="Como chegar de metrô" style="width:100%;aspect-ratio:9/16;object-fit:cover;border-radius:14px;display:block">
