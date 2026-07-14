@@ -311,6 +311,7 @@ class AboutBrandContractTest(unittest.TestCase):
         html = page("sobre.html")
         photo_rule = balanced_css_block(html, ".purpose-photo img").replace(" ", "")
         for declaration in (
+            "height:auto",
             "aspect-ratio:2/3",
             "object-fit:cover",
             "object-position:centertop",
@@ -320,6 +321,9 @@ class AboutBrandContractTest(unittest.TestCase):
         mobile_blocks = css_blocks(html, "@media(max-width:680px)")
         self.assertTrue(
             any(
+                ".section.purpose-section" in block
+                and "padding:0068px" in block.replace(" ", "")
+                and
                 ".purpose-grid" in block
                 and "grid-template-columns:1fr" in block.replace(" ", "")
                 for block in mobile_blocks
