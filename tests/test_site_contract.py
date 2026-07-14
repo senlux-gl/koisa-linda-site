@@ -430,6 +430,22 @@ class VisiblePagesContractTest(unittest.TestCase):
                 self.assertIn("outline:3pxsolidvar(--ruby)", light_rule)
                 self.assertIn("outline-color:#fff", dark_rule)
 
+    def test_catalog_focus_is_white_on_lightbox_and_favorites_bar(self):
+        html = page("catalogo.html")
+        global_selector = "a:focus-visible,button:focus-visible"
+        dark_selector = (
+            ".lb a:focus-visible,.lb button:focus-visible,"
+            ".favbar button:focus-visible"
+        )
+        dark_rule = balanced_css_block(html, dark_selector).replace(" ", "")
+
+        self.assertIn("outline-color:#fff", dark_rule)
+        self.assertGreater(
+            html.index(dark_selector),
+            html.index(global_selector),
+            "o foco branco das superfícies escuras deve vir depois da regra global rubi",
+        )
+
     def test_visible_pages_wrap_social_links_and_keep_mobile_tap_targets(self):
         standard_controls = (
             ".mtog,.mnav a,.ig-btn,.btn-pri,.btn-out,.mini,.mini-cta,.fsoc a"
