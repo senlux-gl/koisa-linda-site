@@ -4,7 +4,6 @@
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
 fbq('init','1720591949105146');fbq('track','PageView');
 </script>
-<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1720591949105146&ev=PageView&noscript=1"/></noscript>
 <!-- End Meta Pixel Code -->
 <!-- KL Lead tracking (clique WhatsApp) -->
 <script>
@@ -20,11 +19,13 @@ document.addEventListener('click',function(e){
 <meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="img/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png"><link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16.png"><link rel="apple-touch-icon" href="img/apple-touch-icon.png"><title>Sobre — Koisa Linda</title><meta name="description" content="Desde 1994 costurando sonhos: a história da Koisa Linda, ateliê de moda festa com ajuste sob medida em Niterói e no Rio de Janeiro."><link rel="canonical" href="https://koisalinda.com.br/sobre.html"><meta property="og:locale" content="pt_BR"><meta property="og:type" content="website"><meta property="og:site_name" content="Koisa Linda"><meta property="og:title" content="Sobre — Koisa Linda"><meta property="og:description" content="Desde 1994 costurando sonhos: a história da Koisa Linda, ateliê de moda festa com ajuste sob medida em Niterói e no Rio de Janeiro."><meta property="og:url" content="https://koisalinda.com.br/sobre.html"><meta property="og:image" content="https://koisalinda.com.br/img/hero.webp"><meta name="twitter:card" content="summary_large_image"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Arapey:ital@0;1&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Questrial&display=swap" rel="stylesheet"><style>
 :root{
  --ruby:#722F37;--ruby-dark:#5a242b;--baunilha:#F4E5C4;--cream:#FBF7EF;--paper:#fff;
- --ink:#2c2326;--muted:#9a8d80;--line:#e9e0d2;--gold:#B8945F;--dark:#1e1512;
+ --ink:#2c2326;--muted:#9a8d80;--line:#e9e0d2;--gold:#B8945F;--dark:#1e1512;--kl-tap-target:48px;
  --serif:'Playfair Display',Georgia,serif;--body:'Arapey',Georgia,serif;--sans:'Questrial',sans-serif;}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--body);color:var(--ink);background:var(--cream);-webkit-font-smoothing:antialiased;line-height:1.5}
 a{color:inherit;text-decoration:none}img{display:block}
+a:focus-visible,button:focus-visible{outline:3px solid var(--ruby);outline-offset:4px}
+footer a:focus-visible,.band a:focus-visible,.kl-sticky-cta a:focus-visible,.kl-sticky-cta button:focus-visible{outline-color:#fff}
 .btn-pri{display:inline-flex;align-items:center;justify-content:center;min-height:48px;background:var(--ruby);color:#fff;font-family:var(--sans);font-size:14px;letter-spacing:2px;text-transform:uppercase;padding:12px 30px;border-radius:30px;border:1px solid var(--ruby);transition:.18s;cursor:pointer}
 .btn-pri:hover{background:var(--ruby-dark);letter-spacing:2.6px}
 .btn-out{display:inline-flex;align-items:center;justify-content:center;min-height:48px;background:transparent;color:var(--ruby);font-family:var(--sans);font-size:14px;letter-spacing:2px;text-transform:uppercase;padding:12px 30px;border-radius:30px;border:1px solid var(--ruby);transition:.18s;cursor:pointer}
@@ -50,7 +51,7 @@ footer .fimg{height:60px;margin:0 auto 14px;opacity:.95}
 .fbrand{font-family:var(--serif);font-size:14px;letter-spacing:7px;margin-bottom:6px}
 .fphrase{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--baunilha);margin:6px auto 22px;max-width:520px}
 .funits{display:flex;gap:30px;justify-content:center;flex-wrap:wrap;font-family:var(--sans);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;opacity:.92;margin-bottom:18px}
-.fsoc{display:flex;gap:22px;justify-content:center;font-family:var(--sans);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px}
+.fsoc{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;font-family:var(--sans);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px}
 .fsoc a:hover{color:#fff}
 footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;letter-spacing:1.2px;line-height:1.8}
 /* HERO */
@@ -80,6 +81,22 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 .split{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:54px;align-items:center}
 .split img{width:100%;border-radius:4px;aspect-ratio:4/5;object-fit:cover}
 .split .tx p{font-family:var(--body);font-size:17.5px;color:#5f534b;margin-top:16px;line-height:1.65}
+/* PROPÓSITO */
+.purpose-section{padding-top:96px;padding-bottom:96px}
+.purpose-grid{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr);gap:clamp(44px,6vw,88px);align-items:start;text-align:left}
+.purpose-photo{min-width:0;overflow:hidden;border-radius:8px;background:var(--baunilha)}
+.purpose-photo img{width:100%;aspect-ratio:2/3;object-fit:cover;object-position:center top}
+.purpose-content{min-width:0}
+.purpose-content>h2{max-width:720px;margin:14px 0 30px;font-family:var(--serif);font-size:clamp(42px,4.2vw,66px);font-style:italic;font-weight:400;letter-spacing:-1.2px;line-height:1.06;color:var(--ruby)}
+.brand-foundations{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-bottom:34px}
+.brand-foundation{padding:24px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.brand-foundation h3,.brand-value h3{font-family:var(--serif);font-size:24px;font-weight:400;color:var(--ruby)}
+.brand-foundation p,.brand-value p{margin-top:8px;font-family:var(--body);font-size:17px;line-height:1.58;color:#5f534b}
+.brand-values{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.brand-value{display:grid;grid-template-columns:48px minmax(0,1fr);gap:16px;padding:22px 24px;background:var(--cream)}
+.brand-value>span{font-family:var(--sans);font-size:11px;letter-spacing:2px;color:var(--gold);padding-top:7px}
+@media(max-width:860px){.purpose-grid{gap:clamp(24px,4vw,40px)}.purpose-content>h2{font-size:clamp(38px,5vw,50px)}.mtog,.mnav a,.ig-btn,.btn-pri,.btn-out,.mini,.mini-cta,.fsoc a{min-height:var(--kl-tap-target)}}
+@media(max-width:680px){.purpose-section{padding:0 0 68px}.purpose-grid{grid-template-columns:1fr;gap:0}.purpose-photo{border-radius:0}.purpose-content{padding:48px 22px 0}.purpose-content>h2{font-size:clamp(38px,11vw,50px);letter-spacing:-.8px}.brand-foundations{grid-template-columns:1fr}.brand-value{grid-template-columns:38px minmax(0,1fr);padding:20px 18px}}
 /* SERVICES */
 .svcs{max-width:1180px;margin:36px auto 0;display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
 .svc{background:var(--cream);border:1px solid var(--line);border-radius:4px;padding:30px 26px;text-align:center}
@@ -132,9 +149,9 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 .svcs{gap:30px}
 .units{gap:30px}
 </style>
-<script defer src="kl-tracking.js?v=20260710deep3"></script><link rel="stylesheet" href="kl-site-enhance.css?v=20260713r3"></head><body><header><div class="nav"><a class="logo" href="index.html"><img src="img/logo-kl-main.png" alt="KL"><div class="wm">KOISA LINDA<small>DESDE 1994</small></div></a><nav class="menu"><a href="index.html" class="">Início</a><a href="sobre.html" class="cur">Sobre</a><a href="catalogo.html" class="">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav><a class="ig-btn" href="https://www.instagram.com/koisalinda_oficial/" target="_blank" rel="noopener" aria-label="Ver o Instagram da Koisa Linda"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.4"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1.1" fill="currentColor" stroke="none"/></svg><span>Instagram</span></a><button class="mtog" aria-label="Abrir menu" aria-expanded="false"><span class="bars"><span></span><span></span><span></span></span><b class="mtog-lbl">Menu</b></button></div><nav class="mnav"><a href="index.html" class="">Início</a><a href="sobre.html" class="cur">Sobre</a><a href="catalogo.html" class="">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav></header>
+<script defer src="kl-tracking.js?v=20260710deep3"></script><link rel="stylesheet" href="kl-site-enhance.css?v=20260713r3"></head><body><noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1720591949105146&ev=PageView&noscript=1"/></noscript><header><div class="nav"><a class="logo" href="index.html"><img src="img/logo-kl-main.png" alt="KL"><div class="wm">KOISA LINDA<small>DESDE 1994</small></div></a><nav class="menu"><a href="index.html" class="">Início</a><a href="sobre.html" class="cur">Sobre</a><a href="catalogo.html" class="">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav><a class="ig-btn" href="https://www.instagram.com/koisalinda_oficial/" target="_blank" rel="noopener" aria-label="Ver o Instagram da Koisa Linda"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.4"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1.1" fill="currentColor" stroke="none"/></svg><span>Instagram</span></a><button class="mtog" aria-label="Abrir menu" aria-expanded="false"><span class="bars"><span></span><span></span><span></span></span><b class="mtog-lbl">Menu</b></button></div><nav class="mnav"><a href="index.html" class="">Início</a><a href="sobre.html" class="cur">Sobre</a><a href="catalogo.html" class="">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav></header>
 <div class="phero"><div class="eyebrow">Desde 1994</div><h1>Sobre a Koisa Linda</h1>
-  <p>Beleza consciente, elegância e propósito em cada peça.</p><div class="rule"></div></div>
+  <p>Há mais de três décadas, vestimos os momentos que aproximam pessoas e ficam na memória.</p><div class="rule"></div></div>
 <section class="section">
   <div class="split">
     <img src="img/loja-sf.webp" alt="Fachada da Koisa Linda São Francisco, a matriz em Niterói" loading="lazy">
@@ -143,24 +160,38 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
       <div class="sec-title" style="text-align:left;margin-top:8px">Mais de três décadas<br>costurando sonhos</div>
       <p>A Koisa Linda nasceu em 1994 e há 32 anos veste os momentos mais importantes da vida das mulheres do Rio de Janeiro — do casamento aos 15 anos, das madrinhas às convidadas.</p>
       <p>À frente do ateliê, a estilista e co-fundadora <b>Jussara Pessanha</b> mantém viva a tradição da alta costura, com um olhar de cuidado que vai além da roupa.</p>
-      <p>Acreditamos na <b>beleza consciente</b>: moda como ferramenta de transformação e empoderamento. Não vendemos um vestido — facilitamos uma transformação.</p>
+      <p>A roupa é parte do momento. Nosso trabalho é acolher cada história, cuidar de cada detalhe e ajudar famílias a viverem celebrações que ficam na memória.</p>
     </div>
   </div>
 </section>
-<section class="section alt center">
-  <div class="eyebrow">No que acreditamos</div><div class="sec-title" style="margin-top:8px">Beleza Consciente</div>
-  <div class="svcs">
-    <div class="svc"><div class="ic">❤</div><h3>Cuidado</h3><p>Acolhimento antes de qualquer oferta. Cada cliente é única.</p></div>
-    <div class="svc"><div class="ic">✧</div><h3>Elegância</h3><p>Peças escolhidas a dedo, do clássico ao contemporâneo.</p></div>
-    <div class="svc"><div class="ic">♻</div><h3>Propósito</h3><p>Onde cada escolha faz o mundo melhor.</p></div>
+<section class="section alt purpose-section" aria-labelledby="purpose-title">
+  <div class="purpose-grid">
+    <div class="purpose-photo">
+      <img src="img/cliente-noiva-3.webp" alt="Noiva e sua mãe vivendo juntas o momento da celebração" loading="lazy" width="800" height="1200">
+    </div>
+    <div class="purpose-content">
+      <div class="eyebrow">Nosso propósito</div>
+      <h2 id="purpose-title">Unir famílias. Realizar sonhos. Transformar vidas.</h2>
+      <div class="brand-foundations">
+        <div class="brand-foundation"><h3>Propósito</h3><p>Unir famílias e realizar sonhos, transformando os grandes momentos da vida em memórias que atravessam gerações.</p></div>
+        <div class="brand-foundation"><h3>Missão</h3><p>Acolher cada pessoa, entender a sua história e vestir sua celebração com cuidado e excelência, da primeira prova ao grande dia.</p></div>
+      </div>
+      <div class="brand-values" aria-label="Valores da Koisa Linda">
+        <article class="brand-value"><span aria-hidden="true">01</span><div><h3>Família no centro</h3><p>Celebramos os vínculos e lembramos que cada escolha envolve pessoas que se amam.</p></div></article>
+        <article class="brand-value"><span aria-hidden="true">02</span><div><h3>Cada sonho é único</h3><p>Escutamos antes de orientar. A cliente não entra em um molde; o atendimento se adapta à história dela.</p></div></article>
+        <article class="brand-value"><span aria-hidden="true">03</span><div><h3>Cuidado em cada detalhe</h3><p>Da prova ao ajuste, do prazo à entrega: tratamos cada etapa com atenção e responsabilidade.</p></div></article>
+        <article class="brand-value"><span aria-hidden="true">04</span><div><h3>Respeito por cada história</h3><p>Acolhemos corpos, estilos, gerações e trajetórias diferentes com dignidade e verdade.</p></div></article>
+        <article class="brand-value"><span aria-hidden="true">05</span><div><h3>Confiança de geração em geração</h3><p>Honramos nossa palavra e os relacionamentos construídos pela Koisa Linda desde 1994.</p></div></article>
+      </div>
+    </div>
   </div>
 </section>
 <div class="band"><h2>Venha nos visitar</h2><p>Conheça nossas unidades e agende sua prova.</p>
   <a class="btn-pri" href="unidades.html">Ver unidades</a></div>
-<footer><img class="fimg" src="img/logo-kl-footer.png" alt="KL"><div class="fbrand">KOISA LINDA</div><div class="fphrase">Onde cada escolha faz o mundo melhor</div><div class="funits"><span>São Francisco</span><span>Barra da Tijuca</span></div><div class="fsoc"><a href="https://www.instagram.com/koisalinda_oficial/" target="_blank">Instagram</a><a href="https://www.facebook.com/koisalindaoficial/" target="_blank">Facebook</a><a href="https://www.tiktok.com/@koisalindaoficial" target="_blank">TikTok</a><a href="https://br.pinterest.com/koisalinda_oficial/" target="_blank">Pinterest</a></div><small>Costuramos sonhos desde 1994 · Beleza Consciente<br>CNPJ 02.504.054/0001-10 · © 2026 Koisa Linda · Protótipo para avaliação</small></footer><script id="kl-motion-js">
+<footer><img class="fimg" src="img/logo-kl-footer.png" alt="KL"><div class="fbrand">KOISA LINDA</div><div class="fphrase">Unindo famílias. Realizando sonhos.</div><div class="funits"><span>São Francisco</span><span>Barra da Tijuca</span></div><div class="fsoc"><a href="https://www.instagram.com/koisalinda_oficial/" target="_blank">Instagram</a><a href="https://www.facebook.com/koisalindaoficial/" target="_blank">Facebook</a><a href="https://www.tiktok.com/@koisalindaoficial" target="_blank">TikTok</a><a href="https://br.pinterest.com/koisalinda_oficial/" target="_blank">Pinterest</a></div><small>Costuramos sonhos desde 1994.<br>CNPJ 02.504.054/0001-10 · © 2026 Koisa Linda · Protótipo para avaliação</small></footer><script id="kl-motion-js">
 (function(){
  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
- var sel='.eyebrow,.sec-title,.rule,.split,.col,.svc,.unit,.pkg,.cli,.band h2,.band p';
+ var sel='.eyebrow,.sec-title,.rule,.split,.purpose-photo,.purpose-content>h2,.brand-foundation,.brand-value,.col,.svc,.unit,.pkg,.cli,.band h2,.band p';
  var els=[].slice.call(document.querySelectorAll(sel));
  els.forEach(function(el){el.setAttribute('data-kl-rev','');});
  if(!('IntersectionObserver' in window)){els.forEach(function(el){el.classList.add('kl-in');});return;}

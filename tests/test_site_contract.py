@@ -181,5 +181,170 @@ class HomeHeroContractTest(unittest.TestCase):
             self.assertEqual(expected, sha256(name), name)
 
 
+class AboutBrandContractTest(unittest.TestCase):
+    def test_about_uses_approved_brand_platform(self):
+        html = page("sobre.html")
+        for required in (
+            "Há mais de três décadas, vestimos os momentos que aproximam pessoas e ficam na memória.",
+            "A roupa é parte do momento. Nosso trabalho é acolher cada história, cuidar de cada detalhe e ajudar famílias a viverem celebrações que ficam na memória.",
+            "Unir famílias. Realizar sonhos. Transformar vidas.",
+            "Unir famílias e realizar sonhos, transformando os grandes momentos da vida em memórias que atravessam gerações.",
+            "Acolher cada pessoa, entender a sua história e vestir sua celebração com cuidado e excelência, da primeira prova ao grande dia.",
+            '<div class="fphrase">Unindo famílias. Realizando sonhos.</div>',
+        ):
+            self.assertIn(required, html)
+        self.assertRegex(
+            html,
+            r"<small>\s*Costuramos sonhos desde 1994\.<br>"
+            r"CNPJ 02\.504\.054/0001-10 · © 2026 Koisa Linda · Protótipo para avaliação</small>",
+        )
+
+    def test_about_has_all_five_values_with_descriptions(self):
+        html = page("sobre.html")
+        values = {
+            "Família no centro": "Celebramos os vínculos e lembramos que cada escolha envolve pessoas que se amam.",
+            "Cada sonho é único": "Escutamos antes de orientar. A cliente não entra em um molde; o atendimento se adapta à história dela.",
+            "Cuidado em cada detalhe": "Da prova ao ajuste, do prazo à entrega: tratamos cada etapa com atenção e responsabilidade.",
+            "Respeito por cada história": "Acolhemos corpos, estilos, gerações e trajetórias diferentes com dignidade e verdade.",
+            "Confiança de geração em geração": "Honramos nossa palavra e os relacionamentos construídos pela Koisa Linda desde 1994.",
+        }
+        articles = re.findall(
+            r'<article[^>]*class="[^"]*\bbrand-value\b[^"]*"[^>]*>.*?</article>',
+            html,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+        self.assertEqual(5, len(articles))
+        for title, description in values.items():
+            matching = [article for article in articles if title in article]
+            self.assertEqual(1, len(matching), title)
+            article = matching[0]
+            self.assertRegex(article, rf"<h3[^>]*>{re.escape(title)}</h3>")
+            self.assertIn(description, article)
+
+    def test_about_purpose_composition_is_face_safe(self):
+        html = page("sobre.html")
+        purpose = section_with_class(html, "purpose-section")
+
+        self.assertIn('src="img/cliente-noiva-3.webp"', purpose)
+        self.assertIn('class="purpose-photo"', purpose)
+        self.assertIn('class="purpose-content"', purpose)
+        self.assertLess(
+            purpose.index('class="purpose-photo"'),
+            purpose.index('class="purpose-content"'),
+        )
+        media = re.search(
+            r'<div class="purpose-photo"[^>]*>(.*?)</div>',
+            purpose,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+        self.assertIsNotNone(media)
+        self.assertNotRegex(media.group(1), r"<(?:h[1-6]|p|a|button)\b")
+        self.assertRegex(
+            purpose,
+            r'<h2[^>]*>Unir famílias\. Realizar sonhos\. Transformar vidas\.</h2>',
+        )
+        self.assertRegex(purpose, r"<h3[^>]*>Propósito</h3>")
+        self.assertRegex(purpose, r"<h3[^>]*>Missão</h3>")
+
+    def test_about_retires_the_six_old_brand_phrases(self):
+        folded = page("sobre.html").casefold()
+        for retired in (
+            "beleza consciente",
+            "onde cada escolha faz o mundo melhor",
+            "moda como ferramenta de empoderamento feminino",
+            "não vendemos um vestido",
+            "facilitamos uma transformação",
+            "essa é a nossa beleza consciente",
+        ):
+            self.assertNotIn(retired.casefold(), folded)
+
+    def test_about_pixel_fallback_is_valid_and_preserved(self):
+        html = page("sobre.html")
+        noscript_blocks = re.findall(
+            r"<noscript\b[^>]*>.*?</noscript>",
+            html,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+
+        self.assertEqual(1, len(noscript_blocks))
+        self.assertRegex(html, r"<body[^>]*>\s*<noscript\b")
+        self.assertNotIn("<noscript", html[: html.lower().index("</head>")].lower())
+        self.assertIn(
+            "https://www.facebook.com/tr?id=1720591949105146&ev=PageView&noscript=1",
+            noscript_blocks[0],
+        )
+        self.assertIn("fbq('init','1720591949105146')", html)
+        self.assertIn("fbq('track','PageView')", html)
+
+    def test_about_focus_and_mobile_controls_match_home_accessibility(self):
+        html = page("sobre.html")
+        focus_rule = balanced_css_block(
+            html, "a:focus-visible,button:focus-visible"
+        ).replace(" ", "")
+        self.assertIn("outline:3pxsolidvar(--ruby)", focus_rule)
+
+        dark_selector = (
+            "footer a:focus-visible,.band a:focus-visible,"
+            ".kl-sticky-cta a:focus-visible,.kl-sticky-cta button:focus-visible"
+        )
+        dark_rule = balanced_css_block(html, dark_selector).replace(" ", "")
+        self.assertIn("outline-color:#fff", dark_rule)
+        self.assertIn("--kl-tap-target:48px", html.replace(" ", ""))
+
+        social_rule = balanced_css_block(html, ".fsoc").replace(" ", "")
+        self.assertIn("flex-wrap:wrap", social_rule)
+
+        tablet_blocks = css_blocks(html, "@media(max-width:860px)")
+        mobile_controls = (
+            ".mtog,.mnav a,.ig-btn,.btn-pri,.btn-out,.mini,.mini-cta,.fsoc a"
+        )
+        self.assertTrue(
+            any(
+                mobile_controls.replace(" ", "") in block.replace(" ", "")
+                and "min-height:var(--kl-tap-target)" in block.replace(" ", "")
+                for block in tablet_blocks
+            ),
+            "todos os controles móveis devem manter alvo mínimo de 48px",
+        )
+
+    def test_about_purpose_layout_stacks_only_below_680px(self):
+        html = page("sobre.html")
+        photo_rule = balanced_css_block(html, ".purpose-photo img").replace(" ", "")
+        for declaration in (
+            "aspect-ratio:2/3",
+            "object-fit:cover",
+            "object-position:centertop",
+        ):
+            self.assertIn(declaration, photo_rule)
+
+        mobile_blocks = css_blocks(html, "@media(max-width:680px)")
+        self.assertTrue(
+            any(
+                ".purpose-grid" in block
+                and "grid-template-columns:1fr" in block.replace(" ", "")
+                for block in mobile_blocks
+            ),
+            "foto e copy devem empilhar apenas abaixo de 680px",
+        )
+        for block in css_blocks(html, "@media(max-width:860px)"):
+            self.assertFalse(
+                ".purpose-grid" in block
+                and "grid-template-columns:1fr" in block.replace(" ", ""),
+                "o tablet deve preservar o grid em dois planos",
+            )
+        self.assertNotRegex(
+            html,
+            r"\.purpose(?:-photo|-content)[^{]*\{[^}]*(?:opacity\s*:\s*0|visibility\s*:\s*hidden)",
+        )
+
+    def test_about_keeps_tracking_and_enhancement_scripts(self):
+        html = page("sobre.html")
+        for required in (
+            'src="kl-tracking.js?v=20260710deep3"',
+            'src="kl-site-enhance.js?v=20260713r3"',
+        ):
+            self.assertIn(required, html)
+
+
 if __name__ == "__main__":
     unittest.main()
