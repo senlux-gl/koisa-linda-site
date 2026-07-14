@@ -501,6 +501,28 @@ class VisiblePagesContractTest(unittest.TestCase):
                     f"o override de 48px deve vir depois da regra base de {base_rule}",
                 )
 
+    def test_units_mobile_cta_override_matches_the_base_rule_specificity(self):
+        html = page("unidades.html")
+        compact = re.sub(r"\s+", "", html)
+        override = ".unit.mini{min-height:var(--kl-tap-target)}"
+        override_index = compact.rfind(override)
+
+        self.assertGreaterEqual(
+            override_index,
+            0,
+            "o CTA de cada unidade precisa de override com a mesma especificidade",
+        )
+        tablet_blocks = css_blocks(html, "@media(max-width:860px)")
+        self.assertTrue(
+            any(override in re.sub(r"\s+", "", block) for block in tablet_blocks),
+            "o override específico deve valer somente no layout móvel/tablet",
+        )
+        self.assertGreater(
+            override_index,
+            compact.rfind(".unit.mini{display:inline-flex"),
+            "o override de 48px deve vir depois da regra base de 46px",
+        )
+
     def test_visible_pages_keep_shared_scripts_one_h1_and_approved_whatsapps(self):
         all_html = []
         for name in VISIBLE_PAGES:
