@@ -469,6 +469,38 @@ class VisiblePagesContractTest(unittest.TestCase):
             "filtros, busca e controles do catálogo devem manter 48px no mobile",
         )
 
+    def test_catalog_mobile_target_override_wins_the_css_cascade(self):
+        compact = re.sub(r"\s+", "", page("catalogo.html"))
+        final_controls = (
+            ".szchip,.sw,.clearf,.fab,.favbar.fgo,.favbar.fclear"
+        )
+        final_override = (
+            "@media(max-width:860px){"
+            f"{final_controls}{{min-height:var(--kl-tap-target)}}"
+            "}"
+        )
+        override_index = compact.rfind(final_override)
+
+        self.assertGreaterEqual(
+            override_index,
+            0,
+            "o catálogo precisa de um override móvel final para os controles compactos",
+        )
+        for base_rule in (
+            ".szchip{font-family:",
+            ".sw{display:inline-flex",
+            ".clearf{font-family:",
+            ".fab{position:fixed",
+            ".favbar.fgo{background:",
+            ".favbar.fclear{background:",
+        ):
+            with self.subTest(base_rule=base_rule):
+                self.assertGreater(
+                    override_index,
+                    compact.rfind(base_rule),
+                    f"o override de 48px deve vir depois da regra base de {base_rule}",
+                )
+
     def test_visible_pages_keep_shared_scripts_one_h1_and_approved_whatsapps(self):
         all_html = []
         for name in VISIBLE_PAGES:
