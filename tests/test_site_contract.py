@@ -350,5 +350,144 @@ class AboutBrandContractTest(unittest.TestCase):
             self.assertIn(required, html)
 
 
+VISIBLE_PAGES = (
+    "index.html",
+    "sobre.html",
+    "catalogo.html",
+    "como-chegar.html",
+    "servicos.html",
+    "unidades.html",
+)
+
+RETIRED_PHRASES = (
+    "beleza consciente",
+    "onde cada escolha faz o mundo melhor",
+    "moda como ferramenta de empoderamento feminino",
+    "não vendemos um vestido",
+    "facilitamos uma transformação",
+    "essa é a nossa beleza consciente",
+)
+
+
+class VisiblePagesContractTest(unittest.TestCase):
+    def test_visible_pages_use_current_footer_and_retire_old_language(self):
+        for name in VISIBLE_PAGES:
+            with self.subTest(page=name):
+                html = page(name)
+                folded = html.casefold()
+                for retired in RETIRED_PHRASES:
+                    self.assertNotIn(retired.casefold(), folded)
+                self.assertIn(
+                    '<div class="fphrase">Unindo famílias. Realizando sonhos.</div>',
+                    html,
+                )
+                self.assertRegex(
+                    html,
+                    r"<small>\s*Costuramos sonhos desde 1994\.<br>[^<]+</small>",
+                )
+
+    def test_visible_pages_keep_one_valid_pixel_fallback_at_body_start(self):
+        for name in VISIBLE_PAGES:
+            with self.subTest(page=name):
+                html = page(name)
+                noscript_blocks = re.findall(
+                    r"<noscript\b[^>]*>.*?</noscript>",
+                    html,
+                    flags=re.IGNORECASE | re.DOTALL,
+                )
+                self.assertEqual(1, len(noscript_blocks))
+                self.assertRegex(html, r"<body[^>]*>\s*<noscript\b")
+                head = html[: html.lower().index("</head>")]
+                self.assertNotIn("<noscript", head.casefold())
+                pixel = re.search(
+                    r"tr\?id=(\d+)&ev=PageView&noscript=1",
+                    noscript_blocks[0],
+                )
+                self.assertIsNotNone(pixel)
+                self.assertEqual(
+                    "f536a36777ecb8647edd02332a1c9d785006f6b4bd47eec226a06fc6a7e03333",
+                    digest(pixel.group(1)),
+                )
+                initializer = re.search(r"fbq\('init','(\d+)'\)", html)
+                self.assertIsNotNone(initializer)
+                self.assertEqual(
+                    "f536a36777ecb8647edd02332a1c9d785006f6b4bd47eec226a06fc6a7e03333",
+                    digest(initializer.group(1)),
+                )
+                self.assertIn("fbq('track','PageView')", html)
+
+    def test_visible_pages_have_contrasting_keyboard_focus(self):
+        light_selector = "a:focus-visible,button:focus-visible"
+        dark_selector = (
+            "footer a:focus-visible,.band a:focus-visible,"
+            ".kl-sticky-cta a:focus-visible,.kl-sticky-cta button:focus-visible"
+        )
+        for name in VISIBLE_PAGES:
+            with self.subTest(page=name):
+                html = page(name)
+                light_rule = balanced_css_block(html, light_selector).replace(" ", "")
+                dark_rule = balanced_css_block(html, dark_selector).replace(" ", "")
+                self.assertIn("outline:3pxsolidvar(--ruby)", light_rule)
+                self.assertIn("outline-color:#fff", dark_rule)
+
+    def test_visible_pages_wrap_social_links_and_keep_mobile_tap_targets(self):
+        standard_controls = (
+            ".mtog,.mnav a,.ig-btn,.btn-pri,.btn-out,.mini,.mini-cta,.fsoc a"
+        )
+        for name in VISIBLE_PAGES:
+            with self.subTest(page=name):
+                html = page(name)
+                compact = re.sub(r"\s+", "", html)
+                self.assertIn("--kl-tap-target:48px", compact)
+                social_rule = balanced_css_block(html, ".fsoc").replace(" ", "")
+                self.assertIn("flex-wrap:wrap", social_rule)
+                tablet_blocks = css_blocks(html, "@media(max-width:860px)")
+                self.assertTrue(
+                    any(
+                        standard_controls.replace(" ", "")
+                        in block.replace(" ", "")
+                        and "min-height:var(--kl-tap-target)"
+                        in block.replace(" ", "")
+                        for block in tablet_blocks
+                    ),
+                    "controles móveis devem declarar alvo mínimo de 48px",
+                )
+                if 'class="ig-btn"' in html:
+                    self.assertIn(".ig-btn", standard_controls)
+
+        catalog = page("catalogo.html")
+        catalog_controls = (
+            ".pill,.search,.szchip,.sw,.cbtn,.favbtn,.favbar .fgo,"
+            ".favbar .fclear,.lb-close,.lb-nav,.lb-try,.lb-cta"
+        )
+        self.assertTrue(
+            any(
+                catalog_controls.replace(" ", "") in block.replace(" ", "")
+                and "min-height:var(--kl-tap-target)" in block.replace(" ", "")
+                for block in css_blocks(catalog, "@media(max-width:860px)")
+            ),
+            "filtros, busca e controles do catálogo devem manter 48px no mobile",
+        )
+
+    def test_visible_pages_keep_shared_scripts_one_h1_and_approved_whatsapps(self):
+        all_html = []
+        for name in VISIBLE_PAGES:
+            with self.subTest(page=name):
+                html = page(name)
+                all_html.append(html)
+                self.assertIn('src="kl-tracking.js?v=20260710deep3"', html)
+                self.assertIn('src="kl-site-enhance.js?v=20260713r3"', html)
+                self.assertEqual(1, len(re.findall(r"<h1\b", html, re.IGNORECASE)))
+
+        numbers = set(re.findall(r"wa\.me/(55\d+)", "\n".join(all_html)))
+        self.assertEqual(
+            {
+                "a2613c0f61c3dcf35b472a5f1d5b03904ccbbc5b78acfbc3f578b15701a74f79",
+                "dcc97840afbc12fcab7911d36037a59fadcd8f6c714b86a2c8c8b3a960d2ba99",
+            },
+            {digest(number) for number in numbers},
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
