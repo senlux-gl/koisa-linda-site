@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const fixtures = require('./helpers/catalog-fixtures.cjs');
 const { createHistory, createImageLoader } = require('./helpers/fake-browser.cjs');
 const Gallery = require('../kl-catalog-gallery.js');
 
@@ -173,4 +174,63 @@ test('image loader expõe promises controláveis por requisição', async () => 
   const failure = new Error('synthetic failure');
   loader.requests[1].reject(failure);
   await assert.rejects(failed, failure);
+});
+
+test('imagem ativa carrega antes de no máximo uma vizinha por lado', async () => {
+  const loader = createImageLoader();
+  const displayed = [];
+  const policy = Gallery.createImageCoordinator({
+    load: loader.load,
+    display: product => displayed.push(product.k),
+  });
+  const pending = policy.show(fixtures.slice(0, 3), 1);
+  assert.equal(loader.requests.length, 1);
+  loader.requests[0].resolve();
+  await pending;
+  assert.equal(displayed.at(-1), fixtures[1].k);
+  assert.equal(loader.requests.length, 3);
+});
+
+test('resposta antiga não substitui produto mais recente', async () => {
+  const loader = createImageLoader();
+  const displayed = [];
+  const policy = Gallery.createImageCoordinator({
+    load: loader.load,
+    display: product => displayed.push(product.k),
+  });
+  const first = policy.show(fixtures.slice(0, 3), 0);
+  const second = policy.show(fixtures.slice(0, 3), 1);
+  loader.requests[0].resolve();
+  await first;
+  assert.deepEqual(displayed, []);
+  loader.requests[1].resolve();
+  await second;
+  assert.equal(displayed.at(-1), fixtures[1].k);
+});
+
+test('falha da original mostra erro da galeria sem iniciar vizinhas', async () => {
+  const loader = createImageLoader();
+  const failed = [];
+  const policy = Gallery.createImageCoordinator({
+    load: loader.load,
+    display() {},
+    fail: product => failed.push(product.k),
+  });
+  const pending = policy.show(fixtures.slice(0, 3), 1);
+  loader.requests[0].reject(new Error('synthetic'));
+  await pending;
+  assert.deepEqual(failed, [fixtures[1].k]);
+  assert.equal(loader.requests.length, 1);
+});
+
+test('teclado e retorno de foco têm fallback determinístico', () => {
+  assert.equal(Gallery.keyboardAction('ArrowLeft'), 'previous');
+  assert.equal(Gallery.keyboardAction('ArrowRight'), 'next');
+  assert.equal(Gallery.keyboardAction('Escape'), 'close');
+  assert.equal(Gallery.keyboardAction('Enter'), null);
+  const origin = { isConnected: false, id: 'origin' };
+  const card = { isConnected: true, id: 'card' };
+  const title = { isConnected: true, id: 'title' };
+  assert.equal(Gallery.focusReturnTarget(origin, card, title), card);
+  assert.equal(Gallery.focusReturnTarget(null, null, title), title);
 });

@@ -6,7 +6,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const fixtures = require('./helpers/catalog-fixtures.cjs');
-const { createFakeCatalogBrowser, createStorage } = require('./helpers/fake-browser.cjs');
+const {
+  createFakeCatalogBrowser,
+  createHistory,
+  createScrollEnvironment,
+  createStorage,
+} = require('./helpers/fake-browser.cjs');
 const Core = require('../kl-catalog-core.js');
 const Actions = require('../kl-catalog-actions.js');
 const App = require('../kl-catalog-app.js');
@@ -207,6 +212,64 @@ test('createRequestMore usa somente state externo para observer, manual e fim', 
   ]);
   assert.equal(requestMore.page, undefined);
   assert.equal(requestMore.snapshot, undefined);
+});
+
+test('grid usa push, troca usa replace e popstate nunca escreve', () => {
+  const history = createHistory('/catalogo.html?un=sf');
+  const controller = App.createHistoryController(history);
+  controller.openFromGrid('/catalogo.html?un=sf&p=DB-010');
+  assert.equal(history.snapshot().entries.length, 2);
+  controller.replaceProduct('/catalogo.html?un=sf&p=NV-002');
+  assert.equal(history.snapshot().entries.length, 2);
+  assert.equal(controller.requestClose(), 'back');
+  assert.equal(history.snapshot().index, 0);
+  const before = history.snapshot().operations.length;
+  controller.onPopState(null);
+  assert.equal(history.snapshot().operations.length, before);
+});
+
+test('deep-link inicial fecha por replace sem sair do catálogo', () => {
+  const history = createHistory('/catalogo.html?cat=vestidos-noiva&p=NV-001');
+  const controller = App.createHistoryController(history, { initialDeepLink: true });
+  controller.replaceProduct('/catalogo.html?cat=vestidos-noiva&p=NV-002');
+  assert.equal(controller.requestClose('/catalogo.html?cat=vestidos-noiva'), 'replace');
+  assert.equal(history.snapshot().entries.length, 1);
+  assert.equal(history.snapshot().entries[0].url, '/catalogo.html?cat=vestidos-noiva');
+});
+
+test('popstate usa o mesmo pipeline de derive/render e nunca escreve history', () => {
+  const history = createHistory('/catalogo.html?un=sf&p=DB-010');
+  const controller = App.createHistoryController(history, { initialDeepLink: true });
+  const renders = [];
+  const galleryStates = [];
+  const handler = App.createPopStateHandler({
+    historyController: controller,
+    readState: () => ({ openProduct: null, unit: 'sf' }),
+    derive: state => ({ state, products: [] }),
+    render: (derived, meta) => renders.push({ derived, meta }),
+    syncGallery: code => galleryStates.push(code),
+  });
+  const before = history.snapshot().operations.length;
+  handler({ state: null });
+  assert.equal(history.snapshot().operations.length, before);
+  assert.equal(renders.length, 1);
+  assert.deepEqual(renders[0].meta, { fromPopState: true });
+  assert.deepEqual(galleryStates, [null]);
+});
+
+test('scroll lock compensa scrollbar e restaura estilos e posição exatos', () => {
+  const fake = createScrollEnvironment({ scrollY: 640, innerWidth: 1200, clientWidth: 1180, paddingRight: 4 });
+  const lock = App.createScrollLock(fake.environment);
+  assert.equal(lock.lock(), true);
+  assert.equal(lock.lock(), false);
+  assert.equal(fake.environment.body.style.position, 'fixed');
+  assert.equal(fake.environment.body.style.top, '-640px');
+  assert.equal(fake.environment.body.style.paddingRight, '24px');
+  assert.equal(fake.environment.documentElement.style.overflow, 'hidden');
+  assert.equal(lock.unlock(), true);
+  assert.equal(lock.unlock(), false);
+  assert.deepEqual(fake.scrollCalls, [[0, 640]]);
+  assert.deepEqual(fake.snapshotStyles(), fake.initialStyles);
 });
 
 test('erro da miniatura vira placeholder e nunca pede a original', () => {

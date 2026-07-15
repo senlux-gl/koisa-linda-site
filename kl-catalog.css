@@ -580,6 +580,18 @@
   place-items:center;
   background:#0d0908;
   overflow:hidden;
+  touch-action:pan-y;
+}
+
+.gallery-media.is-image-error::after{
+  content:"Foto indisponível";
+  position:absolute;
+  inset:50% auto auto 50%;
+  color:rgba(255,255,255,.82);
+  font:12px var(--sans);
+  letter-spacing:1.4px;
+  text-transform:uppercase;
+  transform:translate(-50%,-50%);
 }
 
 .gallery-media img{
@@ -616,6 +628,11 @@
 
 .gallery-nav:active{
   transform:translateY(-50%) scale(.96);
+}
+
+.gallery-nav:disabled{
+  opacity:.28;
+  cursor:not-allowed;
 }
 
 .gallery-panel{

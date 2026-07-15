@@ -33,10 +33,17 @@
   };
   var Core = null;
   var Actions = null;
+  var Gallery = null;
   var products = [];
   var state = null;
   var currentDerived = null;
   var favorites = null;
+  var gallery = null;
+  var galleryProducts = [];
+  var galleryOrigin = null;
+  var galleryOriginCode = '';
+  var historyController = null;
+  var scrollLock = null;
   var pagingController = null;
   var requestMoreHandler = null;
   var searchTimer = null;
@@ -134,6 +141,128 @@
     };
   }
 
+  function createHistoryController(adapter, options) {
+    options = options || {};
+    if (!adapter || typeof adapter.getState !== 'function'
+        || typeof adapter.pushState !== 'function'
+        || typeof adapter.replaceState !== 'function'
+        || typeof adapter.back !== 'function') {
+      throw new TypeError('history adapter is incomplete');
+    }
+    var initialState = adapter.getState();
+    var owned = !options.initialDeepLink && Boolean(
+      initialState && initialState.klCatalog && initialState.klCatalog.gallery,
+    );
+
+    function markedState() {
+      return Object.assign({}, adapter.getState() || {}, { klCatalog: { gallery: true } });
+    }
+
+    function cleanState() {
+      var next = Object.assign({}, adapter.getState() || {});
+      delete next.klCatalog;
+      return next;
+    }
+
+    return {
+      openFromGrid: function (url) {
+        adapter.pushState(markedState(), '', url);
+        owned = true;
+      },
+      replaceProduct: function (url) {
+        adapter.replaceState(markedState(), '', url);
+      },
+      requestClose: function (cleanUrl) {
+        var action = owned ? 'back' : 'replace';
+        if (action === 'back') adapter.back();
+        else adapter.replaceState(cleanState(), '', cleanUrl);
+        owned = false;
+        return action;
+      },
+      onPopState: function (nextState) {
+        owned = Boolean(nextState && nextState.klCatalog && nextState.klCatalog.gallery);
+      },
+    };
+  }
+
+  function createPopStateHandler(options) {
+    if (!options || !options.historyController
+        || typeof options.readState !== 'function'
+        || typeof options.derive !== 'function'
+        || typeof options.render !== 'function'
+        || typeof options.syncGallery !== 'function') {
+      throw new TypeError('popstate options are incomplete');
+    }
+    return function (event) {
+      options.historyController.onPopState(event && event.state);
+      var derived = options.derive(options.readState());
+      options.render(derived, { fromPopState: true });
+      options.syncGallery(derived.state.openProduct || null);
+      return derived;
+    };
+  }
+
+  function createScrollLock(environment) {
+    if (!environment || !environment.body || !environment.documentElement
+        || !environment.window || typeof environment.getComputedStyle !== 'function') {
+      throw new TypeError('scroll environment is incomplete');
+    }
+    var locked = false;
+    var saved = null;
+    var bodyKeys = ['position', 'top', 'left', 'right', 'width', 'paddingRight', 'overflow'];
+
+    function bodySnapshot() {
+      return bodyKeys.reduce(function (output, key) {
+        output[key] = environment.body.style[key] || '';
+        return output;
+      }, {});
+    }
+
+    return {
+      lock: function () {
+        if (locked) return false;
+        var y = Math.max(0, Number(environment.window.scrollY) || 0);
+        var gap = Math.max(
+          0,
+          (Number(environment.window.innerWidth) || 0)
+            - (Number(environment.documentElement.clientWidth) || 0),
+        );
+        var computed = environment.getComputedStyle(environment.body);
+        var basePadding = parseFloat(computed && computed.paddingRight) || 0;
+        saved = {
+          y: y,
+          body: bodySnapshot(),
+          rootOverflow: environment.documentElement.style.overflow || '',
+        };
+        environment.body.style.position = 'fixed';
+        environment.body.style.top = '-' + y + 'px';
+        environment.body.style.left = '0';
+        environment.body.style.right = '0';
+        environment.body.style.width = '100%';
+        environment.body.style.overflow = 'hidden';
+        if (gap) environment.body.style.paddingRight = String(basePadding + gap) + 'px';
+        environment.documentElement.style.overflow = 'hidden';
+        locked = true;
+        return true;
+      },
+      unlock: function (unlockOptions) {
+        if (!locked) return false;
+        bodyKeys.forEach(function (key) {
+          environment.body.style[key] = saved.body[key];
+        });
+        environment.documentElement.style.overflow = saved.rootOverflow;
+        var y = saved.y;
+        saved = null;
+        locked = false;
+        if (!unlockOptions || unlockOptions.restoreScroll !== false) {
+          environment.window.scrollTo(0, y);
+        }
+        return true;
+      },
+      isLocked: function () { return locked; },
+    };
+  }
+
   function gridImageFailurePolicy() {
     return { showPlaceholder: true, requestOriginal: false };
   }
@@ -158,6 +287,8 @@
       count: root.document.getElementById('catalog-count'),
       facets: root.document.getElementById('catalog-facets'),
       favoriteCount: root.document.getElementById('catalog-favorite-count'),
+      galleryDialog: root.document.getElementById('catalog-gallery'),
+      galleryImage: root.document.getElementById('gallery-image'),
       grid: root.document.getElementById('catalog-grid'),
       loadMore: root.document.getElementById('catalog-load-more'),
       results: root.document.getElementById('catalog-results'),
@@ -207,6 +338,26 @@
   function updateFavoriteCount() {
     if (!dom || !dom.favoriteCount || !favorites) return;
     dom.favoriteCount.textContent = String(favorites.codes().length);
+  }
+
+  function syncFavoriteControls() {
+    if (!favorites || !root.document || typeof root.document.querySelectorAll !== 'function') return;
+    var controls = root.document.querySelectorAll('[data-favorite-code]');
+    Array.prototype.forEach.call(controls, function (button) {
+      var code = button.dataset && button.dataset.favoriteCode;
+      var saved = favorites.has(code);
+      button.setAttribute('aria-pressed', saved ? 'true' : 'false');
+      button.textContent = saved ? 'Peça salva' : 'Salvar peça';
+    });
+    updateFavoriteCount();
+  }
+
+  function toggleFavorite(code) {
+    if (!favorites) return false;
+    var saved = favorites.toggle(code);
+    syncFavoriteControls();
+    if (gallery && gallery.isReady()) gallery.update(code);
+    return saved;
   }
 
   function renderState(kind, title, message, retry) {
@@ -314,9 +465,7 @@
 
     syncFavorite();
     favorite.addEventListener('click', function () {
-      favorites.toggle(product.k);
-      syncFavorite();
-      updateFavoriteCount();
+      toggleFavorite(product.k);
     });
 
     meta.appendChild(titleLink);
@@ -524,6 +673,10 @@
     var derived = Core.derive(products, state);
     state = cloneState(derived.state);
     currentDerived = derived;
+    galleryProducts.splice.apply(
+      galleryProducts,
+      [0, galleryProducts.length].concat(currentDerived.products),
+    );
     if (Core.serializeState(state) !== locationQuery()) replaceCanonicalUrl();
     renderReady(options);
     dispatchCatalogState();
@@ -718,18 +871,199 @@
     else focusCatalogTitle();
   }
 
+  function galleryHistoryAdapter() {
+    return {
+      getState: function () { return root.history.state; },
+      pushState: root.history.pushState.bind(root.history),
+      replaceState: root.history.replaceState.bind(root.history),
+      back: root.history.back.bind(root.history),
+    };
+  }
+
+  function productForCode(code) {
+    var normalized = String(code || '').trim().toUpperCase();
+    return galleryProducts.find(function (product) {
+      return String(product.k || '').trim().toUpperCase() === normalized;
+    }) || null;
+  }
+
+  function materializedControl(code) {
+    var card = allDescendants(dom.grid, []).find(function (node) {
+      return node.dataset && String(node.dataset.code || '').trim().toUpperCase() === code;
+    });
+    if (!card) return null;
+    return allDescendants(card, []).find(function (node) {
+      return node.tagName === 'A';
+    }) || null;
+  }
+
+  function restoreGalleryFocus() {
+    if (!Gallery || typeof Gallery.focusReturnTarget !== 'function') return;
+    var fallback = materializedControl(galleryOriginCode);
+    var target = Gallery.focusReturnTarget(galleryOrigin, fallback, dom.title);
+    galleryOrigin = null;
+    galleryOriginCode = '';
+    if (!target || typeof target.focus !== 'function') return;
+    if (target === dom.title) target.setAttribute('tabindex', '-1');
+    target.focus({ preventScroll: true });
+  }
+
+  function syncGallery(code) {
+    if (!gallery || !gallery.isReady()) return;
+    if (code) {
+      scrollLock.lock();
+      gallery.open(code);
+      return;
+    }
+    gallery.close();
+    scrollLock.unlock();
+    restoreGalleryFocus();
+  }
+
+  function openFromGrid(code, origin) {
+    if (!gallery || !gallery.isReady() || !productForCode(code)) return false;
+    galleryOrigin = origin || null;
+    galleryOriginCode = String(code || '').trim().toUpperCase();
+    var next = cloneState(Object.assign({}, state, { openProduct: galleryOriginCode }));
+    historyController.openFromGrid(urlFor(next));
+    state = next;
+    scrollLock.lock();
+    try {
+      if (!gallery.open(galleryOriginCode)) throw new Error('gallery refused product');
+    } catch (error) {
+      scrollLock.unlock();
+      historyController.requestClose(urlFor(Object.assign({}, state, { openProduct: null })));
+      return false;
+    }
+    dispatchCatalogState();
+    return true;
+  }
+
+  function replaceGalleryProduct(code) {
+    var product = productForCode(code);
+    if (!product || !gallery || !gallery.isReady()) return false;
+    state = cloneState(Object.assign({}, state, { openProduct: product.k }));
+    historyController.replaceProduct(urlFor(state));
+    gallery.update(product.k);
+    dispatchCatalogState();
+    return true;
+  }
+
+  function requestGalleryClose() {
+    if (!historyController || !state) return false;
+    var closingCode = String(state.openProduct || galleryOriginCode || '').trim().toUpperCase();
+    if (!galleryOriginCode) galleryOriginCode = closingCode;
+    var next = cloneState(Object.assign({}, state, { openProduct: null }));
+    var action = historyController.requestClose(urlFor(next));
+    if (action === 'replace') {
+      state = next;
+      if (currentDerived) currentDerived.state = state;
+      gallery.close();
+      scrollLock.unlock();
+      restoreGalleryFocus();
+      dispatchCatalogState();
+    }
+    return action;
+  }
+
+  function closestAnchor(node) {
+    while (node && node !== dom.grid) {
+      if (node.tagName === 'A') return node;
+      node = node.parentNode;
+    }
+    return null;
+  }
+
+  function codeFromNode(node) {
+    while (node && node !== dom.grid) {
+      if (node.dataset && node.dataset.code) return node.dataset.code;
+      node = node.parentNode;
+    }
+    return '';
+  }
+
+  function setupGallery() {
+    if (!Gallery || typeof Gallery.create !== 'function' || !dom.galleryDialog || !dom.galleryImage
+        || !root.history || typeof root.history.pushState !== 'function'
+        || typeof root.history.back !== 'function' || typeof root.getComputedStyle !== 'function'
+        || !root.document.body || !root.document.documentElement) return false;
+    historyController = createHistoryController(
+      galleryHistoryAdapter(),
+      { initialDeepLink: Boolean(state.openProduct) },
+    );
+    scrollLock = createScrollLock({
+      window: root,
+      body: root.document.body,
+      documentElement: root.document.documentElement,
+      getComputedStyle: root.getComputedStyle.bind(root),
+    });
+    gallery = Gallery.create({
+      dialog: dom.galleryDialog,
+      image: dom.galleryImage,
+      products: galleryProducts,
+      core: Core,
+      actions: Actions,
+      onNavigate: replaceGalleryProduct,
+      onRequestClose: requestGalleryClose,
+      onFavorite: toggleFavorite,
+      isFavorite: function (code) { return favorites.has(code); },
+      onTrack: function () {},
+    });
+    if (!gallery.isReady()) return false;
+    dom.grid.addEventListener('click', function (event) {
+      var anchor = closestAnchor(event.target);
+      if (!anchor || !Gallery.shouldInterceptProductLink(event, gallery.isReady())) return;
+      var code = codeFromNode(anchor);
+      if (!productForCode(code)) return;
+      event.preventDefault();
+      openFromGrid(code, anchor);
+    });
+    if (state.openProduct) {
+      scrollLock.lock();
+      try { gallery.open(state.openProduct); }
+      catch (error) { scrollLock.unlock(); }
+    }
+    return true;
+  }
+
   function connectNavigationLifecycle() {
     if (typeof root.addEventListener !== 'function') return;
-    root.addEventListener('popstate', function () {
-      if (searchTimer != null && typeof root.clearTimeout === 'function') root.clearTimeout(searchTimer);
-      searchTimer = null;
-      state = cloneState(Core.readState(root.location && root.location.search || '', products));
-      renderDerived({ fromPopState: true });
-    });
+    var onPopState = historyController
+      ? createPopStateHandler({
+        historyController: historyController,
+        readState: function () {
+          return Core.readState(root.location && root.location.search || '', products);
+        },
+        derive: function (nextState) {
+          state = cloneState(nextState);
+          var derived = Core.derive(products, state);
+          state = cloneState(derived.state);
+          currentDerived = derived;
+          galleryProducts.splice.apply(
+            galleryProducts,
+            [0, galleryProducts.length].concat(currentDerived.products),
+          );
+          return derived;
+        },
+        render: function (_derived, meta) {
+          renderReady(meta);
+          dispatchCatalogState();
+          restorePendingPosition();
+        },
+        syncGallery: syncGallery,
+      })
+      : function () {
+        if (searchTimer != null && typeof root.clearTimeout === 'function') root.clearTimeout(searchTimer);
+        searchTimer = null;
+        state = cloneState(Core.readState(root.location && root.location.search || '', products));
+        renderDerived({ fromPopState: true });
+      };
+    root.addEventListener('popstate', onPopState);
     root.addEventListener('pagehide', function () {
       if (searchTimer != null && typeof root.clearTimeout === 'function') root.clearTimeout(searchTimer);
       searchTimer = null;
       savePosition();
+      if (scrollLock) scrollLock.unlock({ restoreScroll: false });
     });
   }
 
@@ -745,6 +1079,7 @@
     setPhase('loading');
     Core = root.KLCatalog && root.KLCatalog.Core;
     Actions = root.KLCatalog && root.KLCatalog.Actions;
+    Gallery = root.KLCatalog && root.KLCatalog.Gallery;
     if (!Core || typeof Core.validateProducts !== 'function'
         || !Actions || typeof Actions.createFavorites !== 'function') {
       renderDataError({ errors: [{ reason: 'dependency-missing' }] });
@@ -789,9 +1124,10 @@
     ensureActiveFilterDom();
     connectFilterControls();
     setupPaging();
-    connectNavigationLifecycle();
     readPendingRestore();
     renderDerived();
+    setupGallery();
+    connectNavigationLifecycle();
     return getSnapshot();
   }
 
@@ -814,6 +1150,9 @@
     pageWindow: pageWindow,
     createPagingController: createPagingController,
     createRequestMore: createRequestMore,
+    createHistoryController: createHistoryController,
+    createPopStateHandler: createPopStateHandler,
+    createScrollLock: createScrollLock,
     gridImageFailurePolicy: gridImageFailurePolicy,
     init: init,
     getSnapshot: getSnapshot,

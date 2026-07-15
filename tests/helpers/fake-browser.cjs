@@ -86,6 +86,45 @@ function createImageLoader() {
   };
 }
 
+function createScrollEnvironment(options) {
+  options = options || {};
+  const body = {
+    style: {
+      position: options.position || '',
+      top: options.top || '',
+      left: options.left || '',
+      right: options.right || '',
+      width: options.width || '',
+      paddingRight: options.paddingRight == null ? '' : `${options.paddingRight}px`,
+      overflow: options.bodyOverflow || '',
+    },
+  };
+  const documentElement = {
+    clientWidth: Number(options.clientWidth || 0),
+    style: { overflow: options.rootOverflow || '' },
+  };
+  const scrollCalls = [];
+  const environment = {
+    body,
+    documentElement,
+    window: {
+      scrollY: Number(options.scrollY || 0),
+      innerWidth: Number(options.innerWidth || 0),
+      scrollTo(x, y) { scrollCalls.push([x, y]); },
+    },
+    getComputedStyle(node) {
+      return { paddingRight: node.style.paddingRight || '0px' };
+    },
+  };
+  const snapshotStyles = () => ({
+    body: cloneValue(body.style),
+    root: cloneValue(documentElement.style),
+  });
+  const initialStyles = snapshotStyles();
+
+  return { environment, initialStyles, scrollCalls, snapshotStyles };
+}
+
 class FakeEventTarget {
   constructor() {
     this._listeners = new Map();
@@ -407,6 +446,7 @@ module.exports = {
   createFakeCatalogBrowser,
   createHistory,
   createImageLoader,
+  createScrollEnvironment,
   createStorage,
   findAll,
 };
