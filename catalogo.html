@@ -6,18 +6,6 @@
 fbq('init','1720591949105146');fbq('track','PageView');
 </script>
 <!-- End Meta Pixel Code -->
-<!-- KL Lead tracking (clique WhatsApp) -->
-<script>
-document.addEventListener('click',function(e){
-  var a=e.target.closest?e.target.closest('a[href*="wa.me"],a[href*="whatsapp.com"]'):null;
-  if(!a||typeof fbq!=='function')return;
-  var h=decodeURIComponent(a.getAttribute('href')||'');
-  var m=h.match(/peça ([A-Z0-9][A-Z0-9-]{2,11})/i)||h.match(/\b([A-Z]{2,3}-\d{2,4})\b/);
-  var pc=null;try{if(m&&typeof DATA!=='undefined'){var pd=DATA.find(function(x){return x.k===m[1]});pc=pd?pd.c:null;}}catch(_){}
-  fbq('track','Lead',{content_name:(m?m[1]:(a.textContent||'').trim().slice(0,40)||'whatsapp'),content_category:(pc||(m?'peca':'contato'))});
-},true);
-</script>
-<!-- End KL Lead tracking -->
 <meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="img/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png"><link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16.png"><link rel="apple-touch-icon" href="img/apple-touch-icon.png"><title>Catálogo — Koisa Linda</title><meta name="description" content="Catálogo com mais de 700 peças: vestidos de noiva, madrinha e debutante, ternos, bolsas e acessórios. Filtre por cor, tamanho e unidade e consulte pelo WhatsApp."><link rel="canonical" href="https://koisalinda.com.br/catalogo.html"><meta property="og:locale" content="pt_BR"><meta property="og:type" content="website"><meta property="og:site_name" content="Koisa Linda"><meta property="og:title" content="Catálogo — Koisa Linda"><meta property="og:description" content="Catálogo com mais de 700 peças: vestidos de noiva, madrinha e debutante, ternos, bolsas e acessórios. Filtre por cor, tamanho e unidade e consulte pelo WhatsApp."><meta property="og:url" content="https://koisalinda.com.br/catalogo.html"><meta property="og:image" content="https://koisalinda.com.br/img/hero-noiva.webp"><meta name="twitter:card" content="summary_large_image"><link rel="preconnect" href="https://vguwohpsbodrxbrtrqkm.supabase.co" crossorigin><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Arapey:ital@0;1&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Questrial&display=swap" rel="stylesheet"><style>
 :root{
  --ruby:#722F37;--ruby-dark:#5a242b;--baunilha:#F4E5C4;--cream:#FBF7EF;--paper:#fff;
@@ -28,7 +16,6 @@ body{font-family:var(--body);color:var(--ink);background:var(--cream);-webkit-fo
 a{color:inherit;text-decoration:none}img{display:block}
 a:focus-visible,button:focus-visible{outline:3px solid var(--ruby);outline-offset:4px}
 footer a:focus-visible,.band a:focus-visible,.kl-sticky-cta a:focus-visible,.kl-sticky-cta button:focus-visible{outline-color:#fff}
-.lb a:focus-visible,.lb button:focus-visible,.favbar button:focus-visible{outline-color:#fff}
 .btn-pri{display:inline-block;background:var(--ruby);color:#fff;font-family:var(--sans);font-size:13px;letter-spacing:2px;text-transform:uppercase;padding:14px 30px;border-radius:30px;border:1px solid var(--ruby);transition:.18s;cursor:pointer}
 .btn-pri:hover{background:var(--ruby-dark);letter-spacing:2.6px}
 .btn-out{display:inline-block;background:transparent;color:var(--ruby);font-family:var(--sans);font-size:13px;letter-spacing:2px;text-transform:uppercase;padding:14px 30px;border-radius:30px;border:1px solid var(--ruby);transition:.18s;cursor:pointer}
@@ -102,95 +89,9 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 .band h2{font-family:var(--serif);font-style:italic;font-size:40px;color:var(--baunilha);margin-bottom:10px}
 .band p{font-family:var(--body);font-size:17px;opacity:.9;margin-bottom:24px}
 .band .btn-pri{background:var(--baunilha);color:var(--dark);border-color:var(--baunilha)}.band .btn-pri:hover{background:#fff}
-@media(max-width:860px){.menu{display:none}.cols{grid-template-columns:repeat(2,1fr)}.split{grid-template-columns:1fr}.svcs,.units{grid-template-columns:1fr}.hero h1{font-size:44px}.phero h1{font-size:34px}.logo .wm{display:none}.mtog,.mnav a,.ig-btn,.btn-pri,.btn-out,.mini,.mini-cta,.fsoc a{min-height:var(--kl-tap-target)}.fsoc a{display:inline-flex;align-items:center}.pill,.search,.szchip,.sw,.cbtn,.favbtn,.favbar .fgo,.favbar .fclear,.lb-close,.lb-nav,.lb-try,.lb-cta{min-height:var(--kl-tap-target)}}
-
-.tools{position:sticky;top:71px;z-index:40;background:var(--cream);padding:18px 32px 14px;border-bottom:1px solid var(--line)}
-.tools-in{max-width:1100px;margin:0 auto;display:flex;flex-wrap:wrap;gap:9px;align-items:center;justify-content:center}
-.pill{display:inline-flex;align-items:center;font-family:var(--sans);font-size:13.5px;letter-spacing:.8px;padding:11px 18px;min-height:48px;border:1px solid var(--line);background:#fff;border-radius:30px;cursor:pointer;color:#5f534b;transition:.16s}
-.pill i{font-style:normal;opacity:.45;font-size:10.5px;margin-left:4px}.pill:hover{border-color:var(--ruby);color:var(--ruby)}
-.pill.active{background:var(--ruby);color:#fff;border-color:var(--ruby)}.pill.active i{opacity:.7}
-.search{margin:14px auto 0;max-width:360px;display:block;width:100%;padding:14px 18px;min-height:48px;border:1px solid var(--line);border-radius:30px;font-family:var(--sans);font-size:16px;letter-spacing:.5px;background:#fff;text-align:center}
-.cwrap{max-width:1320px;margin:0 auto;padding:26px 32px 10px}
-.count{text-align:center;color:#6f6258;font-family:var(--sans);font-size:13px;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:22px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(244px,1fr));gap:26px}
-.card{background:#fff;border:1px solid var(--line);overflow:hidden;transition:.22s;display:flex;flex-direction:column}
-.card:hover{box-shadow:0 18px 40px rgba(114,47,55,.14);transform:translateY(-4px)}
-.ph{aspect-ratio:3/4;background:linear-gradient(160deg,#f3ece0,#efe6d8);overflow:hidden;position:relative}
-.ph img{width:100%;height:100%;object-fit:cover;transition:.5s}.card:hover .ph img{transform:scale(1.035)}
-.tag{position:absolute;top:12px;left:12px;background:rgba(251,247,239,.95);color:var(--ruby);font-family:var(--sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:6px 12px;border-radius:20px}
-.meta{padding:16px 16px 18px;text-align:center}.meta .nm{font-family:var(--serif);font-size:20px;font-weight:600;color:var(--ink);line-height:1.25}.k{font-family:var(--sans);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#6f6258;margin:6px 0 0}
-.meta .spec{font-family:var(--sans);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#6f6258;margin:5px 0 0}
-.meta .dv{width:30px;height:1px;background:var(--line);margin:13px auto}
-.cbtn{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;padding:13px;border:1px solid var(--ruby);color:var(--ruby);background:#fff;border-radius:30px;font-family:var(--sans);font-size:12.5px;letter-spacing:1.4px;text-transform:uppercase;cursor:pointer;transition:.16s}
-.cbtn:hover{background:var(--ruby);color:#fff}
-.favbtn{display:flex;align-items:center;justify-content:center;width:100%;padding:13px;margin:0 0 9px;min-height:48px;border:1px solid var(--line);color:#5f534b;background:#FBF7EF;border-radius:30px;font-family:var(--sans);font-size:12px;letter-spacing:1.3px;text-transform:uppercase;cursor:pointer;transition:.16s}
-.favbtn:hover{border-color:var(--gold);color:var(--ruby)}.favbtn.on{background:var(--baunilha);border-color:var(--gold);color:var(--ruby)}
-.favbar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(120%);z-index:120;background:rgba(30,21,18,.96);color:#fff;border:1px solid rgba(244,229,196,.32);box-shadow:0 18px 50px rgba(0,0,0,.24);border-radius:999px;padding:10px 12px 10px 18px;display:flex;align-items:center;gap:12px;opacity:0;pointer-events:none;transition:.24s;max-width:calc(100vw - 24px)}
-.favbar.on{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}.favbar .ftxt{font-family:var(--sans);font-size:12px;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}.favbar .fgo{background:var(--baunilha);color:var(--dark);border:0;border-radius:30px;padding:10px 16px;min-height:42px;font-family:var(--sans);font-size:11px;letter-spacing:1.3px;text-transform:uppercase;cursor:pointer}.favbar .fclear{background:transparent;border:0;color:rgba(255,255,255,.68);font-family:var(--sans);font-size:22px;line-height:1;cursor:pointer;min-width:44px;min-height:44px;padding:4px 7px}.favbar .fclear:hover{color:#fff}
-@media(max-width:640px){.favbar{left:12px;right:12px;bottom:12px;transform:translateY(120%);max-width:none;justify-content:space-between;border-radius:18px}.favbar.on{transform:translateY(0)}.favbar .ftxt{white-space:normal;font-size:11px}.favbar .fgo{padding:10px 13px}}
-@media(max-width:860px){
- .tools{top:61px;padding:10px 12px 12px}
- .tools-in{max-width:100%;justify-content:center;flex-wrap:wrap;gap:8px;padding:0 2px 5px}
- .tools-in::-webkit-scrollbar{display:none}
- .pill{min-height:48px;padding:11px 16px;font-size:13px;white-space:nowrap}
- .refine{gap:8px;margin-top:10px}.refine .rrow{justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;padding-bottom:5px;-webkit-overflow-scrolling:touch;scrollbar-width:none}.refine .rrow::-webkit-scrollbar{display:none}.rlab{width:auto;flex:0 0 auto;padding:9px 4px;margin:0}.szchip,.sw{flex:0 0 auto;min-height:40px}
- .search{margin-top:8px;max-width:none;min-height:48px;font-size:16px;text-align:left;padding-left:16px}
- .cwrap{padding:18px 20px 10px}.grid{grid-template-columns:1fr;gap:22px}.card:hover{transform:none;box-shadow:none}.ph::after{opacity:1;transform:scale(1)}
-}
-/* PH clicável + LIGHTBOX */
-.ph{cursor:zoom-in}
-.ph::after{content:"⤢";position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;background:rgba(251,247,239,.92);color:var(--ruby);font-family:var(--sans);font-size:14px;display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.85);transition:.18s;pointer-events:none}
-.card:hover .ph::after{opacity:1;transform:scale(1)}
-.lb{position:fixed;inset:0;z-index:200;background:rgba(20,14,12,.93);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;opacity:0;transition:opacity .22s}
-.lb.on{display:flex;opacity:1}
-.lb-stage{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:62px 16px 104px;overflow:hidden}
-.lb-img{max-width:min(94vw,760px);max-height:84vh;object-fit:contain;border-radius:4px;box-shadow:0 30px 80px rgba(0,0,0,.5);cursor:zoom-in;transition:transform .25s ease;will-change:transform;user-select:none;-webkit-user-drag:none}
-.lb-img.z{cursor:zoom-out;transition:none}
-.lb-close{position:absolute;top:18px;right:20px;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.32);color:#fff;font-size:24px;line-height:1;font-family:var(--sans);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.16s;z-index:3}
-.lb-close:hover{background:#fff;color:var(--dark)}
-.lb-nav{position:absolute;top:50%;transform:translateY(-50%);width:50px;height:50px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.32);color:#fff;font-size:26px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.16s;z-index:3}
-.lb-nav:hover{background:#fff;color:var(--dark)}
-.lb-prev{left:14px}.lb-next{right:14px}
-.lb-bar{position:absolute;left:0;right:0;bottom:0;padding:18px 16px 20px;display:flex;flex-direction:column;align-items:center;gap:11px;background:linear-gradient(0deg,rgba(20,14,12,.88),rgba(20,14,12,0));z-index:3}
-.lb-cap{color:#fff;font-family:var(--sans);font-size:11px;letter-spacing:2px;text-transform:uppercase;text-align:center}
-.lb-cap b{display:block;font-family:var(--serif);font-style:italic;font-weight:500;font-size:21px;letter-spacing:.4px;text-transform:none;margin-bottom:3px}
-.lb-try{display:inline-block;background:transparent;color:#fff;font-family:var(--sans);font-size:12px;letter-spacing:1.8px;text-transform:uppercase;padding:12px 22px;border-radius:30px;border:1px solid rgba(255,255,255,.55);cursor:pointer;transition:.16s;margin-left:8px}.lb-try:hover{background:rgba(255,255,255,.12)}.lb-cta{display:inline-block;background:var(--ruby);color:#fff;font-family:var(--sans);font-size:12px;letter-spacing:1.8px;text-transform:uppercase;padding:12px 28px;border-radius:30px;border:1px solid rgba(255,255,255,.25);cursor:pointer;transition:.16s}
-.lb-cta:hover{background:#fff;color:var(--ruby)}
-.lb-hint{color:rgba(255,255,255,.6);font-family:var(--sans);font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase}
-@media(max-width:860px){.lb-nav{width:42px;height:42px;font-size:22px}.lb-img{max-width:96vw;max-height:78vh}.lb-stage{padding:54px 6px 116px}.lb-close{top:12px;right:12px}}
-/* REFINE — filtros de cor + tamanho */
-.refine{max-width:1120px;margin:16px auto 2px;display:flex;flex-direction:column;gap:13px;animation:refIn .3s ease}
-.refine[hidden]{display:none}
-@keyframes refIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
-.rrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}
-.rlab{width:100%;text-align:center;font-family:var(--sans);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:-3px}
-.sw{display:inline-flex;align-items:center;gap:8px;padding:5px 13px 5px 6px;border:1px solid var(--line);background:#fff;border-radius:30px;cursor:pointer;font-family:var(--sans);font-size:12px;letter-spacing:.3px;color:#7d7068;transition:.15s}
-.sw:hover{border-color:var(--ruby);color:var(--ruby)}
-.sw .dot{width:18px;height:18px;border-radius:50%;border:1px solid rgba(0,0,0,.14);box-shadow:inset 0 -3px 5px rgba(0,0,0,.12);flex:none}
-.sw .c{opacity:.45;font-size:10.5px}
-.sw.on{background:var(--ruby);color:#fff;border-color:var(--ruby)}
-.sw.on .c{opacity:.7}
-.sw.on .dot{box-shadow:inset 0 -3px 5px rgba(0,0,0,.12),0 0 0 2px #fff}
-.szchip{font-family:var(--sans);font-size:12px;letter-spacing:1px;padding:7px 16px;border:1px solid var(--line);background:#fff;border-radius:30px;cursor:pointer;color:#7d7068;transition:.15s}
-.szchip:hover{border-color:var(--ruby);color:var(--ruby)}
-.szchip.on{background:var(--ruby);color:#fff;border-color:var(--ruby)}
-.szchip .c{opacity:.5;font-size:10.5px;margin-left:2px}
-.clearf{font-family:var(--sans);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#6f6258;background:none;border:none;cursor:pointer;padding:8px 12px;min-height:44px;border-bottom:1px solid transparent;transition:.15s}
-.clearf:hover{color:var(--ruby);border-bottom-color:var(--ruby)}
-.empty{grid-column:1/-1;text-align:center;padding:70px 20px}
-.empty .em-t{font-family:var(--serif);font-style:italic;font-size:27px;color:var(--ink);margin-bottom:6px}
-.empty .em-s{font-family:var(--sans);font-size:12px;letter-spacing:1px;color:var(--muted);margin-bottom:18px}
-/* HUD auto-hide no scroll — libera tela pros modelos */
-header,.tools{transition:transform .32s cubic-bezier(.2,.7,.2,1);will-change:transform}
-body.hud-down header{transform:translateY(-100%)}
-body.hud-down .tools{transform:translateY(calc(-100% - 78px))}
-.fab{position:fixed;top:13px;left:50%;transform:translateX(-50%) translateY(-22px);z-index:60;display:inline-flex;align-items:center;gap:9px;min-height:42px;background:var(--ruby);color:#fff;font-family:var(--sans);font-size:11.5px;letter-spacing:1.8px;text-transform:uppercase;padding:11px 22px;border:none;border-radius:30px;box-shadow:0 10px 28px rgba(114,47,55,.34);cursor:pointer;opacity:0;pointer-events:none;transition:opacity .26s ease,transform .26s cubic-bezier(.2,.7,.2,1)}
-.fab .fab-ar{font-size:9px;opacity:.85}
-.fab .fab-n{display:none;background:var(--baunilha);color:var(--ruby);font-weight:700;border-radius:20px;min-width:18px;text-align:center;padding:1px 6px;font-size:10.5px;letter-spacing:0}
-.fab .fab-n.has{display:inline-block}
-body.hud-down .fab{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
-.fab:hover{background:var(--ruby-dark)}
-.mtog{display:none;background:none;border:0;cursor:pointer;padding:10px;margin:-6px -4px}.mtog span{display:block;width:22px;height:2px;background:#2c2326;margin:5px 0;transition:.25s}.mnav{display:none;position:absolute;top:100%;left:0;right:0;background:#FBF7EF;border-bottom:1px solid var(--line);box-shadow:0 14px 30px rgba(44,35,38,.08);flex-direction:column;padding:4px 32px 16px}.mnav a{padding:14px 0;border-bottom:1px solid var(--line);font-family:var(--sans);font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#2c2326}.mnav a:last-child{border-bottom:0}.mnav a.cur{color:#722F37}body.mopen .mnav{display:flex}body.mopen .mtog span:nth-child(1){transform:translateY(7px) rotate(45deg)}body.mopen .mtog span:nth-child(2){opacity:0}body.mopen .mtog span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}@media(max-width:860px){.mtog{display:block}}@media(max-width:860px){.szchip,.sw,.clearf,.fab,.favbar .fgo,.favbar .fclear{min-height:var(--kl-tap-target)}}</style><style id="kl-motion">
+@media(max-width:860px){.menu{display:none}.cols{grid-template-columns:repeat(2,1fr)}.split{grid-template-columns:1fr}.svcs,.units{grid-template-columns:1fr}.hero h1{font-size:44px}.phero h1{font-size:34px}.logo .wm{display:none}.mtog,.mnav a,.ig-btn,.btn-pri,.btn-out,.mini,.mini-cta,.fsoc a{min-height:var(--kl-tap-target)}.fsoc a{display:inline-flex;align-items:center}}
+.mtog{display:none;background:none;border:0;cursor:pointer;padding:10px;margin:-6px -4px}.mtog span{display:block;width:22px;height:2px;background:#2c2326;margin:5px 0;transition:.25s}.mnav{display:none;position:absolute;top:100%;left:0;right:0;background:#FBF7EF;border-bottom:1px solid var(--line);box-shadow:0 14px 30px rgba(44,35,38,.08);flex-direction:column;padding:4px 32px 16px}.mnav a{padding:14px 0;border-bottom:1px solid var(--line);font-family:var(--sans);font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#2c2326}.mnav a:last-child{border-bottom:0}.mnav a.cur{color:#722F37}body.mopen .mnav{display:flex}body.mopen .mtog span:nth-child(1){transform:translateY(7px) rotate(45deg)}body.mopen .mtog span:nth-child(2){opacity:0}body.mopen .mtog span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}@media(max-width:860px){.mtog{display:block}}
+</style><style id="kl-motion">
 @media (prefers-reduced-motion: no-preference){
  html{scroll-behavior:smooth}
  [data-kl-rev]{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.22,.7,.2,1),transform .7s cubic-bezier(.22,.7,.2,1)}
@@ -221,115 +122,109 @@ body.hud-down .fab{opacity:1;pointer-events:auto;transform:translateX(-50%) tran
 .svcs{gap:30px}
 .units{gap:30px}
 </style>
-<script defer src="kl-tracking.js?v=20260710deep3"></script><link rel="stylesheet" href="kl-site-enhance.css?v=20260715hdr"></head><body><noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1720591949105146&ev=PageView&noscript=1"/></noscript><header><div class="nav"><a class="logo" href="index.html"><img src="img/logo-kl-main.png" alt="KL"><div class="wm">KOISA LINDA<small>DESDE 1994</small></div></a><nav class="menu"><a href="index.html" class="">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="cur">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav><button class="mtog" aria-label="Abrir menu" aria-expanded="false"><span></span><span></span><span></span></button></div><nav class="mnav"><a href="index.html" class="">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="cur">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav></header>
-<div class="phero" style="padding-bottom:14px"><div class="eyebrow">Coleção Aluguel · Barra da Tijuca & São Francisco</div>
-  <h1>Catálogo de Vestidos</h1>
-  <p>Noiva, debutante e festa, ternos e acessórios para alugar. Filtre por cor e tamanho e fale com a loja.</p></div>
-<div style="max-width:1080px;margin:6px auto 0;padding:0 20px"><a href="como-chegar.html" style="display:flex;align-items:center;gap:12px;justify-content:center;background:#F4E5C4;border:1px solid #E6D2A8;border-radius:12px;padding:12px 18px;text-decoration:none;color:#55261E;font-size:14.5px;line-height:1.35"><span style="font-size:20px">📍</span><span><b>Vindo ver os vestidos na Barra?</b> Estamos no Downtown, Bloco 8, Loja 130 — veja o caminho em vídeo&nbsp;→</span></a></div>
-<div class="tools"><div class="tools-in" id="cats"><button class="pill active" data-cat="all">Todas <i>532</i></button><button class="pill" data-cat="vestidos-noiva">Noivas <i>47</i></button><button class="pill" data-cat="vestidos-debutante">Debutantes <i>56</i></button><button class="pill" data-cat="vestidos-madrinha">Madrinhas & Festa <i>233</i></button><button class="pill" data-cat="ternos">Ternos <i>7</i></button><button class="pill" data-cat="bolsas">Bolsas <i>82</i></button><button class="pill" data-cat="calcados">Calçados <i>24</i></button><button class="pill" data-cat="acessorios">Acessórios <i>83</i></button></div><div class="tools-in" id="units" style="margin-top:8px"><button class="pill upill active" data-un="all">Todas unidades</button><button class="pill upill" data-un="sf">São Francisco <i></i></button><button class="pill upill" data-un="barra">Barra da Tijuca <i></i></button></div>
-  <div class="refine" id="refine" hidden></div>
-  <input class="search" id="q" placeholder="buscar por cor ou código — ex: vinho, MD-012"></div>
-<div class="cwrap"><div class="count" id="count"></div><div class="grid" id="grid"></div><div id="sentinel" style="height:1px"></div></div>
-<button class="fab" id="fab" aria-label="Mostrar filtros"><span class="fab-ar">▲</span> Filtros <span class="fab-n" id="fabn"></span></button>
-<script src="kl-catalog-data.js?v=20260715db"></script>
-<script>
-const DATA=window.KL_DATA||[];
-const WA="5521966475383";
-const PALETTE=[
- {id:'off-white',label:'Off-white',hex:'#ECE4D6'},
- {id:'champagne',label:'Champagne',hex:'#C7A86A'},
- {id:'nude',label:'Nude',hex:'#D6B89C'},
- {id:'amarelo',label:'Amarelo',hex:'#D8A93A'},
- {id:'laranja',label:'Laranja',hex:'#CF6A2E'},
- {id:'vermelho',label:'Vermelho',hex:'#C0202B'},
- {id:'vinho',label:'Vinho',hex:'#6E2230'},
- {id:'rosa',label:'Rosa',hex:'#DC9BAE'},
- {id:'pink',label:'Pink',hex:'#C03A78'},
- {id:'roxo',label:'Roxo',hex:'#7E4FA8'},
- {id:'azul-claro',label:'Azul claro',hex:'#9DBFE0'},
- {id:'azul',label:'Azul',hex:'#2E5DAA'},
- {id:'marinho',label:'Marinho',hex:'#243A5E'},
- {id:'turquesa',label:'Turquesa',hex:'#2FA8B8'},
- {id:'verde',label:'Verde',hex:'#3E8B52'},
- {id:'verde-oliva',label:'Verde-oliva',hex:'#7E8A4E'},
- {id:'cinza',label:'Cinza',hex:'#9AA0A6'},
- {id:'marrom',label:'Marrom',hex:'#7B4A35'},
- {id:'preto',label:'Preto',hex:'#23201F'}];
-const PMAP={};PALETTE.forEach(p=>PMAP[p.id]=p);
-const SIZES=['P','M','G','GG'];
-const UNITS=[{id:'sf',label:'São Francisco',wa:'5521970858787'},{id:'barra',label:'Barra da Tijuca',wa:'5521966475383'}];const UMAP={};UNITS.forEach(u=>UMAP[u.id]=u);function unLabel(d){return (UMAP[d.un]&&UMAP[d.un].label)||'Barra da Tijuca';}function unWA(d){return (UMAP[d.un]&&UMAP[d.un].wa)||WA;}
-let cat=new URLSearchParams(location.search).get('cat')||"all",term="",shown=0,BATCH=12,filtered=[];
-let cores=new Set(),tams=new Set();
-let unit=new URLSearchParams(location.search).get('un')||"all";
-const favKey='kl-favoritos-v1';
-let favs=new Set();try{favs=new Set(JSON.parse(localStorage.getItem(favKey)||'[]'));}catch(e){}
-const grid=document.getElementById('grid'),countEl=document.getElementById('count'),refineEl=document.getElementById('refine');
-const favBar=document.createElement('div');favBar.className='favbar';favBar.innerHTML='<span class="ftxt"></span><button class="fgo" type="button">Enviar escolhidas</button><button class="fclear" type="button" aria-label="Limpar favoritas">×</button>';document.body.appendChild(favBar);
-function saveFavs(){try{localStorage.setItem(favKey,JSON.stringify(Array.from(favs)));}catch(e){}}
-function favItems(){return Array.from(favs).map(k=>DATA.find(d=>d.k===k)).filter(Boolean);}
-function favMessage(items){return 'Olá! Separei estas peças no catálogo Koisa Linda: '+items.map(d=>d.k+' ('+unLabel(d)+')').join(', ')+'. Você consegue me ajudar a ver disponibilidade e agendar uma prova?';}
-function favWA(items){const units=Array.from(new Set(items.map(d=>d.un||'barra')));const d=items.find(x=>(x.un||'barra')===(units[0]||'barra'))||items[0];return unWA(d);}
-function updateFavUI(){const items=favItems(),n=items.length;favBar.classList.toggle('on',n>0);favBar.querySelector('.ftxt').textContent=n===1?'1 peça escolhida':n+' peças escolhidas';document.querySelectorAll('.favbtn').forEach(b=>{const on=favs.has(b.dataset.fav);b.classList.toggle('on',on);b.textContent=on?'✓ Peça salva':'Salvar peça';});}
-function trackFav(name,params){try{if(typeof fbq==='function')fbq('trackCustom',name,params||{});}catch(e){}}
-function sizeLabel(c,t){if(c==='calcados')return 'Numeração '+t;if(/^(PP|P|M|G|GG|XG)$/i.test(t))return 'Tamanho '+t.toUpperCase();if(/^\d+$/.test(t))return 'Tamanho '+t;if(!t||t==='Único')return c.indexOf('vestidos')===0?'Tamanho sob consulta':'Tamanho único';return 'Tamanho '+t;}
-function prodName(c){return {'vestidos-noiva':'Vestido de Noiva','vestidos-debutante':'Vestido de Debutante','vestidos-madrinha':'Vestido de Madrinha','ternos':'Terno','bolsas':'Bolsa','calcados':'Calçado','acessorios':'Acessório'}[c]||'Peça';}
-function colorName(d){return d.co?(PMAP[d.co]?PMAP[d.co].label:d.co):'';}
-function matchTerm(d){if(!term)return true;if(d.k.toLowerCase().includes(term))return true;if(d.co&&(d.co.includes(term)||(PMAP[d.co]&&PMAP[d.co].label.toLowerCase().includes(term))))return true;if(prodName(d.c).toLowerCase().includes(term))return true;return false;}
-function matches(d){return (cat==="all"||d.c===cat)&&(unit==="all"||(d.un||"barra")===unit)&&matchTerm(d)&&(cores.size===0||(d.co&&cores.has(d.co)))&&(tams.size===0||tams.has(d.t));}
-function apply(){filtered=DATA.filter(matches);grid.innerHTML="";shown=0;countEl.textContent=filtered.length+(filtered.length===1?" peça":" peças");renderRefine();render();}
-function thumbU(d){return d.u.split('?')[0].replace(/\.jpg$/i,'-thumb.jpg')}
-function render(){if(!filtered.length){grid.innerHTML='<div class="empty"><div class="em-t">Nenhuma peça com esses filtros</div><div class="em-s">Tente outra cor, tamanho ou termo de busca.</div><button class="clearf" onclick="clearFilters()">limpar filtros</button></div>';return;}const s=filtered.slice(shown,shown+BATCH),f=document.createDocumentFragment();s.forEach((d,li)=>{const c=document.createElement('div');c.className='card';c.dataset.i=shown+li;const cn=colorName(d),isFav=favs.has(d.k),loadMode=(shown+li<6?'eager':'lazy'),imgSrc=thumbU(d);c.innerHTML='<a class="ph" href="peca.html?codigo='+encodeURIComponent(d.k)+'" aria-label="Ver peça '+d.k+'"><span class="tag">'+d.l+'</span><img loading="'+loadMode+'" decoding="async" src="'+imgSrc+'" data-o="'+d.u+'" onerror="if(!this.dataset.f){this.dataset.f=1;this.src=this.dataset.o}" alt="'+prodName(d.c)+' '+d.k+(cn?' '+cn:'')+'"></a><div class="meta"><div class="nm">'+prodName(d.c)+'</div><div class="k">'+d.k+' · '+unLabel(d)+'</div><div class="spec">'+sizeLabel(d.c,d.t)+(cn?' · '+cn:'')+'</div><div class="dv"></div><button class="favbtn'+(isFav?' on':'')+'" type="button" data-fav="'+d.k+'">'+(isFav?'✓ Peça salva':'Salvar peça')+'</button><a class="cbtn" target="_blank" href="https://wa.me/'+unWA(d)+'?text='+encodeURIComponent('Olá! Tenho interesse na peça '+d.k+' ('+unLabel(d)+'). Está disponível para aluguel?')+'">Falar no WhatsApp</a></div>';f.appendChild(c);});grid.appendChild(f);shown+=s.length;updateFavUI();}
-function renderRefine(){const base=DATA.filter(d=>(cat==="all"||d.c===cat)&&matchTerm(d));
- const colorPool=base.filter(d=>tams.size===0||tams.has(d.t));const ccount={};colorPool.forEach(d=>{if(d.co)ccount[d.co]=(ccount[d.co]||0)+1;});
- const present=PALETTE.filter(p=>ccount[p.id]>0||cores.has(p.id));
- const sizePool=base.filter(d=>cores.size===0||(d.co&&cores.has(d.co)));const scount={};sizePool.forEach(d=>{scount[d.t]=(scount[d.t]||0)+1;});
- const sizesPresent=SIZES.filter(s=>scount[s]>0||tams.has(s));
- let html='';
- if(present.length){html+='<div class="rrow"><span class="rlab">Cor</span>';present.forEach(p=>{html+='<button class="sw'+(cores.has(p.id)?' on':'')+'" data-co="'+p.id+'"><span class="dot" style="background:'+p.hex+'"></span>'+p.label+' <span class="c">'+(ccount[p.id]||0)+'</span></button>';});html+='</div>';}
- if(sizesPresent.length>1){html+='<div class="rrow"><span class="rlab">Tamanho</span>';sizesPresent.forEach(s=>{html+='<button class="szchip'+(tams.has(s)?' on':'')+'" data-sz="'+s+'">'+s+'<span class="c">'+(scount[s]||0)+'</span></button>';});html+='</div>';}
- if(cores.size||tams.size){html+='<div class="rrow"><button class="clearf" onclick="clearFilters()">limpar cor e tamanho</button></div>';}
- refineEl.innerHTML=html;refineEl.hidden=!html;var fb=document.getElementById('fabn');if(fb){var fn=cores.size+tams.size;fb.textContent=fn||'';fb.className='fab-n'+(fn?' has':'');}}
-window.clearFilters=function(){cores.clear();tams.clear();term='';var q=document.getElementById('q');if(q)q.value='';apply();};
-document.getElementById('cats').addEventListener('click',e=>{const p=e.target.closest('.pill');if(!p)return;document.querySelector('.pill.active').classList.remove('active');p.classList.add('active');cat=p.dataset.cat;cores.clear();tams.clear();apply();window.scrollTo({top:0});if(typeof fbq==='function'&&cat&&cat!=='all')fbq('trackCustom','FilterCategory',{content_category:cat});});document.getElementById('units').addEventListener('click',e=>{const p=e.target.closest('.upill');if(!p)return;document.querySelectorAll('#units .upill').forEach(x=>x.classList.remove('active'));p.classList.add('active');unit=p.dataset.un;cores.clear();tams.clear();apply();window.scrollTo({top:0});});
-refineEl.addEventListener('click',e=>{const sw=e.target.closest('.sw'),sz=e.target.closest('.szchip');if(sw){const id=sw.dataset.co;cores.has(id)?cores.delete(id):cores.add(id);apply();}else if(sz){const s=sz.dataset.sz;tams.has(s)?tams.delete(s):tams.add(s);apply();}});
-document.getElementById('q').oninput=e=>{term=e.target.value.trim().toLowerCase();apply();};
-(function(){var cc={};DATA.forEach(function(d){cc[d.c]=(cc[d.c]||0)+1;});document.querySelectorAll('#cats .pill').forEach(function(p){var c=p.dataset.cat;var n=c==='all'?DATA.length:(cc[c]||0);var i=p.querySelector('i');if(i)i.textContent=n;});var uc={};DATA.forEach(function(d){var u=d.un||'barra';uc[u]=(uc[u]||0)+1;});document.querySelectorAll('#units .upill').forEach(function(p){var u=p.dataset.un;if(u==='all')return;var i=p.querySelector('i');if(i)i.textContent=(uc[u]||0);});})();
-new IntersectionObserver(es=>{if(es[0].isIntersecting&&shown<filtered.length)render();}).observe(document.getElementById('sentinel'));
-/* LIGHTBOX com zoom */
-const lb=document.createElement('div');lb.className='lb';
-lb.innerHTML='<button class="lb-close" aria-label="Fechar">&times;</button><button class="lb-nav lb-prev" aria-label="Anterior">&#8249;</button><button class="lb-nav lb-next" aria-label="Pr&oacute;xima">&#8250;</button><div class="lb-stage"><img class="lb-img" alt=""></div><div class="lb-bar"><div class="lb-cap"><b></b><span></span></div><a class="lb-cta" target="_blank" rel="noopener">Falar no WhatsApp</a><a class="lb-try">&#10024; Provar em mim</a><div class="lb-hint">Clique na foto para ampliar &middot; ESC fecha</div></div>';
-document.body.appendChild(lb);
-const lbImg=lb.querySelector('.lb-img'),lbB=lb.querySelector('.lb-cap b'),lbS=lb.querySelector('.lb-cap span'),lbCta=lb.querySelector('.lb-cta'),lbTry=lb.querySelector('.lb-try');
-let lbI=-1,lbZoom=false;
-function lbShow(i){if(i<0||i>=filtered.length)return;lbI=i;const d=filtered[i];lbZoom=false;lbImg.classList.remove('z');lbImg.style.transform='';lbImg.src=d.u;lbImg.alt=prodName(d.c)+' '+d.k;lbB.textContent=prodName(d.c);lbS.textContent=d.k+' · '+sizeLabel(d.c,d.t);lbCta.href='https://wa.me/'+unWA(d)+'?text='+encodeURIComponent('Olá! Tenho interesse na peça '+d.k+' ('+unLabel(d)+'). Está disponível para aluguel?');try{var lu=new URL(location);lu.searchParams.set('p',d.k);history.replaceState(null,'',lu)}catch(e){}lbTry.href='provar.html?p='+encodeURIComponent(d.k);lbTry.style.display=(['vestidos-noiva','vestidos-madrinha','vestidos-debutante'].indexOf(d.c)>-1)?'inline-block':'none';if(typeof fbq==='function')fbq('track','ViewContent',{content_name:d.k,content_category:d.c});}
-function lbOpen(i){lbShow(i);lb.classList.add('on');document.body.style.overflow='hidden';}
-function lbClose(){try{var lu=new URL(location);lu.searchParams.delete('p');history.replaceState(null,'',lu)}catch(e){}lb.classList.remove('on');document.body.style.overflow='';}
-function lbStep(n){let i=lbI+n;if(i<0)i=filtered.length-1;if(i>=filtered.length)i=0;lbShow(i);}
-function lbMove(e){if(!lbZoom)return;const r=lbImg.getBoundingClientRect();const px=Math.max(0,Math.min(100,((e.clientX-r.left)/r.width)*100)),py=Math.max(0,Math.min(100,((e.clientY-r.top)/r.height)*100));lbImg.style.transformOrigin=px+'% '+py+'%';lbImg.style.transform='scale(2.5)';}
-grid.addEventListener('click',e=>{const b=e.target.closest('.favbtn');if(!b)return;e.preventDefault();e.stopPropagation();const k=b.dataset.fav,d=DATA.find(x=>x.k===k);if(!k)return;favs.has(k)?favs.delete(k):favs.add(k);saveFavs();updateFavUI();trackFav('KL_Favorite_Toggle',{product_code:k,content_category:d?d.c:'',unidade:d?(d.un||'barra'):'',favorite_state:favs.has(k)?'saved':'removed',favorite_count:favs.size});});
-favBar.querySelector('.fclear').onclick=function(){favs.clear();saveFavs();updateFavUI();trackFav('KL_Favorites_Clear',{});};
-favBar.querySelector('.fgo').onclick=function(){const items=favItems();if(!items.length)return;const href='https://wa.me/'+favWA(items)+'?text='+encodeURIComponent(favMessage(items));trackFav('KL_Favorites_WhatsApp_Click',{favorite_count:items.length,product_codes:items.map(d=>d.k).join(','),unidade:Array.from(new Set(items.map(d=>d.un||'barra'))).join(',')});window.open(href,'_blank');};
-grid.addEventListener('click',e=>{const ph=e.target.closest('.ph');if(!ph)return;if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();location.href=ph.getAttribute('href');});
-lb.querySelector('.lb-close').onclick=lbClose;
-lb.querySelector('.lb-prev').onclick=e=>{e.stopPropagation();lbStep(-1);};
-lb.querySelector('.lb-next').onclick=e=>{e.stopPropagation();lbStep(1);};
-lb.addEventListener('click',e=>{if(e.target===lb||e.target.classList.contains('lb-stage'))lbClose();});
-lbImg.addEventListener('click',e=>{e.stopPropagation();lbZoom=!lbZoom;lbImg.classList.toggle('z',lbZoom);if(lbZoom)lbMove(e);else lbImg.style.transform='';});
-lbImg.addEventListener('pointermove',lbMove);
-document.addEventListener('keydown',e=>{if(!lb.classList.contains('on'))return;if(e.key==='Escape')lbClose();else if(e.key==='ArrowLeft')lbStep(-1);else if(e.key==='ArrowRight')lbStep(1);});
-// ativa pílula vinda por ?cat=
-const ap=document.querySelector('.pill[data-cat="'+cat+'"]');if(ap){document.querySelector('.pill.active')?.classList.remove('active');ap.classList.add('active');}
-apply();
-/* HUD auto-hide: esconde header+filtros ao descer, mostra ao subir */
-(function(){var fab=document.getElementById('fab'),lastY=window.scrollY||0,ticking=false;
- function upd(){var y=window.scrollY||0;
-  if(y>300&&y-lastY>5){document.body.classList.add('hud-down');}
-  else if(lastY-y>5||y<160){document.body.classList.remove('hud-down');}
-  lastY=y;ticking=false;}
- window.addEventListener('scroll',function(){if(!ticking){requestAnimationFrame(upd);ticking=true;}},{passive:true});
- if(fab)fab.addEventListener('click',function(){document.body.classList.remove('hud-down');window.scrollBy({top:-4,behavior:'smooth'});});
-})();
-</script>
+<link rel="stylesheet" href="kl-catalog.css?v=20260715catalog1">
+<script defer src="kl-catalog-data.js?v=20260715db"></script>
+<script defer src="kl-catalog-core.js?v=20260715catalog1"></script>
+<script defer src="kl-catalog-actions.js?v=20260715catalog1"></script>
+<script defer src="kl-catalog-gallery.js?v=20260715catalog1"></script>
+<script defer src="kl-tracking.js?v=20260710deep3"></script>
+<script defer src="kl-catalog-app.js?v=20260715catalog1"></script>
+<link rel="stylesheet" href="kl-site-enhance.css?v=20260715hdr"></head><body><noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1720591949105146&ev=PageView&noscript=1"/></noscript><header><div class="nav"><a class="logo" href="index.html"><img src="img/logo-kl-main.png" alt="KL"><div class="wm">KOISA LINDA<small>DESDE 1994</small></div></a><nav class="menu"><a href="index.html" class="">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="cur">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav><button class="mtog" aria-label="Abrir menu" aria-expanded="false"><span></span><span></span><span></span></button></div><nav class="mnav"><a href="index.html" class="">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="cur">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav></header>
+
+<main id="catalog-app" aria-labelledby="catalog-title">
+  <section class="catalog-intro">
+    <div class="catalog-intro-copy">
+      <div class="eyebrow">Catálogo Koisa Linda · duas unidades</div>
+      <h1 id="catalog-title">Encontre a peça que faz parte da sua história.</h1>
+      <p>Explore vestidos, ternos e acessórios. Salve seus favoritos e fale com a unidade certa para confirmar disponibilidade.</p>
+      <form class="catalog-search" role="search" novalidate>
+        <label for="catalog-search">Buscar no catálogo</label>
+        <input id="catalog-search" name="q" type="search" autocomplete="off" placeholder="Código, categoria, cor ou tamanho">
+      </form>
+    </div>
+    <section class="catalog-shortcuts" aria-label="Atalhos de coleção">
+      <button class="catalog-shortcut" type="button" data-shortcut-cat="vestidos-noiva">
+        <img src="img/hero-noiva.webp" alt="" width="360" height="240"><span>Noivas</span>
+      </button>
+      <button class="catalog-shortcut" type="button" data-shortcut-cat="vestidos-debutante">
+        <img src="img/hero-debutante.webp" alt="" width="360" height="240"><span>Debutantes</span>
+      </button>
+      <button class="catalog-shortcut" type="button" data-shortcut-cat="vestidos-madrinha">
+        <img src="img/hero-madrinha.webp" alt="" width="360" height="240"><span>Festa</span>
+      </button>
+    </section>
+  </section>
+
+  <section class="catalog-tools" aria-label="Refinar catálogo">
+    <div class="catalog-primary-filters">
+      <label class="catalog-select-label" for="catalog-category">Categoria
+        <select id="catalog-category" name="cat">
+          <option value="">Todas as categorias</option>
+          <option value="vestidos-noiva">Noivas</option>
+          <option value="vestidos-debutante">Debutantes</option>
+          <option value="vestidos-madrinha">Madrinhas &amp; Festa</option>
+          <option value="ternos">Ternos</option>
+          <option value="bolsas">Bolsas</option>
+          <option value="calcados">Calçados</option>
+          <option value="acessorios">Acessórios</option>
+        </select>
+      </label>
+      <fieldset id="catalog-units" class="catalog-units">
+        <legend>Unidade</legend>
+        <button type="button" data-unit="" aria-pressed="true">Todas</button>
+        <button type="button" data-unit="barra" aria-pressed="false">Barra da Tijuca</button>
+        <button type="button" data-unit="sf" aria-pressed="false">São Francisco</button>
+      </fieldset>
+      <button id="catalog-open-favorites" class="catalog-favorites-trigger" type="button" aria-haspopup="dialog">
+        Salvos <span id="catalog-favorite-count">0</span>
+      </button>
+    </div>
+    <div id="catalog-facets" class="catalog-facets"></div>
+    <div id="catalog-active-filters" class="catalog-active-filters" aria-label="Filtros ativos"></div>
+    <p id="catalog-count" class="catalog-count" aria-live="polite">Carregando catálogo…</p>
+  </section>
+
+  <section id="catalog-results" class="catalog-results" aria-busy="true">
+    <div id="catalog-status" class="catalog-status" role="status">
+      <div class="catalog-skeleton-grid" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+    </div>
+    <div id="catalog-grid" class="catalog-grid"></div>
+    <button id="catalog-load-more" class="catalog-load-more" type="button" hidden>Carregar mais</button>
+    <div id="catalog-sentinel" aria-hidden="true"></div>
+  </section>
+</main>
+
+<dialog id="catalog-gallery" class="catalog-gallery" aria-labelledby="gallery-title">
+  <div class="gallery-layout">
+    <figure class="gallery-media">
+      <img id="gallery-image" alt="">
+      <button class="gallery-nav gallery-prev" type="button" aria-label="Peça anterior">‹</button>
+      <button class="gallery-nav gallery-next" type="button" aria-label="Próxima peça">›</button>
+    </figure>
+    <section class="gallery-panel">
+      <button class="gallery-close" type="button" aria-label="Fechar galeria">×</button>
+      <p id="gallery-unit" class="eyebrow"></p>
+      <h2 id="gallery-title"></h2>
+      <p id="gallery-code"></p>
+      <dl id="gallery-specs"></dl>
+      <button id="gallery-favorite" type="button"></button>
+      <a id="gallery-whatsapp" class="gallery-primary" target="_blank" rel="noopener">Falar no WhatsApp</a>
+      <a id="gallery-try-on" class="gallery-secondary">Provar em mim</a>
+      <p class="gallery-note">Consulte a unidade para confirmar disponibilidade.</p>
+    </section>
+  </div>
+</dialog>
+
+<dialog id="catalog-favorites" class="catalog-favorites" aria-labelledby="favorites-title">
+  <div class="favorites-head">
+    <h2 id="favorites-title">Peças salvas</h2>
+    <button type="button" data-close-favorites aria-label="Fechar favoritos">×</button>
+  </div>
+  <div id="favorites-content"></div>
+</dialog>
+
 <footer><img class="fimg" src="img/logo-kl-footer.png" alt="KL"><div class="fbrand">KOISA LINDA</div><div class="fphrase">Unindo famílias. Realizando sonhos.</div><div class="funits"><span>São Francisco</span><span>Barra da Tijuca</span></div><div class="fsoc"><a href="https://www.instagram.com/koisalinda_oficial/" target="_blank">Instagram</a><a href="https://www.facebook.com/koisalindaoficial/" target="_blank">Facebook</a><a href="https://www.tiktok.com/@koisalindaoficial" target="_blank">TikTok</a><a href="https://br.pinterest.com/koisalinda_oficial/" target="_blank">Pinterest</a></div><small>Costuramos sonhos desde 1994.<br>CNPJ 02.504.054/0001-10 · © 2026 Koisa Linda · Protótipo para avaliação</small></footer><script id="kl-motion-js">
 (function(){
  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
@@ -352,4 +247,4 @@ apply();
   new IntersectionObserver(function(es){h.classList.toggle('kl-shrink',!es[0].isIntersecting);},{threshold:0}).observe(s);}
 })();
 </script>
-<script>(function(){var b=document.querySelector(".mtog");if(!b)return;b.addEventListener("click",function(){var o=document.body.classList.toggle("mopen");b.setAttribute("aria-expanded",o?"true":"false")});document.querySelectorAll(".mnav a").forEach(function(a){a.addEventListener("click",function(){document.body.classList.remove("mopen")})})})();</script><script>(function(){function go(){var p=new URLSearchParams(location.search).get("p");if(!p)return;var i=filtered.findIndex(function(d){return d.k===p.toUpperCase()});if(i>=0)lbOpen(i);}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",function(){setTimeout(go,0)})}else{setTimeout(go,0)}})();</script><script src="kl-site-enhance.js?v=20260713r3"></script></body></html>
+<script>(function(){var b=document.querySelector(".mtog");if(!b)return;b.addEventListener("click",function(){var o=document.body.classList.toggle("mopen");b.setAttribute("aria-expanded",o?"true":"false")});document.querySelectorAll(".mnav a").forEach(function(a){a.addEventListener("click",function(){document.body.classList.remove("mopen")})})})();</script><script src="kl-site-enhance.js?v=20260713r3"></script></body></html>

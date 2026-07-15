@@ -430,22 +430,6 @@ class VisiblePagesContractTest(unittest.TestCase):
                 self.assertIn("outline:3pxsolidvar(--ruby)", light_rule)
                 self.assertIn("outline-color:#fff", dark_rule)
 
-    def test_catalog_focus_is_white_on_lightbox_and_favorites_bar(self):
-        html = page("catalogo.html")
-        global_selector = "a:focus-visible,button:focus-visible"
-        dark_selector = (
-            ".lb a:focus-visible,.lb button:focus-visible,"
-            ".favbar button:focus-visible"
-        )
-        dark_rule = balanced_css_block(html, dark_selector).replace(" ", "")
-
-        self.assertIn("outline-color:#fff", dark_rule)
-        self.assertGreater(
-            html.index(dark_selector),
-            html.index(global_selector),
-            "o foco branco das superfícies escuras deve vir depois da regra global rubi",
-        )
-
     def test_visible_pages_wrap_social_links_and_keep_mobile_tap_targets(self):
         standard_controls = (
             ".mtog,.mnav a,.ig-btn,.btn-pri,.btn-out,.mini,.mini-cta,.fsoc a"
@@ -470,52 +454,6 @@ class VisiblePagesContractTest(unittest.TestCase):
                 )
                 if 'class="ig-btn"' in html:
                     self.assertIn(".ig-btn", standard_controls)
-
-        catalog = page("catalogo.html")
-        catalog_controls = (
-            ".pill,.search,.szchip,.sw,.cbtn,.favbtn,.favbar .fgo,"
-            ".favbar .fclear,.lb-close,.lb-nav,.lb-try,.lb-cta"
-        )
-        self.assertTrue(
-            any(
-                catalog_controls.replace(" ", "") in block.replace(" ", "")
-                and "min-height:var(--kl-tap-target)" in block.replace(" ", "")
-                for block in css_blocks(catalog, "@media(max-width:860px)")
-            ),
-            "filtros, busca e controles do catálogo devem manter 48px no mobile",
-        )
-
-    def test_catalog_mobile_target_override_wins_the_css_cascade(self):
-        compact = re.sub(r"\s+", "", page("catalogo.html"))
-        final_controls = (
-            ".szchip,.sw,.clearf,.fab,.favbar.fgo,.favbar.fclear"
-        )
-        final_override = (
-            "@media(max-width:860px){"
-            f"{final_controls}{{min-height:var(--kl-tap-target)}}"
-            "}"
-        )
-        override_index = compact.rfind(final_override)
-
-        self.assertGreaterEqual(
-            override_index,
-            0,
-            "o catálogo precisa de um override móvel final para os controles compactos",
-        )
-        for base_rule in (
-            ".szchip{font-family:",
-            ".sw{display:inline-flex",
-            ".clearf{font-family:",
-            ".fab{position:fixed",
-            ".favbar.fgo{background:",
-            ".favbar.fclear{background:",
-        ):
-            with self.subTest(base_rule=base_rule):
-                self.assertGreater(
-                    override_index,
-                    compact.rfind(base_rule),
-                    f"o override de 48px deve vir depois da regra base de {base_rule}",
-                )
 
     def test_units_mobile_cta_override_matches_the_base_rule_specificity(self):
         html = page("unidades.html")
@@ -557,6 +495,138 @@ class VisiblePagesContractTest(unittest.TestCase):
             },
             {digest(number) for number in numbers},
         )
+
+
+class CatalogHybridContractTest(unittest.TestCase):
+    def test_catalog_loads_split_assets_in_dependency_order(self):
+        html = page("catalogo.html")
+        assets = (
+            "kl-catalog-data.js?v=20260715db",
+            "kl-catalog-core.js?v=20260715catalog1",
+            "kl-catalog-actions.js?v=20260715catalog1",
+            "kl-catalog-gallery.js?v=20260715catalog1",
+            "kl-tracking.js?v=20260710deep3",
+            "kl-catalog-app.js?v=20260715catalog1",
+        )
+        positions = [html.index(asset) for asset in assets]
+        self.assertEqual(positions, sorted(positions))
+        for asset in assets:
+            self.assertRegex(
+                html,
+                rf'<script\s+defer\s+src="{re.escape(asset)}"></script>',
+            )
+        self.assertIn('href="kl-catalog.css?v=20260715catalog1"', html)
+        self.assertNotIn("const DATA=window.KL_DATA", html)
+        self.assertNotIn("let cat=new URLSearchParams", html)
+
+    def test_catalog_shell_is_semantic_and_complete(self):
+        html = page("catalogo.html")
+        for required in (
+            'aria-labelledby="catalog-title"',
+            '<label for="catalog-search"',
+            'role="search"',
+            'id="catalog-category"',
+            'id="catalog-units"',
+            'id="catalog-facets"',
+            'id="catalog-active-filters"',
+            'id="catalog-count" class="catalog-count" aria-live="polite"',
+            'id="catalog-grid"',
+            'id="catalog-load-more"',
+            'id="catalog-gallery"',
+            'id="catalog-favorites"',
+        ):
+            self.assertIn(required, html)
+        for category in (
+            "vestidos-noiva", "vestidos-debutante", "vestidos-madrinha",
+            "ternos", "bolsas", "calcados", "acessorios",
+        ):
+            self.assertIn(f'value="{category}"', html)
+
+    def test_catalog_shortcuts_keep_text_outside_photos(self):
+        html = page("catalogo.html")
+        shortcuts = section_with_class(html, "catalog-shortcuts")
+        self.assertEqual(3, shortcuts.count('class="catalog-shortcut"'))
+        for image in ("hero-noiva.webp", "hero-debutante.webp", "hero-madrinha.webp"):
+            self.assertIn(image, shortcuts)
+        buttons = re.findall(
+            r'<button class="catalog-shortcut".*?</button>',
+            shortcuts,
+            flags=re.DOTALL,
+        )
+        self.assertEqual(3, len(buttons))
+        for button in buttons:
+            self.assertRegex(button, r'<img\b[^>]*alt=""[^>]*>\s*<span>[^<]+</span>')
+        self.assertNotRegex(shortcuts, r'<(?:span|label)[^>]*class="[^"]*overlay')
+
+    def test_catalog_css_has_two_mobile_columns_and_reduced_motion(self):
+        css = page("kl-catalog.css")
+        mobile = balanced_css_block(css, "@media(max-width:680px)").replace(" ", "")
+        self.assertIn("grid-template-columns:repeat(2,minmax(0,1fr))", mobile)
+        reduced = balanced_css_block(
+            css, "@media(prefers-reduced-motion:reduce)"
+        ).replace(" ", "")
+        self.assertIn("animation:none", reduced)
+        self.assertIn("transition:none", reduced)
+        low = balanced_css_block(css, "@media(max-height:600px)").replace(" ", "")
+        self.assertIn("max-height:34dvh", low)
+        self.assertIn("display:none", low)
+
+    def test_catalog_dialogs_are_named_and_face_safe(self):
+        html = page("catalogo.html")
+        self.assertRegex(
+            html,
+            r'<dialog[^>]+id="catalog-gallery"[^>]+aria-labelledby="gallery-title"',
+        )
+        self.assertRegex(
+            html,
+            r'<dialog[^>]+id="catalog-favorites"[^>]+aria-labelledby="favorites-title"',
+        )
+        self.assertIn('class="gallery-media"', html)
+        self.assertIn('class="gallery-panel"', html)
+        self.assertLess(
+            html.index('class="gallery-media"'),
+            html.index('class="gallery-panel"'),
+        )
+        media = re.search(
+            r'<figure class="gallery-media"[^>]*>(.*?)</figure>',
+            html,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(media)
+        self.assertNotRegex(media.group(1), r"<(?:h[1-6]|p|a)\b")
+
+    def test_catalog_grid_preserves_lazy_thumbnails_without_original_fallback(self):
+        js = page("kl-catalog-app.js")
+        self.assertIn("image.loading = 'lazy'", js)
+        self.assertNotIn("image.loading = 'eager'", js)
+        self.assertIn("gridImageFailurePolicy", js)
+        self.assertIn("requestOriginal: false", js)
+        self.assertNotIn("image.src = product.u", js)
+        request_more = re.search(
+            r"function requestMore\(source\) \{(.*?)\n  \}",
+            js,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(request_more)
+        self.assertIn("return true;", request_more.group(1))
+        self.assertNotIn("return source ===", request_more.group(1))
+
+    def test_catalog_external_css_replaces_old_focus_and_tap_contracts(self):
+        css = page("kl-catalog.css")
+        dark = balanced_css_block(
+            css, ".gallery-media button:focus-visible"
+        ).replace(" ", "")
+        light = balanced_css_block(
+            css, ".gallery-panel a:focus-visible"
+        ).replace(" ", "")
+        self.assertIn("outline:3pxsolid#fff", dark)
+        self.assertIn("outline:3pxsolidvar(--ruby)", light)
+        for selector in (
+            ".catalog-units button", ".catalog-favorites-trigger",
+            ".catalog-load-more", ".gallery-primary", ".gallery-secondary",
+        ):
+            rule = balanced_css_block(css, selector).replace(" ", "")
+            self.assertRegex(rule, r"min-height:(?:44|48)px")
 
 
 if __name__ == "__main__":
