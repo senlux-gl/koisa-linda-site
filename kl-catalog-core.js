@@ -18,6 +18,10 @@
     return String(value == null ? '' : value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
   }
 
+  function normalizeCode(value) {
+    return String(value == null ? '' : value).trim().toUpperCase();
+  }
+
   function unitOf(product) {
     return product && (product.un === 'barra' || product.un === 'sf') ? product.un : null;
   }
@@ -37,7 +41,7 @@
         }
       });
       if (unitOf(product) === null) errors.push({ index: index, reason: 'invalid-unit' });
-      var code = String(product.k || '').trim().toUpperCase();
+      var code = normalizeCode(product.k);
       if (code && seen.has(code)) errors.push({ index: index, reason: 'duplicate-code', code: code });
       if (code) seen.add(code);
     });
@@ -63,10 +67,10 @@
     var categories = new Set(products.map(function (p) { return p.c; }));
     var colors = new Set(products.map(function (p) { return p.co; }).filter(Boolean));
     var sizes = new Set(products.map(function (p) { return p.t; }).filter(Boolean));
-    var codes = new Set(products.map(function (p) { return String(p.k).toUpperCase(); }));
+    var codes = new Set(products.map(function (p) { return normalizeCode(p.k); }).filter(Boolean));
     var rawCategory = params.get('cat');
     var rawUnit = params.get('un');
-    var rawProduct = String(params.get('p') || '').toUpperCase();
+    var rawProduct = normalizeCode(params.get('p'));
     var rawPage = params.get('pg') || '1';
     var page = Number(rawPage);
 
@@ -83,13 +87,14 @@
 
   function serializeState(state) {
     var params = new URLSearchParams();
+    var openProduct = normalizeCode(state.openProduct);
     if (state.category) params.set('cat', state.category);
     if (state.unit) params.set('un', state.unit);
     if (state.query) params.set('q', state.query);
     uniqueSorted(state.colors || []).forEach(function (value) { params.append('co', value); });
     uniqueSorted(state.sizes || []).forEach(function (value) { params.append('tam', value); });
     if ((state.page || 1) > 1) params.set('pg', String(state.page));
-    if (state.openProduct) params.set('p', String(state.openProduct).toUpperCase());
+    if (openProduct) params.set('p', openProduct);
     return params.toString();
   }
 
@@ -149,20 +154,20 @@
     Array.from(new Set(products.map(function (product) { return product.c; }))).sort().forEach(function (category) {
       if (categories.indexOf(category) < 0) categories.push(category);
     });
-    var nextUnit = {};
+    var nextUnit = 'barra';
     var output = [];
     var remaining = true;
     while (remaining) {
       remaining = false;
       categories.forEach(function (category) {
-        var preferred = nextUnit[category] === 'sf' ? ['sf', 'barra'] : ['barra', 'sf'];
+        var preferred = nextUnit === 'sf' ? ['sf', 'barra'] : ['barra', 'sf'];
         var used = preferred.find(function (unit) {
           var bucket = buckets.get(category + '|' + unit);
           return bucket && bucket.length;
         });
         if (!used) return;
         output.push(buckets.get(category + '|' + used).shift());
-        nextUnit[category] = used === 'barra' ? 'sf' : 'barra';
+        nextUnit = used === 'barra' ? 'sf' : 'barra';
         remaining = true;
       });
     }
@@ -172,13 +177,15 @@
   function resolveOpenProduct(products, state, batchSize) {
     var next = Object.assign({}, state);
     if (!next.openProduct) return next;
+    var requestedCode = normalizeCode(next.openProduct);
     var index = products.findIndex(function (product) {
-      return String(product.k).toUpperCase() === next.openProduct;
+      return normalizeCode(product.k) === requestedCode;
     });
     if (index < 0) {
       next.openProduct = null;
       return next;
     }
+    next.openProduct = normalizeCode(products[index].k);
     next.page = Math.max(next.page || 1, Math.ceil((index + 1) / (batchSize || BATCH_SIZE)));
     return next;
   }
@@ -209,17 +216,17 @@
   }
 
   function productDetailUrl(product) {
-    return 'peca.html?codigo=' + encodeURIComponent(product.k);
+    return 'peca.html?codigo=' + encodeURIComponent(normalizeCode(product && product.k));
   }
 
   function buildSearchTelemetry(term, products, resultCount, state) {
     var raw = String(term || '');
-    var normalized = fold(raw);
-    var product = products.find(function (item) { return normalized === fold(item.k); });
+    var normalized = normalizeCode(raw);
+    var product = products.find(function (item) { return normalized === normalizeCode(item.k); });
     return {
       query_length: raw.length,
       query_has_product_code: product ? 'yes' : 'no',
-      product_code: product ? product.k : '',
+      product_code: product ? normalizeCode(product.k) : '',
       result_count: resultCount,
       catalog_category: state.category || '',
       catalog_unit: state.unit || '',

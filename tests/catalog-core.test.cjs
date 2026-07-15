@@ -2,6 +2,9 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
 const fixtures = require('./helpers/catalog-fixtures.cjs');
 const Core = require('../kl-catalog-core.js');
 
@@ -10,6 +13,12 @@ function defaultState(overrides) {
     query: '', category: null, unit: null,
     colors: [], sizes: [], page: 1, openProduct: null,
   }, overrides || {});
+}
+
+function runBrowserScript(filename, sandbox) {
+  const source = fs.readFileSync(path.join(__dirname, '..', filename), 'utf8');
+  vm.runInNewContext(source, sandbox, { filename });
+  return sandbox;
 }
 
 test('readState sanitiza aliases, inválidos e listas repetidas', () => {
@@ -54,6 +63,11 @@ test('busca normalizada encontra categoria, tamanho e cor sem diacríticos', () 
   assert.deepEqual(Core.derive(fixtures, defaultState({ query: 'calcado' })).products.map((p) => p.k), ['CL-033']);
   assert.deepEqual(Core.derive(fixtures, defaultState({ query: '63' })).products.map((p) => p.k), ['TR-001']);
   assert.deepEqual(Core.derive(fixtures, defaultState({ query: 'vinho' })).products.map((p) => p.k), ['DB-010']);
+});
+
+test('busca normalizada encontra tamanho Único e código em outro casing', () => {
+  assert.deepEqual(Core.derive(fixtures, defaultState({ query: 'unico' })).products.map((p) => p.k), ['BL-001', 'AC-001']);
+  assert.deepEqual(Core.derive(fixtures, defaultState({ query: 'nv-001' })).products.map((p) => p.k), ['NV-001']);
 });
 
 test('filtros usam OR dentro da faceta e AND entre facetas', () => {
@@ -105,6 +119,23 @@ test('mistura é determinística, completa e diversa no início', () => {
   assert.ok(new Set(first.slice(0, 6).map((p) => p.un)).size >= 2);
 });
 
+test('mistura da base real alterna unidades desde as primeiras peças', () => {
+  const sandbox = runBrowserScript('kl-catalog-data.js', { window: {} });
+  const products = sandbox.window.KL_DATA;
+  const firstBatch = Array.from(
+    Core.derive(products, defaultState()).products.slice(0, Core.BATCH_SIZE),
+  );
+  const firstSixUnits = new Set(firstBatch.slice(0, 6).map((product) => product.un));
+  const unitCounts = firstBatch.reduce((counts, product) => {
+    counts[product.un] = (counts[product.un] || 0) + 1;
+    return counts;
+  }, {});
+
+  assert.deepEqual(firstSixUnits, new Set(['barra', 'sf']));
+  assert.equal(firstBatch.length, Core.BATCH_SIZE);
+  assert.ok(unitCounts.sf >= 2, JSON.stringify(unitCounts));
+});
+
 test('deep-link incompatível remove só a peça aberta', () => {
   const requested = Core.readState('?cat=ternos&p=DB-010&q=terno', fixtures);
   const view = Core.derive(fixtures, requested);
@@ -121,6 +152,33 @@ test('resolveOpenProduct eleva a página para revelar peça válida', () => {
   const state = defaultState({ openProduct: 'P-24' });
 
   assert.equal(Core.resolveOpenProduct(products, state, 12).page, 3);
+});
+
+test('deep-link, resolução e URLs usam código canônico sem mutar o produto', () => {
+  const product = Object.assign({}, fixtures[0], { k: ' nv-001 ' });
+  const products = [product];
+  const report = Core.validateProducts(products);
+  const fromUrl = Core.readState('?p=%20nV-001%20', products);
+  const resolved = Core.resolveOpenProduct(products, defaultState({ openProduct: ' Nv-001 ' }), 12);
+
+  assert.equal(report.ok, true);
+  assert.equal(report.products[0].k, ' nv-001 ');
+  assert.equal(product.k, ' nv-001 ');
+  assert.equal(fromUrl.openProduct, 'NV-001');
+  assert.equal(resolved.openProduct, 'NV-001');
+  assert.equal(Core.serializeState(defaultState({ openProduct: ' nv-001 ' })), 'p=NV-001');
+  assert.equal(Core.productDetailUrl(product), 'peca.html?codigo=NV-001');
+  assert.equal(Core.buildSearchTelemetry(' nv-001 ', products, 1, defaultState()).product_code, 'NV-001');
+});
+
+test('validateProducts detecta códigos duplicados após trim e uppercase', () => {
+  const products = [
+    Object.assign({}, fixtures[0], { k: ' nv-001 ' }),
+    Object.assign({}, fixtures[1], { k: 'NV-001' }),
+  ];
+
+  assert.ok(Core.validateProducts(products).errors.some((error) => error.reason === 'duplicate-code'));
+  assert.equal(products[0].k, ' nv-001 ');
 });
 
 test('telemetria de busca não inclui termo bruto nem PII', () => {
@@ -193,4 +251,13 @@ test('thumbUrl gera miniatura JPG preservando query e nunca reutiliza original',
 
 test('productDetailUrl codifica o código da peça', () => {
   assert.equal(Core.productDetailUrl({ k: 'NV 001/2' }), 'peca.html?codigo=NV%20001%2F2');
+});
+
+test('UMD publica Core no namespace do navegador sem CommonJS', () => {
+  const sandbox = runBrowserScript('kl-catalog-core.js', {});
+
+  assert.equal(typeof sandbox.KLCatalog, 'object');
+  assert.equal(typeof sandbox.KLCatalog.Core, 'object');
+  assert.equal(typeof sandbox.KLCatalog.Core.derive, 'function');
+  assert.equal(typeof sandbox.KLCatalog.Core.validateProducts, 'function');
 });
