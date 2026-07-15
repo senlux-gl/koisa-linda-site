@@ -36,7 +36,8 @@
     var rawCategory = params.get('cat');
     var rawUnit = params.get('un');
     var rawProduct = String(params.get('p') || '').toUpperCase();
-    var rawPage = parseInt(params.get('pg') || '1', 10);
+    var rawPage = params.get('pg') || '1';
+    var page = Number(rawPage);
 
     return {
       query: String(params.get('q') || '').trim().slice(0, 80),
@@ -44,20 +45,20 @@
       unit: UNIT_IDS.indexOf(rawUnit) > -1 ? rawUnit : null,
       colors: uniqueSorted(values(params, 'co').filter(function (value) { return colors.has(value); })),
       sizes: uniqueSorted(values(params, 'tam').filter(function (value) { return sizes.has(value); })),
-      page: Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1,
+      page: /^\d+$/.test(rawPage) && Number.isInteger(page) && page >= 1 ? page : 1,
       openProduct: codes.has(rawProduct) ? rawProduct : null,
     };
   }
 
   function serializeState(state) {
     var params = new URLSearchParams();
-    if (state.query) params.set('q', state.query);
     if (state.category) params.set('cat', state.category);
     if (state.unit) params.set('un', state.unit);
+    if (state.query) params.set('q', state.query);
     uniqueSorted(state.colors || []).forEach(function (value) { params.append('co', value); });
     uniqueSorted(state.sizes || []).forEach(function (value) { params.append('tam', value); });
-    if (state.openProduct) params.set('p', String(state.openProduct).toUpperCase());
     if ((state.page || 1) > 1) params.set('pg', String(state.page));
+    if (state.openProduct) params.set('p', String(state.openProduct).toUpperCase());
     return params.toString();
   }
 
