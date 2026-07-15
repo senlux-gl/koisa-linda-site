@@ -12,6 +12,9 @@
   var sentOnce = {};
   var recentEvents = {};
   var searchTimer = null;
+  var CATALOG_CATEGORIES = ['vestidos-noiva', 'vestidos-debutante', 'vestidos-madrinha', 'ternos', 'bolsas', 'calcados', 'acessorios'];
+  var CATALOG_UNITS = ['barra', 'sf'];
+  var CATALOG_SOURCES = ['bootstrap', 'data-source', 'catalog', 'manual', 'observer', 'grid', 'deep-link', 'previous', 'next', 'swipe', 'gallery', 'favorites', 'data', 'filters', 'category', 'unit', 'color', 'size', 'shortcut', 'chip', 'clear'];
 
   function now() { return Date.now ? Date.now() : new Date().getTime(); }
   function qs(sel, root) { return (root || document).querySelector(sel); }
@@ -39,16 +42,29 @@
     var h = String(href || '');
     if (h.indexOf('5521970858787') > -1) return 'sao_francisco';
     if (h.indexOf('5521966475383') > -1) return 'barra';
-    if (h.indexOf('5521974241859') > -1) return 'itaborai';
     return '';
   }
+  function enumValue(value, allowedValues) {
+    value = String(value || '');
+    return allowedValues.indexOf(value) > -1 ? value : '';
+  }
+  function safeCount(value, max) {
+    value = Number(value);
+    return Number.isFinite(value) ? Math.max(0, Math.min(max, Math.round(value))) : undefined;
+  }
   function activeFilter(kind) {
-    var el = kind === 'unit' ? qs('#units .upill.active') : qs('#cats .pill.active');
+    var el;
+    if (kind === 'unit') {
+      el = qs('#catalog-units [data-unit][aria-pressed="true"]') || qs('#units .upill.active');
+    } else {
+      el = qs('#catalog-category') || qs('#cats .pill.active');
+    }
     if (!el) return '';
-    return el.getAttribute(kind === 'unit' ? 'data-un' : 'data-cat') || '';
+    if (kind === 'unit') return el.getAttribute('data-unit') || el.getAttribute('data-un') || '';
+    return el.value || el.getAttribute('data-cat') || '';
   }
   function visibleResultCount() {
-    var t = qs('#count');
+    var t = qs('#catalog-count') || qs('#count');
     if (!t) return null;
     var m = (t.textContent || '').match(/\d+/);
     return m ? parseInt(m[0], 10) : null;
@@ -69,16 +85,15 @@
   function getProductByCode(code) {
     try {
       if (!code) return null;
-      if (!window.DATA || !Array.isArray(window.DATA)) return inferredProduct(code);
-      return window.DATA.find(function (d) { return String(d.k || '').toUpperCase() === String(code).toUpperCase(); }) || inferredProduct(code);
+      if (!window.KL_DATA || !Array.isArray(window.KL_DATA)) return inferredProduct(code);
+      return window.KL_DATA.find(function (d) { return String(d.k || '').toUpperCase() === String(code).toUpperCase(); }) || inferredProduct(code);
     } catch (e) { return inferredProduct(code); }
   }
   function getProductFromElement(el) {
     try {
-      var card = el && el.closest ? el.closest('.card') : null;
-      var idx = card ? parseInt(card.getAttribute('data-i'), 10) : NaN;
-      if (!isNaN(idx) && window.filtered && window.filtered[idx]) return window.filtered[idx];
-      var code = codeFromText((card && card.textContent) || (el && el.textContent) || '');
+      var card = el && el.closest ? el.closest('.catalog-card, .card') : null;
+      var code = card && card.getAttribute ? card.getAttribute('data-code') || '' : '';
+      if (!code) code = codeFromText((card && card.textContent) || (el && el.textContent) || '');
       if (!code && card) {
         var wa = card.querySelector('a[href*="wa.me"]');
         code = codeFromText(wa ? decodeURIComponent(wa.getAttribute('href') || '') : '');
@@ -88,12 +103,13 @@
   }
   function productParams(d) {
     if (!d) return {};
+    var unit = enumValue(d.un, CATALOG_UNITS);
     return {
       product_code: clean(d.k, 24),
       content_name: clean(d.k, 24),
       content_category: clean(d.c, 40),
       category_label: clean(d.l, 50),
-      unidade: clean(d.un || 'barra', 24),
+      unidade: unit,
       tamanho: clean(d.t, 24),
       cor: clean(d.co || '', 32)
     };
@@ -106,8 +122,8 @@
       page_type: pageType(),
       referrer_domain: (function () { try { return document.referrer ? new URL(document.referrer).hostname : ''; } catch (e) { return ''; } })(),
       viewport: (window.innerWidth || 0) + 'x' + (window.innerHeight || 0),
-      catalog_category: activeFilter('cat'),
-      catalog_unit: activeFilter('unit')
+      catalog_category: enumValue(activeFilter('cat'), CATALOG_CATEGORIES),
+      catalog_unit: enumValue(activeFilter('unit'), CATALOG_UNITS)
     };
     var utm = getPersistedAttribution();
     Object.keys(utm).forEach(function (k) { p[k] = utm[k]; });
@@ -131,13 +147,17 @@
         var v = sp.get(k);
         if (v) { sessionStorage.setItem('kl_' + k, clean(v, 120)); changed = true; }
       });
-      if (changed) sessionStorage.setItem('kl_landing_path', clean(location.pathname + location.search, 160));
+      if (changed) sessionStorage.setItem('kl_landing_path', clean(location.pathname, 160));
       keys.forEach(function (k) {
         var v = sessionStorage.getItem('kl_' + k);
         if (v) out[k] = k === 'fbclid' || k === 'gclid' ? 'present' : clean(v, 120);
       });
       var lp = sessionStorage.getItem('kl_landing_path');
-      if (lp) out.landing_path = clean(lp, 160);
+      if (lp) {
+        var cleanLanding = clean(String(lp).split(/[?#]/)[0], 160);
+        if (cleanLanding !== lp) sessionStorage.setItem('kl_landing_path', cleanLanding);
+        if (cleanLanding) out.landing_path = cleanLanding;
+      }
     } catch (e) {}
     return out;
   }
@@ -163,6 +183,38 @@
       window.__klTrackingQueue = window.__klTrackingQueue || [];
       window.__klTrackingQueue.push({ name: name, params: params, ts: now() });
     }
+  }
+  function catalog(eventName, context) {
+    context = context || {};
+    var allowed = {
+      KL_Catalog_Loaded: true,
+      KL_Catalog_Error: true,
+      KL_Catalog_Search: true,
+      KL_Filter_Change: true,
+      KL_Catalog_Load_More: true,
+      KL_Product_Open: true,
+      KL_Product_Navigate: true,
+      KL_Favorite_Toggle: true,
+      KL_Favorites_View: true,
+      KL_WhatsApp_Click: true,
+      KL_Try_On_Click: true,
+      KL_Catalog_Empty: true,
+    };
+    if (!allowed[eventName]) return;
+    var product = context.productCode ? getProductByCode(context.productCode) : null;
+    var params = Object.assign({}, productParams(product), {
+      result_count: safeCount(context.resultCount, 100000),
+      catalog_category: enumValue(context.category, CATALOG_CATEGORIES),
+      catalog_unit: enumValue(context.unit, CATALOG_UNITS),
+      query_length: safeCount(context.queryLength, 80),
+      query_has_product_code: context.queryHasProductCode === 'yes' ? 'yes' : 'no',
+      favorite_count: safeCount(context.favoriteCount, 10000),
+      source: enumValue(context.source, CATALOG_SOURCES),
+    });
+    if (eventName === 'KL_Catalog_Search' && context.productCode && product) {
+      params.product_code = clean(product.k, 24);
+    }
+    track(eventName, params);
   }
   function flushQueueWhenReady() {
     var start = now();
@@ -201,6 +253,9 @@
     window.__klFbqHooked = true;
   }
   function onClick(e) {
+    var manual = e.target && e.target.closest
+      ? e.target.closest('[data-kl-track-manual="true"]') : null;
+    if (manual) return;
     var a = e.target.closest && e.target.closest('a[href]');
     var btn = e.target.closest && e.target.closest('button, .pill, .sw, .szchip, .cbtn, .lb-cta, .lb-try, .fab');
     var target = a || btn;
@@ -260,8 +315,8 @@
     if (d) track('KL_Product_Open_Click', productParams(d));
   }
   function bindSearch() {
-    var input = qs('#q');
-    if (!input) return;
+    var input = qs('#catalog-search') || qs('#q');
+    if (!input || input.getAttribute('data-kl-track-manual') === 'true') return;
     input.addEventListener('input', function () {
       clearTimeout(searchTimer);
       searchTimer = setTimeout(function () {
@@ -311,7 +366,8 @@
   }
   function bindCatalogFilterPatches() {
     // Existing inline code already changes filters. This observes result count changes after filter/search actions.
-    var count = qs('#count');
+    if (qs('#catalog-app') || (window.KLCatalog && window.KLCatalog.App)) return;
+    var count = qs('#catalog-count') || qs('#count');
     if (!count || !('MutationObserver' in window)) return;
     var last = count.textContent;
     new MutationObserver(function () {
@@ -336,6 +392,7 @@
     bindCatalogFilterPatches();
     track('KL_Page_Context', { url_has_query: location.search ? 'yes' : 'no' }, { onceKey: 'page:' + location.href });
   }
+  window.KLTracking = Object.freeze({ catalog: catalog });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
