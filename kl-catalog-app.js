@@ -51,7 +51,36 @@
   var activeFilterList = null;
   var pendingRestore = null;
   var firstGridMarked = false;
+  var catalogLoadedTracked = false;
+  var catalogErrorTracked = false;
+  var galleryNavigateSource = '';
   var dom = null;
+
+  function trackCatalog(name, context) {
+    if (!root.KLTracking || typeof root.KLTracking.catalog !== 'function') return false;
+    try {
+      root.KLTracking.catalog(name, context || {});
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function catalogContext(source, extra) {
+    return Object.assign({
+      category: state && state.category || null,
+      unit: state && state.unit || null,
+      resultCount: currentDerived ? currentDerived.products.length : 0,
+      source: source,
+    }, extra || {});
+  }
+
+  function markManual(node) {
+    if (node && typeof node.setAttribute === 'function') {
+      node.setAttribute('data-kl-track-manual', 'true');
+    }
+    return node;
+  }
 
   function classifyData(raw, validate, phase) {
     if (phase === 'loading') return 'loading';
@@ -356,10 +385,14 @@
     updateFavoriteCount();
   }
 
-  function toggleFavorite(code) {
+  function toggleFavorite(code, source) {
     if (!favorites) return false;
     var saved = favorites.toggle(code);
     syncFavoriteControls();
+    trackCatalog('KL_Favorite_Toggle', catalogContext(source || 'grid', {
+      productCode: String(code || '').trim().toUpperCase(),
+      favoriteCount: favorites.items().length,
+    }));
     return saved;
   }
 
@@ -374,7 +407,7 @@
 
     var actions = element('div', 'catalog-state-actions');
     if (retry) {
-      var button = element('button', '', 'Tentar novamente');
+      var button = markManual(element('button', '', 'Tentar novamente'));
       button.type = 'button';
       button.addEventListener('click', function () {
         if (root.location && typeof root.location.reload === 'function') {
@@ -383,7 +416,7 @@
       });
       actions.appendChild(button);
     }
-    var units = element('a', '', 'Ver unidades');
+    var units = markManual(element('a', '', 'Ver unidades'));
     units.href = 'unidades.html';
     actions.appendChild(units);
     wrapper.appendChild(actions);
@@ -423,6 +456,10 @@
       'Tente novamente ou escolha uma unidade para falar com a equipe.',
       true,
     );
+    if (!catalogErrorTracked) {
+      catalogErrorTracked = true;
+      trackCatalog('KL_Catalog_Error', { source: 'data-source' });
+    }
   }
 
   function createCard(product, index) {
@@ -431,6 +468,7 @@
     article.dataset.index = String(index);
 
     var photo = element('a', 'catalog-card-photo');
+    markManual(photo);
     photo.href = Core.productDetailUrl(product);
     photo.setAttribute('aria-label', 'Ver peça ' + product.k);
 
@@ -450,6 +488,7 @@
 
     var meta = element('div', 'catalog-card-meta');
     var titleLink = element('a', '', product.l || 'Peça');
+    markManual(titleLink);
     titleLink.href = photo.href;
     var code = element('span');
     var unit = Core.unitOf(product);
@@ -457,6 +496,7 @@
     var unitLabels = { barra: 'Barra da Tijuca', sf: 'São Francisco' };
     code.textContent = product.k + ' · ' + unitLabels[unit];
     var favorite = element('button');
+    markManual(favorite);
     favorite.type = 'button';
     favorite.dataset.favoriteCode = product.k;
 
@@ -468,7 +508,7 @@
 
     syncFavorite();
     favorite.addEventListener('click', function () {
-      toggleFavorite(product.k);
+      toggleFavorite(product.k, 'grid');
     });
 
     meta.appendChild(titleLink);
@@ -532,7 +572,7 @@
     else values.push(value);
     var patch = {};
     patch[key] = values;
-    patchFilters(patch);
+    patchFilters(patch, kind);
   }
 
   function renderFacetGroup(label, kind, counts, selected) {
@@ -543,6 +583,7 @@
     var options = element('div', 'catalog-facet-options');
     values.forEach(function (value) {
       var button = element('button', 'catalog-facet');
+      markManual(button);
       button.type = 'button';
       button.dataset.facet = kind;
       button.dataset.value = value;
@@ -564,20 +605,21 @@
   }
 
   function removeFilter(kind, value) {
-    if (kind === 'query') return patchFilters({ query: '' });
-    if (kind === 'category') return patchFilters({ category: null });
-    if (kind === 'unit') return patchFilters({ unit: null });
+    if (kind === 'query') return patchFilters({ query: '' }, 'chip');
+    if (kind === 'category') return patchFilters({ category: null }, 'chip');
+    if (kind === 'unit') return patchFilters({ unit: null }, 'chip');
     if (kind === 'color') return patchFilters({
       colors: state.colors.filter(function (item) { return item !== value; }),
-    });
+    }, 'chip');
     if (kind === 'size') return patchFilters({
       sizes: state.sizes.filter(function (item) { return item !== value; }),
-    });
+    }, 'chip');
     return false;
   }
 
   function appendChip(kind, value, label) {
     var button = element('button', 'catalog-chip', label);
+    markManual(button);
     button.type = 'button';
     button.dataset.filter = kind;
     button.dataset.value = value || '';
@@ -596,9 +638,10 @@
     state.sizes.forEach(function (value) { appendChip('size', value, 'Tamanho: ' + value); });
     if (state.query || state.category || state.unit || state.colors.length || state.sizes.length) {
       var clear = element('button', 'catalog-clear-filters', 'Limpar refinamentos');
+      markManual(clear);
       clear.type = 'button';
       clear.addEventListener('click', function () {
-        patchFilters({ query: '', category: null, unit: null, colors: [], sizes: [] });
+        patchFilters({ query: '', category: null, unit: null, colors: [], sizes: [] }, 'clear');
       });
       activeFilterList.appendChild(clear);
     }
@@ -684,15 +727,26 @@
     renderReady(options);
     dispatchCatalogState();
     restorePendingPosition();
+    if (!catalogLoadedTracked && !(options && options.fromPopState)) {
+      catalogLoadedTracked = true;
+      trackCatalog('KL_Catalog_Loaded', catalogContext('bootstrap'));
+      if (!currentDerived.products.length) {
+        trackCatalog('KL_Catalog_Empty', catalogContext('filters'));
+      }
+    }
   }
 
   function commit(nextState, meta) {
     state = cloneState(nextState);
     if (!meta || meta.replaceHistory !== false) replaceCanonicalUrl();
     renderDerived({ append: Boolean(meta && (meta.source === 'observer' || meta.source === 'manual')) });
+    if (meta && (meta.source === 'observer' || meta.source === 'manual')) {
+      trackCatalog('KL_Catalog_Load_More', catalogContext(meta.source));
+    }
   }
 
-  function patchFilters(patch) {
+  function patchFilters(patch, source) {
+    var previousCount = currentDerived ? currentDerived.products.length : 0;
     var requested = cloneState(Object.assign({}, state, patch || {}, {
       page: 1,
       openProduct: null,
@@ -700,6 +754,12 @@
     var reconciled = cloneState(Core.derive(products, requested).state);
     commit(reconciled, { source: 'filter', replaceHistory: true });
     announceRemoved(requested, reconciled);
+    if (source) {
+      trackCatalog('KL_Filter_Change', catalogContext(source));
+    }
+    if (previousCount > 0 && currentDerived && !currentDerived.products.length) {
+      trackCatalog('KL_Catalog_Empty', catalogContext('filters'));
+    }
     return true;
   }
 
@@ -709,40 +769,66 @@
     return true;
   }
 
-  function setCategory(category) {
+  function setCategory(category, source) {
     var canonical = Core.CATEGORY_ORDER.indexOf(category) > -1 ? category : null;
-    return patchFilters({ category: canonical });
+    return patchFilters({ category: canonical }, source || 'category');
+  }
+
+  function trackSearch() {
+    if (!state.query) return false;
+    var telemetry = Core.buildSearchTelemetry(
+      state.query,
+      products,
+      currentDerived.products.length,
+      state,
+    );
+    trackCatalog('KL_Catalog_Search', {
+      category: state.category,
+      productCode: telemetry.product_code,
+      queryHasProductCode: telemetry.query_has_product_code,
+      queryLength: telemetry.query_length,
+      resultCount: telemetry.result_count,
+      source: 'catalog',
+      unit: state.unit,
+    });
+    return true;
   }
 
   function connectFilterControls() {
     if (dom.category) {
+      markManual(dom.category);
       dom.category.addEventListener('change', function () {
-        setCategory(dom.category.value);
+        setCategory(dom.category.value, 'category');
       });
     }
     dom.shortcuts.forEach(function (shortcut) {
+      markManual(shortcut);
       shortcut.addEventListener('click', function () {
-        setCategory(shortcut.dataset.shortcutCat || '');
+        setCategory(shortcut.dataset.shortcutCat || '', 'shortcut');
       });
     });
     dom.unitButtons.forEach(function (button) {
+      markManual(button);
       button.addEventListener('click', function () {
         var unit = button.dataset.unit;
-        patchFilters({ unit: Core.UNIT_IDS.indexOf(unit) > -1 ? unit : null });
+        patchFilters({ unit: Core.UNIT_IDS.indexOf(unit) > -1 ? unit : null }, 'unit');
       });
     });
     if (dom.search) {
+      markManual(dom.search);
       dom.search.addEventListener('input', function () {
         if (searchTimer != null && typeof root.clearTimeout === 'function') {
           root.clearTimeout(searchTimer);
         }
         if (typeof root.setTimeout !== 'function') {
           patchFilters({ query: dom.search.value });
+          trackSearch();
           return;
         }
         searchTimer = root.setTimeout(function () {
           searchTimer = null;
           patchFilters({ query: dom.search.value });
+          trackSearch();
         }, 180);
       });
     }
@@ -762,6 +848,7 @@
       };
     }
     pagingController = createPagingController(options);
+    markManual(dom.loadMore);
     dom.loadMore.addEventListener('click', function () {
       pagingController.requestManual();
     });
@@ -939,16 +1026,33 @@
       return false;
     }
     dispatchCatalogState();
+    trackCatalog('KL_Product_Open', catalogContext('grid', {
+      productCode: galleryOriginCode,
+    }));
     return true;
   }
 
   function replaceGalleryProduct(code) {
     var product = productForCode(code);
     if (!product || !gallery || !gallery.isReady()) return false;
+    var previousIndex = galleryProducts.findIndex(function (item) {
+      return item.k === state.openProduct;
+    });
+    var nextIndex = galleryProducts.findIndex(function (item) {
+      return item.k === product.k;
+    });
+    var navigationSource = galleryNavigateSource;
+    galleryNavigateSource = '';
+    if (navigationSource !== 'swipe' && navigationSource !== 'previous' && navigationSource !== 'next') {
+      navigationSource = nextIndex < previousIndex ? 'previous' : 'next';
+    }
     state = cloneState(Object.assign({}, state, { openProduct: product.k }));
     historyController.replaceProduct(urlFor(state));
     gallery.update(product.k);
     dispatchCatalogState();
+    trackCatalog('KL_Product_Navigate', catalogContext(navigationSource, {
+      productCode: product.k,
+    }));
     return true;
   }
 
@@ -1005,10 +1109,11 @@
     }, { once: true });
     var code = element('strong', '', product.k);
     var remove = element('button', '', 'Remover');
+    markManual(remove);
     remove.type = 'button';
     remove.dataset.removeFavorite = product.k;
     remove.addEventListener('click', function () {
-      toggleFavorite(product.k);
+      toggleFavorite(product.k, 'favorites');
       renderFavorites('Peça ' + product.k + ' removida dos salvos.');
     });
     item.appendChild(image);
@@ -1034,8 +1139,13 @@
           'favorites-send',
           'Enviar lista ' + batch.index + ' de ' + batch.total + ' — ' + label,
         );
+        markManual(button);
         button.type = 'button';
         button.addEventListener('click', function () {
+          trackCatalog('KL_WhatsApp_Click', catalogContext('favorites', {
+            favoriteCount: favorites.items().length,
+            unit: unit,
+          }));
           if (typeof root.open === 'function') root.open(batch.href, '_blank', 'noopener');
         });
         actions.appendChild(button);
@@ -1118,9 +1228,13 @@
     if (!dom.favoritesDialog || !dom.favoritesContent || !dom.favoritesOpen
         || !dom.favoritesClose || typeof dom.favoritesDialog.showModal !== 'function'
         || typeof dom.favoritesDialog.close !== 'function') return false;
+    markManual(dom.favoritesOpen);
     dom.favoritesOpen.addEventListener('click', function () {
       renderFavorites();
       if (!dom.favoritesDialog.open) dom.favoritesDialog.showModal();
+      trackCatalog('KL_Favorites_View', catalogContext('favorites', {
+        favoriteCount: favorites.items().length,
+      }));
     });
     dom.favoritesClose.addEventListener('click', closeFavoritesDialog);
     dom.favoritesDialog.addEventListener('cancel', function (event) {
@@ -1153,6 +1267,25 @@
       documentElement: root.document.documentElement,
       getComputedStyle: root.getComputedStyle.bind(root),
     });
+    var galleryFavorite = dom.galleryDialog.querySelector('#gallery-favorite');
+    var galleryWhatsapp = dom.galleryDialog.querySelector('#gallery-whatsapp');
+    var galleryTryOn = dom.galleryDialog.querySelector('#gallery-try-on');
+    var galleryPrevious = dom.galleryDialog.querySelector('.gallery-prev');
+    var galleryNext = dom.galleryDialog.querySelector('.gallery-next');
+    [galleryFavorite, galleryWhatsapp, galleryTryOn, galleryPrevious, galleryNext].forEach(markManual);
+    if (galleryPrevious) galleryPrevious.addEventListener('click', function () {
+      galleryNavigateSource = 'previous';
+    }, true);
+    if (galleryNext) galleryNext.addEventListener('click', function () {
+      galleryNavigateSource = 'next';
+    }, true);
+    dom.galleryDialog.addEventListener('keydown', function (event) {
+      if (event.key === 'ArrowLeft') galleryNavigateSource = 'previous';
+      if (event.key === 'ArrowRight') galleryNavigateSource = 'next';
+    }, true);
+    dom.galleryDialog.addEventListener('pointerup', function (event) {
+      if (!event.pointerType || event.pointerType === 'touch') galleryNavigateSource = 'swipe';
+    }, true);
     gallery = Gallery.create({
       dialog: dom.galleryDialog,
       image: dom.galleryImage,
@@ -1161,11 +1294,27 @@
       actions: Actions,
       onNavigate: replaceGalleryProduct,
       onRequestClose: requestGalleryClose,
-      onFavorite: toggleFavorite,
+      onFavorite: function (code) { toggleFavorite(code, 'gallery'); },
       isFavorite: function (code) { return favorites.has(code); },
       onTrack: function () {},
     });
     if (!gallery.isReady()) return false;
+    if (galleryWhatsapp) galleryWhatsapp.addEventListener('click', function () {
+      var product = productForCode(state.openProduct);
+      if (!product) return;
+      trackCatalog('KL_WhatsApp_Click', catalogContext('gallery', {
+        productCode: product.k,
+        favoriteCount: favorites.items().length,
+        unit: Core.unitOf(product),
+      }));
+    });
+    if (galleryTryOn) galleryTryOn.addEventListener('click', function () {
+      var product = productForCode(state.openProduct);
+      if (!product) return;
+      trackCatalog('KL_Try_On_Click', catalogContext('gallery', {
+        productCode: product.k,
+      }));
+    });
     dom.grid.addEventListener('click', function (event) {
       var anchor = closestAnchor(event.target);
       if (!anchor || !Gallery.shouldInterceptProductLink(event, gallery.isReady())) return;
@@ -1176,7 +1325,13 @@
     });
     if (state.openProduct) {
       scrollLock.lock();
-      try { gallery.open(state.openProduct); }
+      try {
+        if (gallery.open(state.openProduct)) {
+          trackCatalog('KL_Product_Open', catalogContext('deep-link', {
+            productCode: state.openProduct,
+          }));
+        }
+      }
       catch (error) { scrollLock.unlock(); }
     }
     return true;
@@ -1274,6 +1429,7 @@
         'Fale com uma de nossas unidades para conhecer as peças disponíveis.',
         false,
       );
+      trackCatalog('KL_Catalog_Empty', { resultCount: 0, source: 'data' });
       return getSnapshot();
     }
 

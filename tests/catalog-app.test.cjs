@@ -82,6 +82,12 @@ function enhanceBrowser(browser, { sessionSeed, scrollY } = {}) {
   browser.windowListenerCount = type => (listeners.get(type) || []).length;
   browser.catalogEvents = [];
   window.addEventListener('kl:catalog-state', event => browser.catalogEvents.push(event.detail));
+  browser.trackingCalls = [];
+  window.KLTracking = {
+    catalog(name, context) {
+      browser.trackingCalls.push({ name, context });
+    },
+  };
 
   let now = 0;
   let nextTimer = 1;
@@ -609,4 +615,47 @@ test('pagehide e carga sem p restauram lote, scroll e foco sem scrollRestoration
   assert.equal(second.browser.windowListenerCount('popstate'), 1);
   assert.equal(second.browser.windowListenerCount('pagehide'), 1);
   assert.equal(second.browser.nodes.search.listenerCount('input'), 1);
+});
+
+test('tracking explícito cobre a matriz e não inclui query bruta no contexto', () => {
+  const names = [
+    'KL_Catalog_Loaded', 'KL_Catalog_Error', 'KL_Catalog_Search',
+    'KL_Filter_Change', 'KL_Catalog_Load_More', 'KL_Product_Open',
+    'KL_Product_Navigate', 'KL_Favorite_Toggle', 'KL_Favorites_View',
+    'KL_WhatsApp_Click', 'KL_Try_On_Click', 'KL_Catalog_Empty',
+  ];
+  names.forEach(name => assert.match(APP_SOURCE, new RegExp("trackCatalog\\('" + name)));
+
+  const { browser, app } = mountBrowser({ raw: makeProducts(25) });
+  browser.triggerDOMContentLoaded();
+  app.init();
+  assert.equal(browser.trackingCalls.filter(call => call.name === 'KL_Catalog_Loaded').length, 1);
+
+  browser.nodes.search.value = 'Peça 005 privada';
+  browser.nodes.search.dispatchEvent({ type: 'input' });
+  browser.advanceTime(180);
+  const search = browser.trackingCalls.find(call => call.name === 'KL_Catalog_Search');
+  assert.ok(search);
+  assert.deepEqual(Object.keys(search.context).sort(), [
+    'category', 'productCode', 'queryHasProductCode', 'queryLength', 'resultCount', 'source', 'unit',
+  ]);
+  assert.equal(JSON.stringify(search.context).includes('Peça 005 privada'), false);
+});
+
+test('tracking de ação não duplica em rerender, popstate ou paginação no fim', () => {
+  const { browser, app } = mountBrowser({ raw: makeProducts(25) });
+  browser.triggerDOMContentLoaded();
+  browser.nodes.grid.children[0].children[1].children[2].click();
+  browser.nodes.loadMore.click();
+  browser.triggerIntersection(true);
+  const actionNames = browser.trackingCalls.map(call => call.name);
+  assert.equal(actionNames.filter(name => name === 'KL_Favorite_Toggle').length, 1);
+  assert.equal(actionNames.filter(name => name === 'KL_Catalog_Load_More').length, 2);
+
+  const before = browser.trackingCalls.length;
+  app.init();
+  browser.triggerIntersection(true);
+  browser.window.location.search = '?pg=1';
+  browser.dispatchWindow('popstate');
+  assert.equal(browser.trackingCalls.length, before);
 });
