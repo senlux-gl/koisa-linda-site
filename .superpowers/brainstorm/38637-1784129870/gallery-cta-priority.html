@@ -1,0 +1,65 @@
+<style>
+  :root{--ruby:#722F37;--cream:#FBF7EF;--baunilha:#F4E5C4;--ink:#2c2326;--muted:#7d7068;--line:#e9e0d2;--gold:#B8945F;--dark:#17110f}
+  body{background:var(--cream)!important;color:var(--ink)!important}
+  h2{font-family:Georgia,'Times New Roman',serif!important;font-style:italic;font-weight:400!important;color:var(--ink)!important;letter-spacing:-.03em}
+  .subtitle{max-width:780px!important;color:var(--muted)!important}
+  .decisions{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 26px}.decisions span{padding:8px 11px;border-radius:999px;background:rgba(244,229,196,.58);border:1px solid #e6d2a8;color:#55261e;font-size:11px}.decisions b{color:var(--ruby)}
+  .cta-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:start}
+  .cta-option{position:relative;background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px;cursor:pointer;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+  .cta-option:hover{transform:translateY(-3px);border-color:#d8c7a8;box-shadow:0 18px 40px rgba(90,36,43,.09)}
+  .cta-option.selected{border:2px solid var(--ruby);padding:11px;box-shadow:0 18px 44px rgba(90,36,43,.15)}
+  .letter{position:absolute;z-index:8;top:22px;left:22px;width:32px;height:32px;display:grid;place-items:center;border-radius:50%;background:rgba(251,247,239,.96);border:1px solid rgba(114,47,55,.18);font:600 13px Arial,sans-serif;color:var(--ruby)}
+  .recommended{position:absolute;z-index:8;top:22px;right:22px;background:var(--ruby);color:#fff;padding:6px 9px;border-radius:999px;font:600 9px Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+  .phone{position:relative;overflow:hidden;background:var(--dark);border:1px solid #30241f;border-radius:12px;height:520px;color:#fff}
+  .photo{display:block;width:100%;height:100%;object-fit:cover;background:#201714}
+  .topbar{position:absolute;z-index:3;left:0;right:0;top:0;padding:16px 15px 42px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(rgba(17,11,10,.8),transparent)}
+  .close,.save{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.48);display:grid;place-items:center;background:rgba(20,14,12,.35);font:15px Arial,sans-serif}.save{font-size:17px}
+  .steps{position:absolute;z-index:3;left:50%;top:23px;transform:translateX(-50%);font:8px Arial,sans-serif;letter-spacing:.08em;color:rgba(255,255,255,.84);white-space:nowrap}
+  .arrow{position:absolute;z-index:3;top:44%;width:30px;height:42px;display:grid;place-items:center;background:rgba(20,14,12,.28);color:#fff;font-size:25px}.arrow.left{left:0;border-radius:0 20px 20px 0}.arrow.right{right:0;border-radius:20px 0 0 20px}
+  .panel{position:absolute;z-index:3;left:0;right:0;bottom:0;padding:68px 14px 14px;background:linear-gradient(transparent,rgba(17,11,10,.97) 40%)}
+  .label{font:8px Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--baunilha)}
+  .panel h3{font:italic 22px Georgia,serif!important;color:#fff!important;font-weight:400!important;margin:5px 0 4px!important}
+  .spec{font:8px Arial,sans-serif;letter-spacing:.07em;text-transform:uppercase;color:#d9ccbd}.availability{font:8px/1.35 Arial,sans-serif;color:#c4b6a8;margin:8px 0 10px}
+  .actions{display:grid;gap:6px}.actions.two{grid-template-columns:1fr 1fr}.action{min-height:37px;border-radius:999px;display:flex;align-items:center;justify-content:center;text-align:center;padding:5px 10px;font:7.5px Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}.primary{background:var(--ruby);border:1px solid var(--ruby);color:#fff}.secondary{background:rgba(20,14,12,.3);border:1px solid rgba(255,255,255,.54);color:#fff}.tertiary{color:#eadcc8;font-size:7px;text-decoration:underline;text-underline-offset:3px;min-height:24px}
+  .copy{padding:15px 8px 7px}.copy h3{font:19px Georgia,serif!important;font-weight:400!important;color:var(--ink)!important;margin:0 0 6px!important}.copy p{font-size:13px!important;line-height:1.45!important;color:var(--muted)!important;margin:0!important}.trade{display:inline-block;margin-top:10px;color:var(--ruby);font:600 10px Arial,sans-serif;letter-spacing:.04em;text-transform:uppercase}
+  .question{margin-top:26px;padding-top:18px;border-top:1px solid var(--line);text-align:center;font-family:Georgia,serif;font-size:17px;color:var(--ink)}
+  @media(max-width:1000px){.cta-options{grid-template-columns:1fr}.cta-option{max-width:540px;margin:0 auto;width:100%}}
+</style>
+
+<h2>Qual ação deve conduzir a cliente?</h2>
+<p class="subtitle">A galeria imersiva continua a mesma. O que muda é a hierarquia entre atendimento e prova virtual.</p>
+<div class="decisions"><span>✓ <b>Híbrido editorial</b></span><span>✓ <b>Duas unidades juntas</b></span><span>✓ <b>Galeria imersiva</b></span></div>
+
+<div class="cta-options">
+  <article class="cta-option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div><div class="recommended">Recomendado</div>
+    <div class="phone">
+      <img class="photo" src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-madrinha/MD-001-ia.jpg" alt="">
+      <div class="topbar"><span class="close">×</span><span class="steps">1 de 285</span><span class="save">♡</span></div><span class="arrow left">‹</span><span class="arrow right">›</span>
+      <div class="panel"><div class="label">Barra da Tijuca</div><h3>Vestido de festa</h3><div class="spec">MD-001 · Tamanho M</div><div class="availability">A disponibilidade é confirmada pela unidade.</div><div class="actions"><span class="action primary">Consultar e agendar pelo WhatsApp</span><span class="action secondary">✦ Provar em mim</span></div></div>
+    </div>
+    <div class="copy"><h3>Atendimento primeiro</h3><p>O WhatsApp conduz a venda e a prova virtual ajuda na decisão. Cada peça chama a unidade correta.</p><span class="trade">Mais direto para agendamento</span></div>
+  </article>
+
+  <article class="cta-option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="phone">
+      <img class="photo" src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-madrinha/MD-001-ia.jpg" alt="">
+      <div class="topbar"><span class="close">×</span><span class="steps">1 de 285</span><span class="save">♡</span></div><span class="arrow left">‹</span><span class="arrow right">›</span>
+      <div class="panel"><div class="label">Barra da Tijuca</div><h3>Vestido de festa</h3><div class="spec">MD-001 · Tamanho M</div><div class="availability">Veja-se na peça antes de conversar com a loja.</div><div class="actions"><span class="action primary">✦ Provar em mim</span><span class="action secondary">Falar com a Barra no WhatsApp</span></div></div>
+    </div>
+    <div class="copy"><h3>Prova virtual primeiro</h3><p>Destaca a função mais diferente do site. Gera encantamento, mas adiciona uma etapa antes do atendimento.</p><span class="trade">Mais novidade, menos imediatismo</span></div>
+  </article>
+
+  <article class="cta-option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="phone">
+      <img class="photo" src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-madrinha/MD-001-ia.jpg" alt="">
+      <div class="topbar"><span class="close">×</span><span class="steps">1 de 285</span><span class="save">♡</span></div><span class="arrow left">‹</span><span class="arrow right">›</span>
+      <div class="panel"><div class="label">Barra da Tijuca</div><h3>Vestido de festa</h3><div class="spec">MD-001 · Tamanho M</div><div class="availability">Salve ou escolha como quer continuar.</div><div class="actions two"><span class="action primary">WhatsApp</span><span class="action primary">Provar</span><span class="action tertiary">Ver todos os detalhes</span></div></div>
+    </div>
+    <div class="copy"><h3>Mesma força para as duas</h3><p>WhatsApp e prova virtual competem com o mesmo peso. Parece equilibrado, mas exige mais decisão da cliente.</p><span class="trade">Mais escolha, menos hierarquia</span></div>
+  </article>
+</div>
+
+<p class="question">Clique na prioridade que faz mais sentido para o negócio.</p>

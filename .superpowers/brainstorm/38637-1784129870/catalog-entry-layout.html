@@ -1,0 +1,137 @@
+<style>
+  :root{
+    --ruby:#722F37;
+    --ruby-dark:#5a242b;
+    --cream:#FBF7EF;
+    --baunilha:#F4E5C4;
+    --ink:#2c2326;
+    --muted:#7d7068;
+    --line:#e9e0d2;
+    --gold:#B8945F;
+  }
+  body{background:var(--cream)!important;color:var(--ink)!important}
+  h2{font-family:Georgia,'Times New Roman',serif!important;font-style:italic;font-weight:400!important;color:var(--ink)!important;letter-spacing:-.03em}
+  .subtitle{max-width:760px!important;color:var(--muted)!important}
+  .audit-note{display:flex;align-items:center;gap:12px;margin:18px 0 28px;padding:14px 18px;border:1px solid #e6d2a8;background:rgba(244,229,196,.56);border-radius:12px;color:#55261e;font-size:14px;line-height:1.45}
+  .audit-note b{color:var(--ruby)}
+  .kl-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:start}
+  .kl-option{position:relative;background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px;cursor:pointer;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;min-width:0}
+  .kl-option:hover{transform:translateY(-3px);border-color:#d8c7a8;box-shadow:0 18px 40px rgba(90,36,43,.09)}
+  .kl-option.selected{border:2px solid var(--ruby);padding:11px;box-shadow:0 18px 44px rgba(90,36,43,.15)}
+  .kl-option .letter{position:absolute;z-index:4;top:22px;left:22px;width:32px;height:32px;display:grid;place-items:center;border-radius:50%;background:rgba(251,247,239,.96);border:1px solid rgba(114,47,55,.18);font:600 13px Arial,sans-serif;color:var(--ruby);box-shadow:0 5px 16px rgba(44,35,38,.08)}
+  .recommended{position:absolute;z-index:4;top:22px;right:22px;background:var(--ruby);color:#fff;padding:6px 9px;border-radius:999px;font:600 9px Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+  .phone{overflow:hidden;background:var(--cream);border:1px solid #e4d9c8;border-radius:12px;min-height:510px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.65)}
+  .phone-top{height:45px;display:flex;align-items:center;justify-content:space-between;padding:0 13px;background:rgba(251,247,239,.96);border-bottom:1px solid var(--line)}
+  .mono{font-family:Georgia,serif;font-size:11px;letter-spacing:.24em;color:var(--ruby)}
+  .hamb{font-size:16px;color:var(--ink)}
+  .screen{padding:18px 13px 16px}
+  .eyebrow{font:500 7px Arial,sans-serif;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);text-align:center;margin-bottom:7px}
+  .screen h3{font-family:Georgia,'Times New Roman',serif!important;font-style:italic;font-weight:400!important;font-size:22px!important;line-height:1.05!important;text-align:center;color:var(--ink)!important;margin:0 0 7px!important}
+  .screen-copy{font-family:Georgia,serif;font-size:10px;line-height:1.35;text-align:center;color:var(--muted);margin:0 auto 12px;max-width:220px}
+  .mock-search{height:36px;border-radius:999px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;padding:0 12px;font:10px Arial,sans-serif;color:#8e8278;margin-bottom:10px}
+  .chips{display:flex;gap:6px;overflow:hidden;margin:0 -2px 11px;padding:0 2px}
+  .chip{flex:0 0 auto;padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;font:9px Arial,sans-serif;color:#695d55}
+  .chip.on{background:var(--ruby);border-color:var(--ruby);color:#fff}
+  .result-bar{display:flex;justify-content:space-between;align-items:center;margin:9px 1px 8px;font:8px Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .filter-link{color:var(--ruby);font-weight:700}
+  .products{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .product{background:#fff;border:1px solid var(--line);min-width:0}
+  .product img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;background:#eee7dc}
+  .product-meta{padding:7px 7px 8px;position:relative}
+  .product-name{font-family:Georgia,serif;font-size:10px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:17px}
+  .product-code{margin-top:3px;font:7px Arial,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+  .heart{position:absolute;right:6px;top:5px;color:var(--ruby);font-size:13px}
+  .occasion-grid{display:grid;gap:8px;margin-top:12px}
+  .occasion{position:relative;display:grid;grid-template-columns:84px 1fr;min-height:78px;background:#fff;border:1px solid var(--line);overflow:hidden;text-align:left}
+  .occasion img{width:84px;height:78px;object-fit:cover}
+  .occasion-copy{padding:12px 10px}
+  .occasion-copy b{display:block;font-family:Georgia,serif;font-style:italic;font-size:15px;font-weight:400;color:var(--ink)}
+  .occasion-copy span{display:block;margin-top:4px;font:8px/1.35 Arial,sans-serif;color:var(--muted)}
+  .guide-steps{display:flex;align-items:center;justify-content:center;gap:5px;margin:12px 0;color:var(--ruby);font:8px Arial,sans-serif;text-transform:uppercase;letter-spacing:.05em}
+  .guide-steps i{width:16px;height:1px;background:#d8c8ad}
+  .occasion-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 12px}
+  .occasion-mini{position:relative;aspect-ratio:1/1.15;overflow:hidden;background:#eee7dc}
+  .occasion-mini img{width:100%;height:100%;object-fit:cover}
+  .occasion-mini:after{content:attr(data-label);position:absolute;left:0;right:0;bottom:0;padding:18px 4px 6px;background:linear-gradient(transparent,rgba(30,21,18,.74));color:#fff;text-align:center;font:8px Georgia,serif}
+  .floating-filter{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding:8px 10px;background:var(--ruby);color:#fff;border-radius:999px;font:8px Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase}
+  .option-copy{padding:15px 8px 7px}
+  .option-copy h3{font-family:Georgia,'Times New Roman',serif!important;font-size:19px!important;font-weight:400!important;color:var(--ink)!important;margin:0 0 6px!important}
+  .option-copy p{font-size:13px!important;line-height:1.45!important;color:var(--muted)!important;margin:0!important}
+  .trade{display:inline-block;margin-top:10px;color:var(--ruby);font:600 10px Arial,sans-serif;letter-spacing:.04em;text-transform:uppercase}
+  .question{margin-top:26px;padding-top:18px;border-top:1px solid var(--line);text-align:center;font-family:Georgia,serif;font-size:17px;color:var(--ink)}
+  @media(max-width:1000px){.kl-options{grid-template-columns:1fr}.kl-option{max-width:540px;margin:0 auto;width:100%}.phone{min-height:auto}}
+</style>
+
+<h2>Como o catálogo deve receber a cliente?</h2>
+<p class="subtitle">As três propostas mantêm Ruby, Baunilha, tipografia editorial, fotos e funções existentes. O que muda é a ordem da experiência.</p>
+
+<div class="audit-note"><span>✦</span><span><b>O ponto que encontramos:</b> hoje, no celular, a cliente atravessa quase duas telas de filtros antes de ver o primeiro vestido.</span></div>
+
+<div class="kl-options">
+  <article class="kl-option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="phone">
+      <div class="phone-top"><span class="mono">KOISA LINDA</span><span class="hamb">☰</span></div>
+      <div class="screen">
+        <div class="eyebrow">Catálogo de aluguel</div>
+        <h3>Encontre sua peça</h3>
+        <div class="mock-search">⌕ Buscar por cor ou código</div>
+        <div class="chips"><span class="chip on">Todas</span><span class="chip">Noivas</span><span class="chip">Festa</span><span class="chip">Debutantes</span></div>
+        <div class="result-bar"><span>752 peças</span><span class="filter-link">Filtros · Unidade</span></div>
+        <div class="products">
+          <div class="product"><img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-noiva/NV-001-ia-thumb.jpg" alt=""><div class="product-meta"><span class="heart">♡</span><div class="product-name">Vestido de noiva</div><div class="product-code">NV-001 · Barra</div></div></div>
+          <div class="product"><img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-madrinha/MD-001-ia-thumb.jpg" alt=""><div class="product-meta"><span class="heart">♡</span><div class="product-name">Vestido de festa</div><div class="product-code">MD-001 · Barra</div></div></div>
+          <div class="product"><img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-debutante/DB-001-ia-thumb.jpg" alt=""><div class="product-meta"><span class="heart">♡</span><div class="product-name">Vestido debutante</div><div class="product-code">DB-001 · Barra</div></div></div>
+          <div class="product"><img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-madrinha/MD-002-ia-thumb.jpg" alt=""><div class="product-meta"><span class="heart">♡</span><div class="product-name">Vestido de festa</div><div class="product-code">MD-002 · Barra</div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="option-copy"><h3>Vitrine rápida</h3><p>Busca e produtos aparecem imediatamente. Excelente para quem já sabe o que quer e quer comparar muita peça.</p><span class="trade">Mais rápida, menos guiada</span></div>
+  </article>
+
+  <article class="kl-option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="phone">
+      <div class="phone-top"><span class="mono">KOISA LINDA</span><span class="hamb">☰</span></div>
+      <div class="screen">
+        <div class="eyebrow">Seu momento começa aqui</div>
+        <h3>O que vamos celebrar?</h3>
+        <p class="screen-copy">Escolha o seu momento. Depois mostramos as peças da unidade e do tamanho certos.</p>
+        <div class="guide-steps"><b>1 Momento</b><i></i><span>2 Unidade</span><i></i><span>3 Peças</span></div>
+        <div class="occasion-grid">
+          <div class="occasion"><img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-noiva/NV-002-ia-thumb.jpg" alt=""><div class="occasion-copy"><b>Sou noiva</b><span>Vestidos, prova e atendimento para o grande dia.</span></div></div>
+          <div class="occasion"><img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-debutante/DB-002-ia-thumb.jpg" alt=""><div class="occasion-copy"><b>Vou debutar</b><span>Modelos para viver e guardar esse momento.</span></div></div>
+          <div class="occasion"><img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-madrinha/MD-003-ia-thumb.jpg" alt=""><div class="occasion-copy"><b>Tenho uma festa</b><span>Madrinhas, mães e convidadas.</span></div></div>
+        </div>
+        <div class="floating-filter"><span>Prefiro ver tudo</span><span>→</span></div>
+      </div>
+    </div>
+    <div class="option-copy"><h3>Guia por ocasião</h3><p>A cliente responde poucas escolhas antes de ver a seleção. Acolhe melhor quem ainda está indecisa.</p><span class="trade">Mais consultiva, mais passos</span></div>
+  </article>
+
+  <article class="kl-option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div><div class="recommended">Recomendado</div>
+    <div class="phone">
+      <div class="phone-top"><span class="mono">KOISA LINDA</span><span class="hamb">☰</span></div>
+      <div class="screen">
+        <div class="eyebrow">Catálogo de aluguel</div>
+        <h3>Encontre o vestido do seu momento</h3>
+        <div class="mock-search">⌕ Buscar cor, tamanho ou código</div>
+        <div class="occasion-strip">
+          <div class="occasion-mini" data-label="Noivas"><img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-noiva/NV-003-ia-thumb.jpg" alt=""></div>
+          <div class="occasion-mini" data-label="Debutantes"><img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-debutante/DB-003-ia-thumb.jpg" alt=""></div>
+          <div class="occasion-mini" data-label="Festa"><img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-madrinha/MD-001-ia-thumb.jpg" alt=""></div>
+        </div>
+        <div class="result-bar"><span>Seleção para você</span><span class="filter-link">Filtrar · 752</span></div>
+        <div class="products">
+          <div class="product"><img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-noiva/NV-001-ia-thumb.jpg" alt=""><div class="product-meta"><span class="heart">♡</span><div class="product-name">Vestido de noiva</div><div class="product-code">NV-001 · Barra</div></div></div>
+          <div class="product"><img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-madrinha/MD-002-ia-thumb.jpg" alt=""><div class="product-meta"><span class="heart">♡</span><div class="product-name">Vestido de festa</div><div class="product-code">MD-002 · Barra</div></div></div>
+        </div>
+        <div class="floating-filter"><span>Filtros ativos ficam visíveis</span><span>♡ Salvos</span></div>
+      </div>
+    </div>
+    <div class="option-copy"><h3>Híbrido editorial</h3><p>Une orientação por momento, busca imediata e vitrine compacta. Mantém a emoção sem esconder o produto.</p><span class="trade">Equilíbrio entre marca e função</span></div>
+  </article>
+</div>
+
+<p class="question">Clique na opção que mais combina com o catálogo que você quer construir.</p>

@@ -1,0 +1,89 @@
+<style>
+  :root{--ruby:#722F37;--cream:#FBF7EF;--baunilha:#F4E5C4;--ink:#2c2326;--muted:#7d7068;--line:#e9e0d2;--gold:#B8945F;--dark:#1e1512}
+  body{background:var(--cream)!important;color:var(--ink)!important}
+  h2{font-family:Georgia,'Times New Roman',serif!important;font-style:italic;font-weight:400!important;color:var(--ink)!important;letter-spacing:-.03em}
+  .subtitle{max-width:780px!important;color:var(--muted)!important}
+  .decision-tag{display:inline-flex;align-items:center;gap:8px;margin:12px 0 26px;padding:9px 13px;border-radius:999px;background:rgba(244,229,196,.58);border:1px solid #e6d2a8;color:#55261e;font-size:12px}
+  .decision-tag b{color:var(--ruby)}
+  .behavior-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:start}
+  .behavior{position:relative;background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px;cursor:pointer;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+  .behavior:hover{transform:translateY(-3px);border-color:#d8c7a8;box-shadow:0 18px 40px rgba(90,36,43,.09)}
+  .behavior.selected{border:2px solid var(--ruby);padding:11px;box-shadow:0 18px 44px rgba(90,36,43,.15)}
+  .letter{position:absolute;z-index:8;top:22px;left:22px;width:32px;height:32px;display:grid;place-items:center;border-radius:50%;background:rgba(251,247,239,.96);border:1px solid rgba(114,47,55,.18);font:600 13px Arial,sans-serif;color:var(--ruby)}
+  .recommended{position:absolute;z-index:8;top:22px;right:22px;background:var(--ruby);color:#fff;padding:6px 9px;border-radius:999px;font:600 9px Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+  .phone{position:relative;overflow:hidden;background:var(--cream);border:1px solid #e4d9c8;border-radius:12px;min-height:516px}
+  .phone-top{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 13px;background:rgba(251,247,239,.98);border-bottom:1px solid var(--line)}
+  .brand{font-family:Georgia,serif;font-size:10px;letter-spacing:.2em;color:var(--ruby)}
+  .navmini{font-size:15px;color:var(--ink)}
+  .grid-bg{padding:14px 12px}
+  .search{height:32px;border:1px solid var(--line);border-radius:999px;background:#fff;margin-bottom:9px;display:flex;align-items:center;padding:0 10px;color:#998b80;font:9px Arial,sans-serif}
+  .unit-row{display:flex;gap:5px;margin-bottom:10px}.unit{padding:6px 9px;border:1px solid var(--line);border-radius:999px;background:#fff;color:#6b5f56;font:8px Arial,sans-serif}.unit.on{background:var(--ruby);color:#fff;border-color:var(--ruby)}
+  .mini-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+  .mini-card{background:#fff;border:1px solid var(--line)}
+  .mini-card img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover}
+  .mini-meta{padding:6px;font:7px Arial,sans-serif;color:var(--muted)}.mini-meta b{display:block;font:10px Georgia,serif;color:var(--ink);margin-bottom:2px}
+  .new-page .product-page{padding:14px 13px}
+  .back{font:8px Arial,sans-serif;text-transform:uppercase;color:var(--ruby);letter-spacing:.08em;margin-bottom:10px}
+  .hero-img{width:100%;aspect-ratio:4/5;object-fit:cover;background:#eee7dc}
+  .detail{padding:12px 1px}.detail h3{font:italic 22px Georgia,serif!important;color:var(--ink)!important;margin:0 0 4px!important}.spec{font:8px Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .actions{display:grid;gap:6px;margin-top:11px}.btn{min-height:34px;border-radius:999px;display:flex;align-items:center;justify-content:center;font:8px Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}.btn.primary{background:var(--ruby);color:#fff}.btn.secondary{border:1px solid var(--ruby);color:var(--ruby);background:#fff}
+  .dimmed{filter:saturate(.75);opacity:.38;transform:scale(.985);transform-origin:center top}
+  .sheet{position:absolute;z-index:5;left:7px;right:7px;bottom:7px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:9px;box-shadow:0 -16px 50px rgba(44,35,38,.18)}
+  .grab{width:34px;height:3px;border-radius:4px;background:#d9cfc1;margin:1px auto 9px}
+  .sheet-main{display:grid;grid-template-columns:105px 1fr;gap:11px;align-items:start}
+  .sheet-main img{width:105px;aspect-ratio:3/4;object-fit:cover}
+  .sheet-copy h3{font:italic 19px Georgia,serif!important;color:var(--ink)!important;margin:4px 0 4px!important}.sheet-copy p{font:8px/1.4 Arial,sans-serif;color:var(--muted);margin:0 0 7px}.store{display:inline-block;padding:5px 7px;border-radius:999px;background:var(--baunilha);color:#55261e;font:7px Arial,sans-serif}
+  .sheet-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px}.sheet-actions .wide{grid-column:1/-1}
+  .viewer{background:var(--dark);color:#fff}
+  .viewer .phone-top{position:absolute;z-index:5;left:0;right:0;top:0;background:linear-gradient(rgba(20,14,12,.76),transparent);border:0;color:#fff}.viewer .brand,.viewer .navmini{color:#fff}
+  .viewer-img{display:block;width:100%;height:516px;object-fit:contain;background:#15100e;padding:50px 8px 126px}
+  .viewer-bottom{position:absolute;left:0;right:0;bottom:0;padding:38px 14px 13px;background:linear-gradient(transparent,rgba(20,14,12,.96));text-align:center}.viewer-bottom h3{font:italic 20px Georgia,serif!important;color:#fff!important;margin:0 0 4px!important}.viewer-bottom p{font:8px Arial,sans-serif;color:#d8ccbc;margin:0 0 9px}.viewer-actions{display:flex;gap:5px}.viewer-actions span{flex:1;display:flex;min-height:34px;align-items:center;justify-content:center;border-radius:999px;border:1px solid rgba(255,255,255,.46);font:7px Arial,sans-serif;text-transform:uppercase}.viewer-actions .wa{background:var(--ruby);border-color:var(--ruby)}
+  .swipe{position:absolute;top:48%;left:8px;right:8px;display:flex;justify-content:space-between;font-size:24px;color:rgba(255,255,255,.82)}
+  .copy{padding:15px 8px 7px}.copy h3{font:19px Georgia,serif!important;font-weight:400!important;color:var(--ink)!important;margin:0 0 6px!important}.copy p{font-size:13px!important;line-height:1.45!important;color:var(--muted)!important;margin:0!important}.trade{display:inline-block;margin-top:10px;color:var(--ruby);font:600 10px Arial,sans-serif;letter-spacing:.04em;text-transform:uppercase}
+  .question{margin-top:26px;padding-top:18px;border-top:1px solid var(--line);text-align:center;font-family:Georgia,serif;font-size:17px;color:var(--ink)}
+  @media(max-width:1000px){.behavior-options{grid-template-columns:1fr}.behavior{max-width:540px;margin:0 auto;width:100%}}
+</style>
+
+<h2>Ao tocar em um vestido, o que deve acontecer?</h2>
+<p class="subtitle">A escolha define se a cliente continua comparando peças ou sai da vitrine a cada toque.</p>
+<div class="decision-tag"><span>✓</span><span>Decidido: <b>duas unidades juntas</b>, com filtro de loja visível.</span></div>
+
+<div class="behavior-options">
+  <article class="behavior" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="phone new-page">
+      <div class="phone-top"><span class="brand">KOISA LINDA</span><span class="navmini">☰</span></div>
+      <div class="product-page">
+        <div class="back">← Voltar ao catálogo</div>
+        <img class="hero-img" src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-noiva/NV-001-ia-thumb.jpg" alt="">
+        <div class="detail"><h3>Vestido de noiva</h3><div class="spec">NV-001 · Barra da Tijuca</div><div class="actions"><span class="btn primary">Consultar no WhatsApp</span><span class="btn secondary">Provar em mim</span></div></div>
+      </div>
+    </div>
+    <div class="copy"><h3>Página de detalhe</h3><p>Abre uma nova página completa, como acontece hoje. Dá espaço para informação, mas interrompe a comparação.</p><span class="trade">Mais simples, perde continuidade</span></div>
+  </article>
+
+  <article class="behavior" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div><div class="recommended">Recomendado</div>
+    <div class="phone">
+      <div class="dimmed">
+        <div class="phone-top"><span class="brand">KOISA LINDA</span><span class="navmini">☰</span></div>
+        <div class="grid-bg"><div class="search">⌕ Buscar cor, tamanho ou código</div><div class="unit-row"><span class="unit on">Todas</span><span class="unit">São Francisco</span><span class="unit">Barra</span></div><div class="mini-grid"><div class="mini-card"><img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-noiva/NV-001-ia-thumb.jpg" alt=""><div class="mini-meta"><b>Noiva</b>NV-001</div></div><div class="mini-card"><img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-madrinha/MD-002-ia-thumb.jpg" alt=""><div class="mini-meta"><b>Festa</b>MD-002</div></div></div></div>
+      </div>
+      <div class="sheet"><div class="grab"></div><div class="sheet-main"><img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-noiva/NV-001-ia-thumb.jpg" alt=""><div class="sheet-copy"><h3>Vestido de noiva</h3><p>NV-001 · Tamanho sob consulta</p><span class="store">Barra da Tijuca</span><div class="actions"><span class="btn secondary">♡ Salvar peça</span></div></div></div><div class="sheet-actions"><span class="btn secondary">Provar em mim</span><span class="btn secondary">Ver detalhes</span><span class="btn primary wide">Consultar na Barra pelo WhatsApp</span></div></div>
+    </div>
+    <div class="copy"><h3>Visão rápida</h3><p>Abre a peça sobre o catálogo, preserva filtros e posição. A cliente salva, prova ou chama a unidade sem perder a vitrine.</p><span class="trade">Melhor continuidade e conversão</span></div>
+  </article>
+
+  <article class="behavior" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="phone viewer">
+      <div class="phone-top"><span class="brand">KOISA LINDA</span><span class="navmini">×</span></div>
+      <img class="viewer-img" src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-noiva/NV-001-ia-thumb.jpg" alt="">
+      <div class="swipe"><span>‹</span><span>›</span></div>
+      <div class="viewer-bottom"><h3>Vestido de noiva</h3><p>NV-001 · Barra da Tijuca</p><div class="viewer-actions"><span>♡ Salvar</span><span>Provar</span><span class="wa">WhatsApp</span></div></div>
+    </div>
+    <div class="copy"><h3>Galeria imersiva</h3><p>A foto ocupa tudo e a cliente navega pelas peças com gestos. É emocional, mas esconde parte dos filtros e detalhes.</p><span class="trade">Mais impacto, menos contexto</span></div>
+  </article>
+</div>
+
+<p class="question">Clique no comportamento que você prefere para abrir uma peça.</p>
