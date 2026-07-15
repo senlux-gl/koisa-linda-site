@@ -628,6 +628,36 @@ class CatalogHybridContractTest(unittest.TestCase):
             rule = balanced_css_block(css, selector).replace(" ", "")
             self.assertRegex(rule, r"min-height:(?:44|48)px")
 
+    def test_catalog_card_photo_focus_ring_stays_inside_clipped_media(self):
+        css = page("kl-catalog.css")
+        rule = balanced_css_block(
+            css, ".catalog-card-photo:focus-visible"
+        ).replace(" ", "")
+        self.assertIn("outline-offset:-", rule)
+        overlay = balanced_css_block(
+            css, ".catalog-card-photo:focus-visible::after"
+        ).replace(" ", "")
+        self.assertIn("position:absolute", overlay)
+        self.assertIn("inset:0", overlay)
+        self.assertIn("z-index:2", overlay)
+        self.assertIn("pointer-events:none", overlay)
+        self.assertGreaterEqual(overlay.count("inset"), 2)
+        self.assertIn("#fff", overlay)
+        self.assertIn("var(--ruby)", overlay)
+
+    def test_catalog_seo_titles_do_not_use_long_dashes(self):
+        html = page("catalogo.html")
+        title = re.search(r"<title>(.*?)</title>", html)
+        og_title = re.search(
+            r'<meta\s+property="og:title"\s+content="([^"]+)">', html
+        )
+        self.assertIsNotNone(title)
+        self.assertIsNotNone(og_title)
+        self.assertEqual(title.group(1), "Catálogo - Koisa Linda")
+        self.assertEqual(og_title.group(1), "Catálogo - Koisa Linda")
+        for value in (title.group(1), og_title.group(1)):
+            self.assertNotRegex(value, r"[—–]")
+
 
 if __name__ == "__main__":
     unittest.main()

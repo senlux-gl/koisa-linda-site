@@ -302,14 +302,14 @@
     });
   }
 
-  function renderReady() {
+  function renderReady(options) {
+    var append = Boolean(options && options.append);
     var derived = Core.derive(products, state);
     state = cloneState(derived.state);
     var paging = pageWindow(derived.products.length, state.page, Core.BATCH_SIZE);
     var fragment = root.document.createDocumentFragment();
 
     clearNode(dom.status);
-    clearNode(dom.grid);
     syncShellState();
 
     if (!derived.products.length) {
@@ -323,8 +323,10 @@
       return;
     }
 
-    derived.products.slice(0, paging.visible).forEach(function (product, index) {
-      fragment.appendChild(createCard(product, index));
+    if (!append) clearNode(dom.grid);
+    var start = append ? Math.min(runtime.visibleCount, paging.visible) : 0;
+    derived.products.slice(start, paging.visible).forEach(function (product, index) {
+      fragment.appendChild(createCard(product, start + index));
     });
     dom.grid.appendChild(fragment);
     dom.loadMore.hidden = !paging.hasMore;
@@ -346,7 +348,7 @@
     if (!paging.hasMore) return false;
     state = cloneState(Object.assign({}, state, { page: state.page + 1 }));
     replaceCanonicalUrl();
-    renderReady();
+    renderReady({ append: true });
     return true;
   }
 
