@@ -153,6 +153,9 @@
       if (recentEvents[recentKey] && t - recentEvents[recentKey] < 500) return;
       recentEvents[recentKey] = t;
     } catch (e) {}
+    if (typeof window.klAnalyticsTrack === 'function') {
+      try { window.klAnalyticsTrack(name, params); } catch (e) {}
+    }
     if (typeof window.fbq === 'function') {
       window.fbq('trackCustom', name, params);
       if (window.__KL_TRACKING_DEBUG__) {
@@ -188,10 +191,10 @@
           var p = args[2] || {};
           var code = clean(p.content_name || '', 24);
           var d = getProductByCode(code);
-          original('trackCustom', 'KL_Product_View', baseParams(Object.assign({ source_event: 'ViewContent' }, productParams(d), {
+          track('KL_Product_View', Object.assign({ source_event: 'ViewContent' }, productParams(d), {
             product_code: code || (d && d.k) || '',
             content_category: clean(p.content_category || (d && d.c) || '', 40)
-          })));
+          }));
         }
       } catch (e) {}
       return ret;
