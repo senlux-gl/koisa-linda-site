@@ -11,6 +11,14 @@ const Actions = require('../kl-catalog-actions.js');
 
 const contacts = Object.freeze({ barra: '101', sf: '202' });
 
+function manyProducts(length) {
+  return Array.from({ length }, (_, index) => ({
+    ...fixtures[index % fixtures.length],
+    k: `PECA-${String(index).padStart(3, '0')}`,
+    un: index % 2 ? 'sf' : 'barra',
+  }));
+}
+
 test('favoritos v1 deduplicam em memória e preservam órfãos até limpeza explícita', () => {
   const original = ['NV-001', 'INEXISTENTE', 'DB-010', 'NV-001'];
   const storage = createStorage({
@@ -103,11 +111,7 @@ test('falha de escrita do storage preserva toggle, limpeza de órfãos e clear e
 });
 
 test('lotes respeitam URL codificada, unidade, ordem e numeração 1-based', () => {
-  const many = Array.from({ length: 220 }, (_, index) => ({
-    ...fixtures[index % fixtures.length],
-    k: `PECA-${String(index).padStart(3, '0')}`,
-    un: index % 2 ? 'sf' : 'barra',
-  }));
+  const many = manyProducts(220);
 
   const batches = Actions.buildFavoriteBatches(many, contacts, 1800);
 
@@ -137,6 +141,40 @@ test('lotes respeitam URL codificada, unidade, ordem e numeração 1-based', () 
     assert.deepEqual(unitBatches.map((batch) => batch.index), unitBatches.map((_, index) => index + 1));
     assert.ok(unitBatches.every((batch) => batch.total === unitBatches.length));
   });
+});
+
+test('maxLength acima de 1800 continua impondo o teto absoluto', () => {
+  const batches = Actions.buildFavoriteBatches(manyProducts(220), contacts, 5000);
+
+  assert.ok(batches.length > 2);
+  assert.ok(batches.every((batch) => batch.href.length <= 1800));
+});
+
+test('Infinity e entradas inválidas usam limite seguro de no máximo 1800', () => {
+  [Infinity, Number.NaN, 0, -1, 'invalido', Symbol('invalido')].forEach((maxLength) => {
+    const batches = Actions.buildFavoriteBatches(manyProducts(220), contacts, maxLength);
+
+    assert.ok(batches.length > 2, String(maxLength));
+    assert.ok(batches.every((batch) => batch.href.length <= 1800), String(maxLength));
+  });
+});
+
+test('peça individual acima do teto falha sem retornar lote parcial ou expor o código', () => {
+  const oversizedCode = `PECA-${'X'.repeat(2000)}`;
+  const products = [
+    fixtures[0],
+    { ...fixtures[1], k: oversizedCode },
+  ];
+
+  assert.throws(
+    () => Actions.buildFavoriteBatches(products, contacts, Infinity),
+    (error) => {
+      assert.equal(error instanceof RangeError, true);
+      assert.equal(error.message, 'Uma peça excede o limite seguro do link de WhatsApp.');
+      assert.equal(error.message.includes(oversizedCode), false);
+      return true;
+    },
+  );
 });
 
 test('CTA individual e prova virtual seguem a unidade e o código canônico da peça', () => {

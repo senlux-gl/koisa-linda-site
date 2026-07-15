@@ -15,6 +15,7 @@
     sf: '5521970858787',
   });
   var FAVORITES_KEY = 'kl-favoritos-v1';
+  var MAX_WHATSAPP_HREF_LENGTH = 1800;
   var TRY_ON_CATEGORIES = Object.freeze([
     'vestidos-noiva',
     'vestidos-madrinha',
@@ -168,7 +169,15 @@
 
   function buildFavoriteBatches(products, contacts, maxLength) {
     contacts = contacts || CONTACTS;
-    var limit = Number(maxLength) > 0 ? Number(maxLength) : 1800;
+    var requestedLimit;
+    try {
+      requestedLimit = Number(maxLength);
+    } catch (error) {
+      requestedLimit = Number.NaN;
+    }
+    var limit = Number.isFinite(requestedLimit) && requestedLimit > 0
+      ? Math.min(requestedLimit, MAX_WHATSAPP_HREF_LENGTH)
+      : MAX_WHATSAPP_HREF_LENGTH;
     var sorted = (Array.isArray(products) ? products : []).filter(function (product) {
       var unit = unitOf(product);
       return unit && contacts[unit];
@@ -176,6 +185,14 @@
       return unitOf(left).localeCompare(unitOf(right), 'pt-BR')
         || normalizeCode(left.k).localeCompare(normalizeCode(right.k), 'pt-BR');
     });
+
+    sorted.forEach(function (product) {
+      var singleHref = whatsappHref(unitOf(product) && contacts[unitOf(product)], favoriteMessage([product]));
+      if (singleHref.length > limit) {
+        throw new RangeError('Uma peça excede o limite seguro do link de WhatsApp.');
+      }
+    });
+
     var pending = [];
     var batches = [];
     var currentUnit = null;
