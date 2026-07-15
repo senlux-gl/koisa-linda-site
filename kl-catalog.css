@@ -236,6 +236,104 @@
   gap:8px;
 }
 
+.catalog-facet-group{
+  min-width:0;
+  margin:0;
+  padding:0;
+  border:0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.catalog-facet-group legend{
+  flex:0 0 auto;
+  color:#655951;
+  font:11px var(--sans);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+}
+
+.catalog-facet-options,
+.catalog-active-list{
+  min-width:0;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.catalog-facet{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+
+.catalog-facet-count{
+  min-width:22px;
+  min-height:22px;
+  display:grid;
+  place-items:center;
+  border-radius:999px;
+  background:var(--cream);
+  color:#655951;
+  font-size:10px;
+}
+
+.catalog-facet[aria-pressed="true"] .catalog-facet-count{
+  background:rgba(255,255,255,.18);
+  color:#fff;
+}
+
+.catalog-chip,
+.catalog-clear-filters{
+  min-height:48px;
+  border-radius:999px;
+  cursor:pointer;
+  white-space:nowrap;
+}
+
+.catalog-chip{
+  border-color:#d7bd8d;
+  background:var(--baunilha);
+  color:var(--ruby);
+}
+
+.catalog-clear-filters{
+  border:1px solid transparent;
+  background:transparent;
+  color:var(--ruby);
+  font:12px var(--sans);
+  padding:10px 14px;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+
+.catalog-facet:focus-visible,
+.catalog-chip:focus-visible,
+.catalog-clear-filters:focus-visible{
+  outline:3px solid var(--ruby);
+  outline-offset:3px;
+}
+
+.catalog-facet:disabled,
+.catalog-facet[aria-disabled="true"]{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+.catalog-filter-announcement{
+  position:absolute;
+  width:1px;
+  height:1px;
+  padding:0;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  white-space:nowrap;
+  border:0;
+}
+
 .catalog-facets:not(:empty),
 .catalog-active-filters:not(:empty){
   margin-top:12px;
@@ -798,6 +896,13 @@
     flex-wrap:nowrap;
     overflow-x:auto;
     padding-bottom:4px;
+  }
+  .catalog-facet-group{
+    flex:0 0 auto;
+  }
+  .catalog-facet-options,
+  .catalog-active-list{
+    flex-wrap:nowrap;
   }
   .catalog-results{
     padding:18px 10px 78px;

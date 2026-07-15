@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const fixtures = require('./helpers/catalog-fixtures.cjs');
-const { createFakeCatalogBrowser } = require('./helpers/fake-browser.cjs');
+const { createFakeCatalogBrowser, createStorage } = require('./helpers/fake-browser.cjs');
 const Core = require('../kl-catalog-core.js');
 const Actions = require('../kl-catalog-actions.js');
 const App = require('../kl-catalog-app.js');
@@ -32,8 +32,86 @@ function makeProducts(count, onlyCategory) {
   });
 }
 
-function mountBrowser({ raw, search, core, actions, onStorageAccess }) {
+function enhanceBrowser(browser, { sessionSeed, scrollY } = {}) {
+  const { document, window } = browser;
+  const originalCreateElement = document.createElement.bind(document);
+  document.createElement = function createElement(tagName) {
+    const node = originalCreateElement(tagName);
+    node.focus = function focus(options) {
+      document.activeElement = node;
+      node.focusOptions = options;
+    };
+    return node;
+  };
+  function add(tagName, id) {
+    const node = document.createElement(tagName);
+    node.setAttribute('id', id);
+    browser.nodes.app.appendChild(node);
+    browser.nodes[id.replace(/^catalog-/, '').replace(/-([a-z])/g, (_match, letter) => letter.toUpperCase())] = node;
+    return node;
+  }
+  const title = add('h1', 'catalog-title');
+  const search = add('input', 'catalog-search');
+  const facets = add('div', 'catalog-facets');
+  const activeFilters = add('div', 'catalog-active-filters');
+  Object.assign(browser.nodes, { title, search, facets, activeFilters });
+
+  const listeners = new Map();
+  window.addEventListener = (type, callback, options) => {
+    const records = listeners.get(type) || [];
+    records.push({ callback, once: Boolean(options && options.once) });
+    listeners.set(type, records);
+  };
+  window.dispatchEvent = (event) => {
+    const records = (listeners.get(event.type) || []).slice();
+    records.forEach((record) => {
+      record.callback.call(window, event);
+      if (record.once) listeners.set(event.type, (listeners.get(event.type) || []).filter(item => item !== record));
+    });
+    return true;
+  };
+  window.CustomEvent = function CustomEvent(type, init) {
+    this.type = type;
+    this.detail = init && init.detail;
+  };
+  browser.windowListenerCount = type => (listeners.get(type) || []).length;
+  browser.catalogEvents = [];
+  window.addEventListener('kl:catalog-state', event => browser.catalogEvents.push(event.detail));
+
+  let now = 0;
+  let nextTimer = 1;
+  const timers = new Map();
+  window.setTimeout = (callback, delay) => {
+    const id = nextTimer++;
+    timers.set(id, { callback, due: now + Number(delay || 0) });
+    return id;
+  };
+  window.clearTimeout = id => timers.delete(id);
+  browser.advanceTime = (milliseconds) => {
+    now += milliseconds;
+    let due = Array.from(timers.entries()).filter(([, timer]) => timer.due <= now)
+      .sort((left, right) => left[1].due - right[1].due);
+    while (due.length) {
+      const [id, timer] = due.shift();
+      if (!timers.delete(id)) continue;
+      timer.callback();
+      due = Array.from(timers.entries()).filter(([, item]) => item.due <= now)
+        .sort((left, right) => left[1].due - right[1].due);
+    }
+  };
+
+  const sessionStorage = createStorage(sessionSeed);
+  Object.defineProperty(window, 'sessionStorage', { configurable: true, value: sessionStorage });
+  window.scrollY = Number(scrollY || 0);
+  browser.scrollCalls = [];
+  window.scrollTo = (...args) => browser.scrollCalls.push(args);
+  browser.sessionStorage = sessionStorage;
+  browser.dispatchWindow = type => window.dispatchEvent({ type });
+}
+
+function mountBrowser({ raw, search, core, actions, onStorageAccess, sessionSeed, scrollY }) {
   const browser = createFakeCatalogBrowser({ search, onStorageAccess });
+  enhanceBrowser(browser, { sessionSeed, scrollY });
   browser.window.KLCatalog = { Core: core || Core, Actions: actions || Actions };
   browser.window.KL_DATA = raw;
   vm.runInNewContext(APP_SOURCE, browser.window, { filename: 'kl-catalog-app.js' });
@@ -95,6 +173,42 @@ test('controller emite intenção manual e observer sem possuir contador de pág
   assert.deepEqual(manualRequests, ['manual']);
 });
 
+test('createRequestMore usa somente state externo para observer, manual e fim', () => {
+  let state = { page: 1 };
+  const commits = [];
+  let observerCallback;
+  const requestMore = App.createRequestMore({
+    getState: () => state,
+    getTotal: () => 25,
+    batchSize: 12,
+    commit(next, meta) {
+      state = next;
+      commits.push({ next, meta });
+    },
+  });
+  const controller = App.createPagingController({
+    onRequestMore: requestMore,
+    observerFactory(callback) {
+      observerCallback = callback;
+      return { observe() {}, disconnect() {} };
+    },
+  });
+
+  controller.connect({});
+  observerCallback([{ isIntersecting: true }]);
+  controller.requestManual();
+  observerCallback([{ isIntersecting: true }]);
+
+  assert.equal(state.page, 3);
+  assert.equal(commits.length, 2);
+  assert.deepEqual(commits.map(item => item.meta), [
+    { source: 'observer', replaceHistory: true },
+    { source: 'manual', replaceHistory: true },
+  ]);
+  assert.equal(requestMore.page, undefined);
+  assert.equal(requestMore.snapshot, undefined);
+});
+
 test('erro da miniatura vira placeholder e nunca pede a original', () => {
   assert.deepEqual(App.gridImageFailurePolicy(), {
     showPlaceholder: true,
@@ -106,6 +220,7 @@ test('UMD mantém o subset público obrigatório e agenda init uma única vez', 
   const required = [
     'classifyData',
     'createPagingController',
+    'createRequestMore',
     'getSnapshot',
     'gridImageFailurePolicy',
     'init',
@@ -286,4 +401,149 @@ test('mudança de categoria reconstrói a grade e no-results remove cartões ant
   assert.equal(firstCard.parentNode, null);
   assert.match(browser.nodes.grid.children[0].className, /catalog-state-no-results/);
   assert.equal(browser.historyOperations.at(-1).url, '/catalogo.html?cat=ternos');
+});
+
+test('URL, busca, categorias e unidades compartilham state canônico sem vazar a query em eventos', () => {
+  const products = makeProducts(25);
+  const { browser, app } = mountBrowser({
+    raw: products,
+    search: '?cat=ternos&un=sf&co=invalida&tam=ZZ&pg=2abc&lixo=1',
+  });
+  browser.triggerDOMContentLoaded();
+
+  assert.equal(browser.historyOperations.at(-1).url, '/catalogo.html?cat=ternos&un=sf');
+  assert.equal(browser.nodes.category.value, 'ternos');
+  assert.equal(browser.nodes.search.value, '');
+  assert.equal(browser.nodes.units.children[2].getAttribute('aria-pressed'), 'true');
+
+  browser.nodes.category.value = '';
+  browser.nodes.category.dispatchEvent({ type: 'change' });
+  assert.equal(browser.historyOperations.at(-1).url, '/catalogo.html?un=sf');
+  browser.document.querySelectorAll('[data-shortcut-cat]')[0].click();
+  assert.equal(browser.nodes.category.value, 'vestidos-noiva');
+  assert.match(browser.historyOperations.at(-1).url, /cat=vestidos-noiva/);
+
+  browser.nodes.units.children[0].click();
+  assert.equal(browser.nodes.units.children[0].getAttribute('aria-pressed'), 'true');
+  assert.doesNotMatch(browser.historyOperations.at(-1).url, /un=/);
+  assert.match(browser.nodes.count.textContent, /peça/);
+
+  browser.nodes.search.value = 'Peça 005 privada';
+  browser.nodes.search.dispatchEvent({ type: 'input' });
+  browser.advanceTime(179);
+  assert.doesNotMatch(browser.window.location.search, /q=/);
+  browser.advanceTime(1);
+  assert.match(browser.window.location.search, /q=Pe%C3%A7a\+005\+privada/);
+  assert.equal(app.getSnapshot().page, 1);
+  const detail = browser.catalogEvents.at(-1);
+  assert.deepEqual(Object.keys(detail).sort(), ['openProduct', 'resultCount', 'status', 'unit']);
+  assert.equal(JSON.stringify(browser.catalogEvents).includes('Peça 005 privada'), false);
+});
+
+test('facetas e chips são dinâmicos, combinam OR/AND e limpam refinamentos', () => {
+  const { browser } = mountBrowser({ raw: fixtures });
+  browser.triggerDOMContentLoaded();
+  const facet = (kind, value) => browser.findAll(
+    browser.nodes.facets,
+    node => node.dataset && node.dataset.facet === kind && node.dataset.value === value,
+  )[0];
+  const chip = (kind, value) => browser.findAll(
+    browser.nodes.activeFilters,
+    node => node.dataset && node.dataset.filter === kind && node.dataset.value === value,
+  )[0];
+
+  assert.ok(facet('color', 'off-white'));
+  assert.ok(facet('size', '33'));
+  assert.match(facet('color', 'off-white').textContent, /\d+/);
+  facet('color', 'off-white').click();
+  facet('color', 'vinho').click();
+  assert.deepEqual(
+    browser.nodes.grid.children.map(card => card.dataset.code).sort(),
+    ['DB-010', 'NV-001', 'NV-002'],
+  );
+  chip('color', 'off-white').click();
+  assert.match(browser.window.location.search, /co=vinho/);
+  assert.doesNotMatch(browser.window.location.search, /co=off-white/);
+  facet('size', 'P').click();
+  const expected = Core.derive(fixtures, {
+    query: '', category: null, unit: null, colors: ['vinho'], sizes: ['P'], page: 1, openProduct: null,
+  }).products.map(product => product.k).sort();
+  assert.deepEqual(browser.nodes.grid.children.map(card => card.dataset.code).sort(), expected);
+
+  browser.nodes.category.value = 'ternos';
+  browser.nodes.category.dispatchEvent({ type: 'change' });
+  const announcers = browser.findAll(
+    browser.nodes.activeFilters,
+    node => /catalog-filter-announcement/.test(node.className || ''),
+  );
+  assert.equal(announcers.length, 1);
+  assert.match(announcers[0].textContent, /vinho/i);
+  const announcement = announcers[0].textContent;
+  browser.nodes.category.dispatchEvent({ type: 'change' });
+  assert.equal(announcers[0].textContent, announcement);
+
+  const clear = browser.findAll(
+    browser.nodes.activeFilters,
+    node => node.tagName === 'BUTTON' && node.textContent === 'Limpar refinamentos',
+  )[0];
+  clear.click();
+  assert.equal(browser.window.location.search, '');
+  assert.equal(browser.nodes.category.value, '');
+  assert.equal(browser.nodes.search.value, '');
+  assert.equal(browser.scrollCalls.length, 0);
+});
+
+test('observer, manual e popstate usam page canônica e não emitem carga no fim', () => {
+  const { browser, app } = mountBrowser({ raw: makeProducts(25) });
+  browser.triggerDOMContentLoaded();
+  const firstCard = browser.nodes.grid.children[0];
+  browser.triggerIntersection(true);
+  browser.nodes.loadMore.click();
+  const eventsAtEnd = browser.catalogEvents.length;
+  browser.triggerIntersection(true);
+
+  assert.equal(app.getSnapshot().page, 3);
+  assert.strictEqual(browser.nodes.grid.children[0], firstCard);
+  assert.equal(browser.catalogEvents.length, eventsAtEnd);
+  assert.equal(browser.historyOperations.length, 2);
+
+  browser.window.location.search = '?pg=1';
+  browser.dispatchWindow('popstate');
+  assert.equal(app.getSnapshot().page, 1);
+  assert.equal(browser.nodes.grid.children.length, 12);
+  browser.triggerIntersection(true);
+  assert.equal(app.getSnapshot().page, 2);
+  assert.equal(browser.historyOperations.at(-1).url, '/catalogo.html?pg=2');
+});
+
+test('pagehide e carga sem p restauram lote, scroll e foco sem scrollRestoration', () => {
+  const products = makeProducts(25);
+  const focusCode = Core.interleave(products)[15].k;
+  const first = mountBrowser({
+    raw: products,
+    search: `?pg=2&p=${focusCode}`,
+    scrollY: 640,
+  });
+  first.browser.triggerDOMContentLoaded();
+  const favorite = first.browser.findAll(
+    first.browser.nodes.grid,
+    node => node.dataset && node.dataset.favoriteCode === focusCode,
+  )[0];
+  favorite.focus();
+  first.browser.dispatchWindow('pagehide');
+  const saved = first.browser.sessionStorage.snapshot();
+  const key = Object.keys(saved)[0];
+  assert.doesNotMatch(key, /[?&]p=/);
+  assert.deepEqual(JSON.parse(saved[key]), { y: 640, focusCode });
+  assert.equal(first.browser.window.history.scrollRestoration, undefined);
+
+  const second = mountBrowser({ raw: products, search: '?pg=2', sessionSeed: saved });
+  second.browser.triggerDOMContentLoaded();
+  assert.equal(second.app.getSnapshot().visibleCount, 24);
+  assert.equal(second.browser.scrollCalls.length, 1);
+  assert.equal(second.browser.document.activeElement.dataset.favoriteCode, focusCode);
+  second.app.init();
+  assert.equal(second.browser.windowListenerCount('popstate'), 1);
+  assert.equal(second.browser.windowListenerCount('pagehide'), 1);
+  assert.equal(second.browser.nodes.search.listenerCount('input'), 1);
 });

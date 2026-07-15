@@ -136,6 +136,36 @@ test('mistura da base real alterna unidades desde as primeiras peças', () => {
   assert.ok(unitCounts.sf >= 2, JSON.stringify(unitCounts));
 });
 
+test('base real mantém contrato canônico de volume, categorias, códigos e unidades', () => {
+  const sandbox = runBrowserScript('kl-catalog-data.js', { window: {} });
+  const products = Array.from(sandbox.window.KL_DATA);
+  const report = Core.validateProducts(products);
+  const codes = products.map(product => String(product.k).trim().toUpperCase());
+  const categories = Array.from(new Set(products.map(product => product.c)))
+    .sort((left, right) => Core.CATEGORY_ORDER.indexOf(left) - Core.CATEGORY_ORDER.indexOf(right));
+  const units = products.reduce((counts, product) => {
+    counts[product.un] = (counts[product.un] || 0) + 1;
+    return counts;
+  }, {});
+
+  assert.equal(report.ok, true);
+  assert.equal(products.length, 768);
+  assert.equal(new Set(codes).size, 768);
+  assert.deepEqual(categories, Core.CATEGORY_ORDER);
+  assert.deepEqual(Object.keys(units).sort(), ['barra', 'sf']);
+  assert.deepEqual(units, { barra: 551, sf: 217 });
+});
+
+test('facetas reais preservam os tamanhos numéricos extremos usados no catálogo', () => {
+  const sandbox = runBrowserScript('kl-catalog-data.js', { window: {} });
+  const products = Array.from(sandbox.window.KL_DATA);
+  const view = Core.derive(products, defaultState());
+
+  ['33', '39', '63', '66'].forEach((size) => {
+    assert.ok(view.facets.sizes[size] > 0, `tamanho ${size}`);
+  });
+});
+
 test('deep-link incompatível remove só a peça aberta', () => {
   const requested = Core.readState('?cat=ternos&p=DB-010&q=terno', fixtures);
   const view = Core.derive(fixtures, requested);

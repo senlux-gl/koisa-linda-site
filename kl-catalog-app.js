@@ -35,8 +35,14 @@
   var Actions = null;
   var products = [];
   var state = null;
+  var currentDerived = null;
   var favorites = null;
   var pagingController = null;
+  var requestMoreHandler = null;
+  var searchTimer = null;
+  var filterAnnouncement = null;
+  var activeFilterList = null;
+  var pendingRestore = null;
   var firstGridMarked = false;
   var dom = null;
 
@@ -101,6 +107,33 @@
     };
   }
 
+  function createRequestMore(options) {
+    if (!options || typeof options.commit !== 'function') {
+      throw new TypeError('commit is required');
+    }
+    var readState = typeof options.getState === 'function'
+      ? options.getState
+      : typeof options.current === 'function' ? options.current : function () { return options.state; };
+    var readTotal = typeof options.getTotal === 'function'
+      ? options.getTotal
+      : typeof options.total === 'function' ? options.total : function () { return options.total; };
+    var batchSize = options.batchSize || options.batch || 12;
+
+    return function (source) {
+      var current = readState();
+      if (!current) return false;
+      var paging = pageWindow(readTotal(), current.page, batchSize);
+      if (!paging.hasMore) return false;
+      var next = Object.assign({}, current, {
+        colors: (current.colors || []).slice(),
+        sizes: (current.sizes || []).slice(),
+        page: paging.page + 1,
+      });
+      options.commit(next, { source: source || 'manual', replaceHistory: true });
+      return true;
+    };
+  }
+
   function gridImageFailurePolicy() {
     return { showPlaceholder: true, requestOriginal: false };
   }
@@ -120,17 +153,21 @@
   function collectDom() {
     return {
       app: root.document.getElementById('catalog-app'),
+      activeFilters: root.document.getElementById('catalog-active-filters'),
       category: root.document.getElementById('catalog-category'),
       count: root.document.getElementById('catalog-count'),
+      facets: root.document.getElementById('catalog-facets'),
       favoriteCount: root.document.getElementById('catalog-favorite-count'),
       grid: root.document.getElementById('catalog-grid'),
       loadMore: root.document.getElementById('catalog-load-more'),
       results: root.document.getElementById('catalog-results'),
+      search: root.document.getElementById('catalog-search'),
       sentinel: root.document.getElementById('catalog-sentinel'),
       shortcuts: Array.prototype.slice.call(
         root.document.querySelectorAll('[data-shortcut-cat]'),
       ),
       status: root.document.getElementById('catalog-status'),
+      title: root.document.getElementById('catalog-title'),
       unitButtons: Array.prototype.slice.call(
         root.document.querySelectorAll('#catalog-units [data-unit]'),
       ),
@@ -144,7 +181,7 @@
     });
   }
 
-  function canonicalUrl(nextState) {
+  function urlFor(nextState) {
     var query = Core.serializeState(nextState);
     var pathname = root.location && root.location.pathname || 'catalogo.html';
     var hash = root.location && root.location.hash || '';
@@ -153,7 +190,11 @@
 
   function replaceCanonicalUrl() {
     if (!root.history || typeof root.history.replaceState !== 'function') return;
-    root.history.replaceState(root.history.state || null, '', canonicalUrl(state));
+    root.history.replaceState(root.history.state, '', urlFor(state));
+  }
+
+  function locationQuery() {
+    return String(root.location && root.location.search || '').replace(/^\?/, '');
   }
 
   function setPhase(phase) {
@@ -296,44 +337,182 @@
 
   function syncShellState() {
     if (dom.category) dom.category.value = state.category || '';
+    if (dom.search) dom.search.value = state.query || '';
     dom.unitButtons.forEach(function (button) {
       var selected = (button.dataset.unit || null) === state.unit;
       button.setAttribute('aria-pressed', selected ? 'true' : 'false');
     });
+    dom.shortcuts.forEach(function (shortcut) {
+      shortcut.setAttribute(
+        'aria-pressed',
+        shortcut.dataset.shortcutCat === state.category ? 'true' : 'false',
+      );
+    });
+  }
+
+  function ensureActiveFilterDom() {
+    if (!dom.activeFilters || activeFilterList) return;
+    activeFilterList = element('div', 'catalog-active-list');
+    filterAnnouncement = element('p', 'catalog-filter-announcement');
+    filterAnnouncement.setAttribute('role', 'status');
+    filterAnnouncement.setAttribute('aria-live', 'polite');
+    filterAnnouncement.setAttribute('aria-atomic', 'true');
+    dom.activeFilters.appendChild(activeFilterList);
+    dom.activeFilters.appendChild(filterAnnouncement);
+  }
+
+  function sortedFacetValues(counts) {
+    return Object.keys(counts || {}).filter(function (value) {
+      return counts[value] > 0;
+    }).sort(function (left, right) {
+      var leftNumber = /^\d+$/.test(left);
+      var rightNumber = /^\d+$/.test(right);
+      if (leftNumber && rightNumber) return Number(left) - Number(right);
+      return left.localeCompare(right, 'pt-BR', { numeric: true });
+    });
+  }
+
+  function toggleFacet(kind, value) {
+    var key = kind === 'color' ? 'colors' : 'sizes';
+    var values = (state[key] || []).slice();
+    var index = values.indexOf(value);
+    if (index > -1) values.splice(index, 1);
+    else values.push(value);
+    var patch = {};
+    patch[key] = values;
+    patchFilters(patch);
+  }
+
+  function renderFacetGroup(label, kind, counts, selected) {
+    var values = sortedFacetValues(counts);
+    if (!values.length) return;
+    var fieldset = element('fieldset', 'catalog-facet-group');
+    fieldset.appendChild(element('legend', '', label));
+    var options = element('div', 'catalog-facet-options');
+    values.forEach(function (value) {
+      var button = element('button', 'catalog-facet');
+      button.type = 'button';
+      button.dataset.facet = kind;
+      button.dataset.value = value;
+      button.setAttribute('aria-pressed', selected.indexOf(value) > -1 ? 'true' : 'false');
+      button.appendChild(element('span', 'catalog-facet-value', value));
+      button.appendChild(element('span', 'catalog-facet-count', counts[value]));
+      button.addEventListener('click', function () { toggleFacet(kind, value); });
+      options.appendChild(button);
+    });
+    fieldset.appendChild(options);
+    dom.facets.appendChild(fieldset);
+  }
+
+  function renderFacets() {
+    if (!dom.facets) return;
+    clearNode(dom.facets);
+    renderFacetGroup('Cor', 'color', currentDerived.facets.colors, state.colors);
+    renderFacetGroup('Tamanho', 'size', currentDerived.facets.sizes, state.sizes);
+  }
+
+  function removeFilter(kind, value) {
+    if (kind === 'query') return patchFilters({ query: '' });
+    if (kind === 'category') return patchFilters({ category: null });
+    if (kind === 'unit') return patchFilters({ unit: null });
+    if (kind === 'color') return patchFilters({
+      colors: state.colors.filter(function (item) { return item !== value; }),
+    });
+    if (kind === 'size') return patchFilters({
+      sizes: state.sizes.filter(function (item) { return item !== value; }),
+    });
+    return false;
+  }
+
+  function appendChip(kind, value, label) {
+    var button = element('button', 'catalog-chip', label);
+    button.type = 'button';
+    button.dataset.filter = kind;
+    button.dataset.value = value || '';
+    button.addEventListener('click', function () { removeFilter(kind, value); });
+    activeFilterList.appendChild(button);
+  }
+
+  function renderActiveFilters() {
+    ensureActiveFilterDom();
+    if (!activeFilterList) return;
+    clearNode(activeFilterList);
+    if (state.query) appendChip('query', state.query, 'Busca: ' + state.query);
+    if (state.category) appendChip('category', state.category, 'Categoria: ' + state.category);
+    if (state.unit) appendChip('unit', state.unit, 'Unidade: ' + (state.unit === 'sf' ? 'São Francisco' : 'Barra'));
+    state.colors.forEach(function (value) { appendChip('color', value, 'Cor: ' + value); });
+    state.sizes.forEach(function (value) { appendChip('size', value, 'Tamanho: ' + value); });
+    if (state.query || state.category || state.unit || state.colors.length || state.sizes.length) {
+      var clear = element('button', 'catalog-clear-filters', 'Limpar refinamentos');
+      clear.type = 'button';
+      clear.addEventListener('click', function () {
+        patchFilters({ query: '', category: null, unit: null, colors: [], sizes: [] });
+      });
+      activeFilterList.appendChild(clear);
+    }
+  }
+
+  function announceRemoved(requested, reconciled) {
+    ensureActiveFilterDom();
+    if (!filterAnnouncement) return;
+    var removed = requested.colors.filter(function (value) {
+      return reconciled.colors.indexOf(value) < 0;
+    }).concat(requested.sizes.filter(function (value) {
+      return reconciled.sizes.indexOf(value) < 0;
+    }));
+    if (!removed.length) return;
+    var message = 'Refinamentos incompatíveis removidos: ' + removed.join(', ') + '.';
+    if (filterAnnouncement.textContent !== message) filterAnnouncement.textContent = message;
+  }
+
+  function dispatchCatalogState() {
+    if (!currentDerived || typeof root.dispatchEvent !== 'function'
+        || typeof root.CustomEvent !== 'function') return;
+    root.dispatchEvent(new root.CustomEvent('kl:catalog-state', {
+      detail: {
+        status: 'success',
+        unit: state.unit,
+        openProduct: state.openProduct,
+        resultCount: currentDerived.products.length,
+      },
+    }));
   }
 
   function renderReady(options) {
     var append = Boolean(options && options.append);
-    var derived = Core.derive(products, state);
-    state = cloneState(derived.state);
-    var paging = pageWindow(derived.products.length, state.page, Core.BATCH_SIZE);
+    var paging = pageWindow(currentDerived.products.length, state.page, Core.BATCH_SIZE);
     var fragment = root.document.createDocumentFragment();
 
     clearNode(dom.status);
     syncShellState();
+    renderFacets();
+    renderActiveFilters();
 
-    if (!derived.products.length) {
+    if (!currentDerived.products.length) {
       renderState(
         'no-results',
         'Nenhuma peça com estes refinamentos.',
         'Escolha outra categoria ou remova um filtro para continuar.',
         false,
       );
+      dom.count.textContent = '0 peças';
       runtime.page = paging.page;
       return;
     }
 
     if (!append) clearNode(dom.grid);
     var start = append ? Math.min(runtime.visibleCount, paging.visible) : 0;
-    derived.products.slice(start, paging.visible).forEach(function (product, index) {
+    currentDerived.products.slice(start, paging.visible).forEach(function (product, index) {
       fragment.appendChild(createCard(product, start + index));
     });
     dom.grid.appendChild(fragment);
     dom.loadMore.hidden = !paging.hasMore;
-    dom.count.textContent = paging.visible + ' de ' + derived.products.length + ' peças';
+    dom.count.textContent = paging.visible < currentDerived.products.length
+      ? paging.visible + ' visíveis de ' + currentDerived.products.length + ' peças'
+      : currentDerived.products.length + (currentDerived.products.length === 1 ? ' peça' : ' peças');
     setPhase('ready');
     runtime.productCount = products.length;
-    runtime.resultCount = derived.products.length;
+    runtime.resultCount = currentDerived.products.length;
     runtime.visibleCount = paging.visible;
     runtime.hasMore = paging.hasMore;
     runtime.page = paging.page;
@@ -341,29 +520,45 @@
     markFirstGrid();
   }
 
-  function requestMore(source) {
-    if (runtime.phase !== 'ready') return false;
+  function renderDerived(options) {
     var derived = Core.derive(products, state);
-    var paging = pageWindow(derived.products.length, state.page, Core.BATCH_SIZE);
-    if (!paging.hasMore) return false;
-    state = cloneState(Object.assign({}, state, { page: state.page + 1 }));
-    replaceCanonicalUrl();
-    renderReady({ append: true });
+    state = cloneState(derived.state);
+    currentDerived = derived;
+    if (Core.serializeState(state) !== locationQuery()) replaceCanonicalUrl();
+    renderReady(options);
+    dispatchCatalogState();
+    restorePendingPosition();
+  }
+
+  function commit(nextState, meta) {
+    state = cloneState(nextState);
+    if (!meta || meta.replaceHistory !== false) replaceCanonicalUrl();
+    renderDerived({ append: Boolean(meta && (meta.source === 'observer' || meta.source === 'manual')) });
+  }
+
+  function patchFilters(patch) {
+    var requested = cloneState(Object.assign({}, state, patch || {}, {
+      page: 1,
+      openProduct: null,
+    }));
+    var reconciled = cloneState(Core.derive(products, requested).state);
+    commit(reconciled, { source: 'filter', replaceHistory: true });
+    announceRemoved(requested, reconciled);
+    return true;
+  }
+
+  function requestMore(source) {
+    if (!requestMoreHandler) return false;
+    if (!requestMoreHandler(source)) return false;
     return true;
   }
 
   function setCategory(category) {
     var canonical = Core.CATEGORY_ORDER.indexOf(category) > -1 ? category : null;
-    state = cloneState(Object.assign({}, state, {
-      category: canonical,
-      page: 1,
-      openProduct: null,
-    }));
-    replaceCanonicalUrl();
-    renderReady();
+    return patchFilters({ category: canonical });
   }
 
-  function connectCategoryControls() {
+  function connectFilterControls() {
     if (dom.category) {
       dom.category.addEventListener('change', function () {
         setCategory(dom.category.value);
@@ -374,9 +569,36 @@
         setCategory(shortcut.dataset.shortcutCat || '');
       });
     });
+    dom.unitButtons.forEach(function (button) {
+      button.addEventListener('click', function () {
+        var unit = button.dataset.unit;
+        patchFilters({ unit: Core.UNIT_IDS.indexOf(unit) > -1 ? unit : null });
+      });
+    });
+    if (dom.search) {
+      dom.search.addEventListener('input', function () {
+        if (searchTimer != null && typeof root.clearTimeout === 'function') {
+          root.clearTimeout(searchTimer);
+        }
+        if (typeof root.setTimeout !== 'function') {
+          patchFilters({ query: dom.search.value });
+          return;
+        }
+        searchTimer = root.setTimeout(function () {
+          searchTimer = null;
+          patchFilters({ query: dom.search.value });
+        }, 180);
+      });
+    }
   }
 
   function setupPaging() {
+    requestMoreHandler = createRequestMore({
+      getState: function () { return state; },
+      getTotal: function () { return currentDerived ? currentDerived.products.length : 0; },
+      batchSize: Core.BATCH_SIZE,
+      commit: commit,
+    });
     var options = { onRequestMore: requestMore };
     if (typeof root.IntersectionObserver === 'function') {
       options.observerFactory = function (callback) {
@@ -388,6 +610,127 @@
       pagingController.requestManual();
     });
     runtime.pagingMode = pagingController.connect(dom.sentinel);
+  }
+
+  function sessionStorageSafe() {
+    try {
+      return root.sessionStorage || null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function restoreKey(sourceState) {
+    var keyState = cloneState(sourceState);
+    keyState.openProduct = null;
+    var query = Core.serializeState(keyState);
+    var pathname = root.location && root.location.pathname || 'catalogo.html';
+    return 'kl:catalog-position:' + pathname + (query ? '?' + query : '');
+  }
+
+  function activeFocusCode() {
+    var active = root.document && root.document.activeElement;
+    while (active) {
+      if (active.dataset && active.dataset.favoriteCode) return String(active.dataset.favoriteCode).trim().toUpperCase();
+      if (active.dataset && active.dataset.code) return String(active.dataset.code).trim().toUpperCase();
+      active = active.parentNode;
+    }
+    return '';
+  }
+
+  function savePosition() {
+    var storage = sessionStorageSafe();
+    if (!storage || !state) return;
+    var y = Number(root.scrollY);
+    if (!Number.isFinite(y)) y = 0;
+    try {
+      storage.setItem(restoreKey(state), JSON.stringify({
+        y: y,
+        focusCode: activeFocusCode(),
+      }));
+    } catch (error) {
+      return;
+    }
+  }
+
+  function readPendingRestore() {
+    if (state.openProduct) return;
+    var storage = sessionStorageSafe();
+    if (!storage) return;
+    var key = restoreKey(state);
+    try {
+      var value = storage.getItem(key);
+      if (!value) return;
+      var parsed = JSON.parse(value);
+      if (!parsed || !Number.isFinite(Number(parsed.y))) return;
+      pendingRestore = {
+        key: key,
+        storage: storage,
+        y: Number(parsed.y),
+        focusCode: String(parsed.focusCode || '').trim().toUpperCase(),
+      };
+    } catch (error) {
+      pendingRestore = null;
+    }
+  }
+
+  function allDescendants(node, output) {
+    output = output || [];
+    Array.prototype.forEach.call(node && node.children || [], function (child) {
+      output.push(child);
+      allDescendants(child, output);
+    });
+    return output;
+  }
+
+  function controlForCode(code) {
+    var descendants = allDescendants(dom.grid, []);
+    var favorite = descendants.find(function (node) {
+      return node.dataset && String(node.dataset.favoriteCode || '').trim().toUpperCase() === code;
+    });
+    if (favorite) return favorite;
+    var card = descendants.find(function (node) {
+      return node.dataset && String(node.dataset.code || '').trim().toUpperCase() === code;
+    });
+    if (!card) return null;
+    return allDescendants(card, []).find(function (node) {
+      return node.tagName === 'A' || node.tagName === 'BUTTON';
+    }) || null;
+  }
+
+  function focusCatalogTitle() {
+    if (!dom.title || typeof dom.title.focus !== 'function') return;
+    dom.title.setAttribute('tabindex', '-1');
+    dom.title.addEventListener('blur', function () {
+      dom.title.removeAttribute('tabindex');
+    }, { once: true });
+    dom.title.focus({ preventScroll: true });
+  }
+
+  function restorePendingPosition() {
+    if (!pendingRestore || runtime.phase !== 'ready') return;
+    var restore = pendingRestore;
+    pendingRestore = null;
+    try { restore.storage.removeItem(restore.key); } catch (error) { /* noop */ }
+    if (typeof root.scrollTo === 'function') root.scrollTo(0, restore.y);
+    var control = restore.focusCode ? controlForCode(restore.focusCode) : null;
+    if (control && typeof control.focus === 'function') control.focus({ preventScroll: true });
+    else focusCatalogTitle();
+  }
+
+  function connectNavigationLifecycle() {
+    if (typeof root.addEventListener !== 'function') return;
+    root.addEventListener('popstate', function () {
+      if (searchTimer != null && typeof root.clearTimeout === 'function') root.clearTimeout(searchTimer);
+      searchTimer = null;
+      state = cloneState(Core.readState(root.location && root.location.search || '', products));
+      renderDerived({ fromPopState: true });
+    });
+    root.addEventListener('pagehide', function () {
+      if (searchTimer != null && typeof root.clearTimeout === 'function') root.clearTimeout(searchTimer);
+      searchTimer = null;
+      savePosition();
+    });
   }
 
   function init() {
@@ -443,9 +786,12 @@
       return getSnapshot();
     }
 
-    connectCategoryControls();
+    ensureActiveFilterDom();
+    connectFilterControls();
     setupPaging();
-    renderReady();
+    connectNavigationLifecycle();
+    readPendingRestore();
+    renderDerived();
     return getSnapshot();
   }
 
@@ -467,6 +813,7 @@
     classifyData: classifyData,
     pageWindow: pageWindow,
     createPagingController: createPagingController,
+    createRequestMore: createRequestMore,
     gridImageFailurePolicy: gridImageFailurePolicy,
     init: init,
     getSnapshot: getSnapshot,
