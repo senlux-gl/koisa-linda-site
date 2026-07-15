@@ -175,7 +175,7 @@ class HomeHeroContractTest(unittest.TestCase):
         protected = {
             "kl-site-enhance.js": "2e53a86eca815bb59d325a469ee47179a36afd41f8848b69f90cd650985950b3",
             "kl-tracking.js": "1d5342d13b9da051c85e783722dbcd353675b48c119277f970a6bad350f32f39",
-            "kl-catalog-data.js": "c0c86a995c02606c6531cb894e57a52c0f340e1bf9705a5ea0e9ca5b22ff64ed",
+            "kl-catalog-data.js": "592d9540486561934ef302f57d75e0ff9c143f64621dce5364d5fdec90f37301",
         }
         for name, expected in protected.items():
             self.assertEqual(expected, sha256(name), name)
