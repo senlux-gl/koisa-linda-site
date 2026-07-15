@@ -1,5 +1,6 @@
 from pathlib import Path
 import hashlib
+import json
 import re
 import unittest
 
@@ -16,6 +17,19 @@ def sha256(name: str) -> str:
 
 def digest(value: str) -> str:
     return hashlib.sha256(value.encode()).hexdigest()
+
+
+def catalog_products() -> list[dict]:
+    source = page("kl-catalog-data.js")
+    payload = re.split(r"window\.KL_DATA\s*=\s*", source, maxsplit=1)[1].strip().removesuffix(";")
+    return json.loads(payload)
+
+
+SHARED_SCRIPT_PAGES = (
+    "index.html", "sobre.html", "catalogo.html", "como-chegar.html",
+    "servicos.html", "unidades.html", "noivas.html", "debutantes.html",
+    "madrinhas.html", "ternos.html", "peca.html", "provar.html",
+)
 
 
 def balanced_css_block(css: str, marker: str) -> str:
@@ -168,13 +182,11 @@ class HomeHeroContractTest(unittest.TestCase):
             'href="catalogo.html"',
             'href="unidades.html"',
             'href="https://wa.me/',
-            'src="kl-tracking.js?v=20260710deep3"',
-            'src="kl-site-enhance.js?v=20260713r3"',
+            'src="kl-tracking.js?v=20260715catalog1"',
+            'src="kl-site-enhance.js?v=20260715catalog1"',
         ):
             self.assertIn(required, html)
         protected = {
-            "kl-site-enhance.js": "2e53a86eca815bb59d325a469ee47179a36afd41f8848b69f90cd650985950b3",
-            "kl-tracking.js": "1d5342d13b9da051c85e783722dbcd353675b48c119277f970a6bad350f32f39",
             "kl-catalog-data.js": "592d9540486561934ef302f57d75e0ff9c143f64621dce5364d5fdec90f37301",
         }
         for name, expected in protected.items():
@@ -344,8 +356,8 @@ class AboutBrandContractTest(unittest.TestCase):
     def test_about_keeps_tracking_and_enhancement_scripts(self):
         html = page("sobre.html")
         for required in (
-            'src="kl-tracking.js?v=20260710deep3"',
-            'src="kl-site-enhance.js?v=20260713r3"',
+            'src="kl-tracking.js?v=20260715catalog1"',
+            'src="kl-site-enhance.js?v=20260715catalog1"',
         ):
             self.assertIn(required, html)
 
@@ -483,8 +495,8 @@ class VisiblePagesContractTest(unittest.TestCase):
             with self.subTest(page=name):
                 html = page(name)
                 all_html.append(html)
-                self.assertIn('src="kl-tracking.js?v=20260710deep3"', html)
-                self.assertIn('src="kl-site-enhance.js?v=20260713r3"', html)
+                self.assertIn('src="kl-tracking.js?v=20260715catalog1"', html)
+                self.assertIn('src="kl-site-enhance.js?v=20260715catalog1"', html)
                 self.assertEqual(1, len(re.findall(r"<h1\b", html, re.IGNORECASE)))
 
         numbers = set(re.findall(r"wa\.me/(55\d+)", "\n".join(all_html)))
@@ -492,6 +504,84 @@ class VisiblePagesContractTest(unittest.TestCase):
             {
                 "a2613c0f61c3dcf35b472a5f1d5b03904ccbbc5b78acfbc3f578b15701a74f79",
                 "dcc97840afbc12fcab7911d36037a59fadcd8f6c714b86a2c8c8b3a960d2ba99",
+            },
+            {digest(number) for number in numbers},
+        )
+
+
+class CatalogIntegrationContractTest(unittest.TestCase):
+    def test_tracking_uses_real_catalog_source_and_explicit_api(self):
+        js = page("kl-tracking.js")
+        self.assertIn("window.KL_DATA", js)
+        self.assertNotIn("window.DATA", js)
+        self.assertNotIn("window.filtered", js)
+        self.assertIn("window.KLTracking", js)
+        self.assertIn("catalog:", js)
+        self.assertNotIn("query_text", js)
+        self.assertNotIn("query_value", js)
+
+    def test_shared_cta_has_no_catalog_or_detail_store_fallback(self):
+        js = page("kl-site-enhance.js")
+        self.assertIn("kl:catalog-state", js)
+        self.assertIn("unidades.html", js)
+        self.assertIn("resolveStickyCta", js)
+        self.assertNotRegex(js, r"k==='catalogo'\|\|k==='peca'\?'\d+")
+
+    def test_detail_uses_shared_modules_and_exact_try_on_allowlist(self):
+        html = page("peca.html")
+        self.assertIn('src="kl-catalog-core.js?v=20260715catalog1"', html)
+        self.assertIn('src="kl-catalog-actions.js?v=20260715catalog1"', html)
+        self.assertIn("Core.validateProducts", html)
+        self.assertIn("Actions.productWhatsAppHref", html)
+        self.assertIn("Actions.tryOnHref", html)
+        self.assertNotIn("d.c.indexOf('vestidos')===0", html)
+        self.assertIn("Core.thumbUrl", html)
+        self.assertEqual(1, html.count("fbq('track','ViewContent'"))
+
+    def test_every_shared_page_uses_new_cache_versions(self):
+        for name in SHARED_SCRIPT_PAGES:
+            with self.subTest(page=name):
+                html = page(name)
+                self.assertIn('src="kl-tracking.js?v=20260715catalog1"', html)
+                self.assertIn('src="kl-site-enhance.js?v=20260715catalog1"', html)
+                self.assertNotIn("20260710deep3", html)
+                self.assertNotIn("20260713r3", html)
+
+    def test_campaign_whatsapps_match_the_audited_units(self):
+        expected = {
+            "noivas.html": "dcc97840afbc12fcab7911d36037a59fadcd8f6c714b86a2c8c8b3a960d2ba99",
+            "debutantes.html": "dcc97840afbc12fcab7911d36037a59fadcd8f6c714b86a2c8c8b3a960d2ba99",
+            "madrinhas.html": "a2613c0f61c3dcf35b472a5f1d5b03904ccbbc5b78acfbc3f578b15701a74f79",
+            "ternos.html": "dcc97840afbc12fcab7911d36037a59fadcd8f6c714b86a2c8c8b3a960d2ba99",
+        }
+        for name, expected_digest in expected.items():
+            with self.subTest(page=name):
+                numbers = re.findall(r"wa\.me/(55\d+)", page(name))
+                self.assertGreaterEqual(len(numbers), 2)
+                self.assertEqual({expected_digest}, {digest(number) for number in numbers})
+
+    def test_debutantes_and_ternos_remain_entirely_in_barra(self):
+        products = catalog_products()
+        expected_counts = {"vestidos-debutante": 72, "ternos": 7}
+        for category, expected_count in expected_counts.items():
+            with self.subTest(category=category):
+                category_products = [item for item in products if item["c"] == category]
+                self.assertEqual(expected_count, len(category_products))
+                self.assertEqual({"barra"}, {item["un"] for item in category_products})
+
+    def test_try_on_whatsapp_requires_a_valid_selected_unit(self):
+        html = page("provar.html")
+        match = re.search(r"function waLink\(\)\{(.*?)\n\}", html, re.DOTALL)
+        self.assertIsNotNone(match)
+        function = match.group(1)
+        self.assertIn("picked && UNITS[picked.un]", function)
+        self.assertIn("return 'unidades.html'", function)
+        self.assertNotIn(": UNITS.barra", function)
+        numbers = re.findall(r"wa:'(55\d+)'", html)
+        self.assertEqual(
+            {
+                "dcc97840afbc12fcab7911d36037a59fadcd8f6c714b86a2c8c8b3a960d2ba99",
+                "a2613c0f61c3dcf35b472a5f1d5b03904ccbbc5b78acfbc3f578b15701a74f79",
             },
             {digest(number) for number in numbers},
         )
@@ -505,7 +595,7 @@ class CatalogHybridContractTest(unittest.TestCase):
             "kl-catalog-core.js?v=20260715catalog1",
             "kl-catalog-actions.js?v=20260715catalog1",
             "kl-catalog-gallery.js?v=20260715catalog1",
-            "kl-tracking.js?v=20260710deep3",
+            "kl-tracking.js?v=20260715catalog1",
             "kl-catalog-app.js?v=20260715catalog1",
         )
         positions = [html.index(asset) for asset in assets]
