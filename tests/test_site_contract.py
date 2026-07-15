@@ -174,7 +174,7 @@ class HomeHeroContractTest(unittest.TestCase):
             self.assertIn(required, html)
         protected = {
             "kl-site-enhance.js": "2e53a86eca815bb59d325a469ee47179a36afd41f8848b69f90cd650985950b3",
-            "kl-tracking.js": "1d5342d13b9da051c85e783722dbcd353675b48c119277f970a6bad350f32f39",
+            "kl-tracking.js": "81cf92f0ec1235fc105c84a3bafae86cdbbbbc06d0fdd8a792b38d02b45329b6",
             "kl-catalog-data.js": "c0c86a995c02606c6531cb894e57a52c0f340e1bf9705a5ea0e9ca5b22ff64ed",
         }
         for name, expected in protected.items():
@@ -358,6 +358,38 @@ VISIBLE_PAGES = (
     "servicos.html",
     "unidades.html",
 )
+
+ANALYTICS_PAGES = tuple(sorted(path.name for path in ROOT.glob("*.html")))
+
+
+class AnalyticsContractTest(unittest.TestCase):
+    def test_every_public_page_loads_ga4_before_behavior_tracking(self):
+        self.assertEqual(12, len(ANALYTICS_PAGES))
+        for name in ANALYTICS_PAGES:
+            with self.subTest(page=name):
+                html = page(name)
+                config = 'src="kl-analytics-config.js?v=20260714"'
+                ga4 = 'src="kl-ga4.js?v=20260714"'
+                behavior = 'src="kl-tracking.js?v=20260710deep3"'
+                self.assertIn(config, html)
+                self.assertIn(ga4, html)
+                self.assertIn(behavior, html)
+                self.assertLess(html.index(config), html.index(ga4))
+                self.assertLess(html.index(ga4), html.index(behavior))
+
+    def test_ga4_config_is_single_source_and_disabled_until_real_id_exists(self):
+        config = page("kl-analytics-config.js")
+        self.assertIn('window.KL_GA4_MEASUREMENT_ID = ""', config)
+        self.assertNotRegex(config, r"G-[A-Z0-9]{8,}")
+
+    def test_virtual_try_on_has_active_meta_pixel_fallback(self):
+        html = page("provar.html")
+        self.assertIn("fbq('init','1720591949105146')", html)
+        self.assertIn("fbq('track','PageView')", html)
+        self.assertRegex(
+            html,
+            r"<noscript><img[^>]+tr\?id=1720591949105146&ev=PageView&noscript=1",
+        )
 
 RETIRED_PHRASES = (
     "beleza consciente",
