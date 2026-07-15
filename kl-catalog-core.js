@@ -221,8 +221,8 @@
 
   function buildSearchTelemetry(term, products, resultCount, state) {
     var raw = String(term || '');
-    var normalized = normalizeCode(raw);
-    var product = products.find(function (item) { return normalized === normalizeCode(item.k); });
+    var normalized = fold(raw);
+    var product = products.find(function (item) { return normalized === fold(item.k); });
     return {
       query_length: raw.length,
       query_has_product_code: product ? 'yes' : 'no',

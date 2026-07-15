@@ -207,6 +207,18 @@ test('telemetria reconhece somente busca que é exatamente o código', () => {
   assert.equal(telemetry.product_code, 'NV-001');
 });
 
+test('telemetria dobra diacríticos no código exato sem incluir a query bruta', () => {
+  const term = '  ñv-001  ';
+  const telemetry = Core.buildSearchTelemetry(term, fixtures, 1, defaultState());
+  const json = JSON.stringify(telemetry);
+
+  assert.equal(telemetry.query_length, term.length);
+  assert.equal(telemetry.query_has_product_code, 'yes');
+  assert.equal(telemetry.product_code, 'NV-001');
+  assert.equal(json.includes(term), false);
+  assert.equal(json.includes('ñv-001'), false);
+});
+
 test('validateProducts aceita fixtures válidas', () => {
   assert.deepEqual(Core.validateProducts(fixtures), {
     ok: true,
