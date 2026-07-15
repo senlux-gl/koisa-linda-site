@@ -85,12 +85,15 @@ Ordem da página:
 2. introdução editorial compacta com título e apoio;
 3. busca em posição de destaque;
 4. atalhos visuais para **Noivas**, **Debutantes** e **Festa**;
-5. barra de refinamento com unidade sempre visível;
-6. filtros ativos removíveis e contador de resultados;
-7. grade de produtos;
-8. carregamento incremental com contingência manual.
+5. seletor de categoria com **Todas** e todas as categorias canônicas existentes;
+6. barra de refinamento com unidade sempre visível;
+7. filtros ativos removíveis e contador de resultados;
+8. grade de produtos;
+9. carregamento incremental com contingência manual.
 
 No desktop, a introdução e a busca podem compartilhar a largura de forma editorial. No mobile, texto, busca e atalhos se empilham sem ultrapassar aproximadamente uma primeira tela antes do começo da grade. O valor exato será validado visualmente em 320 e 375 px.
+
+Os três atalhos são entradas editoriais para os universos de maior destaque, não a lista completa do acervo. O seletor de categoria também oferece **Ternos**, **Bolsas**, **Calçados** e **Acessórios**, além de qualquer outra categoria canônica que já exista na base. Atalho e seletor escrevem o mesmo estado `category` e o mesmo parâmetro `cat`.
 
 ### 6.2 Duas unidades por padrão
 
@@ -122,7 +125,7 @@ A função de ordenação ficará isolada e coberta por teste, para que uma futu
 ### 7.1 Descoberta
 
 1. A cliente entra no catálogo e vê a busca logo no início.
-2. Pode tocar em Noivas, Debutantes ou Festa, ou continuar em **Todas**.
+2. Pode tocar em Noivas, Debutantes ou Festa, continuar em **Todas** ou abrir o seletor com todas as categorias do acervo.
 3. Vê peças das duas unidades misturadas.
 4. Pode filtrar por unidade, cor e tamanho sem combinações mortas.
 5. Cada filtro ativo aparece como elemento removível.
@@ -136,7 +139,7 @@ A função de ordenação ficará isolada e coberta por teste, para que uma futu
 3. A URL passa a identificar a peça aberta, sem recarregar a página.
 4. A cliente pode navegar por foto, salvar a peça, avançar ou voltar para peças vizinhas e ler os dados essenciais.
 5. O botão principal abre uma conversa com a unidade correta e identifica a peça.
-6. **Provar em mim** aparece como ação secundária quando a peça é compatível com o fluxo atual.
+6. **Provar em mim** aparece como ação secundária somente para `vestidos-noiva`, `vestidos-madrinha` e `vestidos-debutante`, mantendo a rota `provar.html?p=<código>`; nas demais categorias, o CTA não é renderizado.
 7. Ao fechar, usar Voltar do navegador ou tecla Escape, a URL e o foco retornam ao estado anterior.
 
 ### 7.3 Retorno exato
@@ -154,6 +157,8 @@ O catálogo deve restaurar:
 
 Abrir a galeria não desmontará a grade. Ao fechar, a cliente deve enxergar a mesma peça no mesmo ponto, sem salto perceptível.
 
+Na chegada por deep-link, filtros e lotes são resolvidos antes da peça. `p` só é válido quando o código existe no conjunto filtrado. Se necessário, `pg` aumenta até materializar o cartão correspondente. Se o código existir na base, mas não no conjunto filtrado, ou não existir, remove-se apenas `p` e preservam-se os demais parâmetros. Ao fechar uma entrada direta, o foco vai para o cartão materializado; se isso não for possível, vai para o título do catálogo ou para a busca.
+
 ## 8. Busca, filtros e URL
 
 ### 8.1 Busca
@@ -169,18 +174,26 @@ Campos futuros só entram após existirem de forma confiável na base. A busca t
 
 ### 8.2 Refinamentos dependentes
 
+As facetas seguem uma regra única:
+
+- **OR dentro da mesma faceta:** vermelho ou vinho; P ou M;
+- **AND entre facetas:** categoria e unidade e busca e uma das cores e um dos tamanhos.
+
 As opções de cor e tamanho serão calculadas sobre o universo já reduzido por:
 
 - categoria;
 - unidade;
 - busca;
-- demais refinamentos compatíveis.
+- a outra faceta.
+
+Para calcular opções e contagens de cor, aplicam-se todos os critérios, exceto a seleção atual de cor. Para tamanho, aplicam-se todos os critérios, exceto a seleção atual de tamanho. Isso permite ampliar uma seleção dentro da mesma faceta sem oferecer combinações impossíveis.
 
 Uma opção não deve aparecer habilitada se inevitavelmente produzir zero resultado. Ao mudar unidade ou categoria:
 
 - seleções ainda válidas permanecem;
 - seleções incompatíveis são removidas de forma previsível;
-- a interface informa a mudança pela atualização dos filtros ativos e do contador;
+- opções não selecionadas com contagem zero ficam ocultas ou indisponíveis;
+- a remoção automática de uma seleção incompatível é anunciada via `aria-live`, além de atualizar filtros ativos e contador;
 - tamanhos alfabéticos, numéricos e `Único` podem aparecer conforme existirem no conjunto.
 
 ### 8.3 Modelo de estado
@@ -214,8 +227,12 @@ Compatibilidade:
 - normalizar aliases conhecidos para valores canônicos;
 - ignorar valores inválidos em vez de produzir uma seleção visual enganosa;
 - não escrever parâmetros vazios;
-- usar `history.replaceState` durante refinamentos frequentes e `pushState` para mudanças de contexto que devam responder ao botão Voltar, especialmente abrir/fechar galeria;
-- responder ao evento `popstate` sem recarregar a página;
+- busca, filtros e `pg` usam `history.replaceState`, evitando poluir o histórico a cada refinamento;
+- abrir uma galeria a partir da grade usa `history.pushState` uma única vez;
+- trocar para a peça anterior ou seguinte dentro da galeria usa `history.replaceState` sobre essa entrada;
+- fechar pelo botão ou pela tecla Escape usa `history.back()` somente quando a entrada atual foi criada por aquela abertura da galeria;
+- quando a página começou por um deep-link com `p`, fechar remove apenas `p` por `history.replaceState`, sem sair do catálogo;
+- `popstate` apenas reconcilia estado, grade, galeria, rolagem e foco; ele nunca escreve uma nova entrada no histórico;
 - manter URLs legíveis e com ordem estável de parâmetros.
 
 `sessionStorage` pode guardar posição e foco como apoio temporário. A URL continua sendo a fonte compartilhável dos filtros, não o armazenamento do navegador.
@@ -231,17 +248,20 @@ Compatibilidade:
 - controles com alvo mínimo adequado ao toque;
 - nenhuma tarja extensa sobre rosto ou área principal da roupa;
 - rótulos sobre foto, quando indispensáveis, restritos a bordas seguras e com contraste controlado;
-- cartões navegáveis por teclado e foco visível.
+- cartões navegáveis por teclado e foco visível;
+- foto e título permanecem dentro de uma âncora real para `peca.html?codigo=<código>`;
+- o JavaScript só intercepta clique primário sem modificadores depois que a galeria estiver inicializada com sucesso;
+- sem galeria pronta, com Ctrl/Cmd/Shift, clique do meio ou abertura em nova aba, a rota de detalhe funciona normalmente.
 
 ### 9.2 Carregamento
 
 - primeiro lote pequeno o suficiente para resposta rápida;
-- miniaturas e `loading="lazy"` preservados;
+- a grade carrega exclusivamente miniaturas e preserva `loading="lazy"`;
 - dimensões ou proporção reservadas antes de a imagem carregar;
 - `IntersectionObserver` antecipa o lote seguinte;
 - botão **Carregar mais** continua funcional mesmo sem observer;
 - o botão desaparece somente quando todos os resultados elegíveis forem exibidos;
-- falha de imagem tenta o fallback existente e, se ele também falhar, exibe um placeholder coerente com link/ação ainda utilizável.
+- falha da miniatura exibe um placeholder coerente com link/ação ainda utilizável, sem baixar a imagem original como fallback da grade e sem repetir tentativas em loop.
 
 ## 10. Galeria imersiva
 
@@ -256,7 +276,7 @@ Controles:
 - salvar/remover dos favoritos;
 - indicador da peça;
 - WhatsApp da unidade correta como CTA principal;
-- **Provar em mim** como CTA secundária;
+- **Provar em mim** como CTA secundária somente nas três categorias elegíveis definidas na jornada;
 - dados essenciais: código, categoria, cor, tamanho e unidade, quando existirem.
 
 Interações:
@@ -266,12 +286,23 @@ Interações:
 - Escape fecha;
 - Enter/Espaço ativam controles focados;
 - foco fica preso dentro do diálogo enquanto aberto;
-- ao fechar, foco volta ao cartão que abriu a galeria;
-- navegação anterior/próxima atualiza `p` na URL sem perder os filtros;
-- uma URL com `p` válido abre diretamente a galeria depois que os dados estiverem prontos;
-- um `p` inválido é removido de forma segura e o catálogo permanece utilizável.
+- ao fechar uma abertura iniciada na grade, foco volta ao cartão que abriu a galeria;
+- navegação anterior/próxima usa `replaceState` para atualizar `p` sem perder os filtros nem criar uma entrada por peça;
+- uma URL com `p` pertencente ao conjunto filtrado abre diretamente a galeria depois que dados, filtros e lote correspondente estiverem prontos;
+- um `p` inválido ou incompatível com os filtros é removido de forma segura, preservando os demais parâmetros;
+- as regras de `pushState`, `replaceState`, `history.back()` e `popstate` da seção 8.3 são a máquina de estados canônica da galeria.
 
-### 10.2 Composição face-safe
+### 10.2 Política de imagens
+
+- a miniatura/placeholder aparece imediatamente ao abrir;
+- somente a imagem original da peça ativa é solicitada com prioridade;
+- depois do carregamento da peça ativa, pode-se pré-carregar no máximo uma vizinha de cada lado;
+- nenhuma outra imagem original do conjunto filtrado é baixada de forma oculta;
+- ao trocar rapidamente de peça, uma resposta atrasada nunca pode sobrescrever a peça atualmente selecionada;
+- falha da original mantém a miniatura ou o placeholder e encerra a tentativa sem loop;
+- o QA automatizado deve verificar a quantidade de requisições de imagens originais.
+
+### 10.3 Composição face-safe
 
 A fotografia terá uma área central limpa. Informações e ações serão distribuídas em zonas periféricas:
 
@@ -285,9 +316,9 @@ A fotografia terá uma área central limpa. Informações e ações serão distr
 
 O desenho usará Ruby, Baunilha e dourado com as famílias Playfair/Arapey/Questrial já adotadas. As transições usarão somente `transform` e `opacity`. Em `prefers-reduced-motion: reduce`, entrada, saída e troca de peça serão imediatas.
 
-### 10.3 Compatibilidade com detalhe existente
+### 10.4 Compatibilidade com detalhe existente
 
-`peca.html?codigo=...` continuará válido. A galeria passa a ser a abertura padrão dentro do catálogo; a página de detalhe permanece como rota compatível e fallback compartilhável durante esta fase. Não será removida até que métricas, acessibilidade e compatibilidade sejam validadas.
+`peca.html?codigo=...` continuará válido. A galeria passa a ser a abertura padrão para clique primário depois de inicializada, mas cada cartão preserva a âncora real de detalhe. A página de detalhe continua sendo fallback para falha de inicialização, navegação sem interceptação, clique modificado, abertura em nova aba e compartilhamento direto. Não será removida até que métricas, acessibilidade e compatibilidade sejam validadas.
 
 ## 11. Atendimento e conversão
 
@@ -295,7 +326,13 @@ O desenho usará Ruby, Baunilha e dourado com as famílias Playfair/Arapey/Quest
 
 O CTA principal da galeria usa a unidade da peça. A mensagem informa o código e solicita confirmação de disponibilidade, sem afirmar que a peça está disponível naquele instante.
 
-O CTA flutuante compartilhado deverá respeitar o contexto da peça ou seleção atual. Rotas que não possuam uma unidade inequívoca não podem escolher uma loja arbitrariamente.
+Matriz canônica do CTA compartilhado:
+
+- peça ou galeria aberta: unidade da peça;
+- catálogo filtrado por uma unidade: unidade selecionada;
+- catálogo em **Todas**: não escolher unidade arbitrariamente; abrir um seletor simples de unidade ou encaminhar para `unidades.html`;
+- erro de dados: encaminhar para `unidades.html`, sem presumir a loja;
+- qualquer outra rota sem unidade inequívoca: preservar o comportamento público atual somente se ele já for semanticamente correto; caso contrário, usar `unidades.html`.
 
 ### 11.2 Favoritos
 
@@ -306,9 +343,9 @@ Regras:
 - mostrar contagem atualizada;
 - permitir remover itens individualmente;
 - agrupar visualmente por Barra da Tijuca e São Francisco;
-- criar uma ação de atendimento por unidade, nunca enviar itens das duas lojas para um único destino;
-- dividir mensagens longas em lotes seguros ou orientar a cliente a enviar por grupo;
-- nunca expor uma URL de WhatsApp excessivamente longa;
+- criar um botão de atendimento por unidade, nunca enviar itens das duas lojas para um único destino;
+- construir cada URL já codificada com teto de 1.800 caracteres, incluindo base, parâmetros e mensagem;
+- quando um grupo ultrapassar o teto, dividi-lo em lotes acionados individualmente pela cliente, numerados e sempre destinados à mesma unidade;
 - identificar códigos que deixaram de existir na base e permitir limpá-los sem quebrar a tela;
 - manter o aviso de confirmação de disponibilidade.
 
@@ -325,7 +362,7 @@ Regras:
 
 - mensagem específica de indisponibilidade temporária;
 - botão **Tentar novamente**;
-- alternativa para falar com a loja sem atribuir uma unidade incorreta;
+- alternativa por `unidades.html` para escolher a loja, sem atribuir uma unidade incorreta;
 - evento técnico de falha, sem incluir dados pessoais;
 - uma falha não pode apagar favoritos locais.
 
@@ -463,7 +500,7 @@ Critérios mínimos:
 - usar delegação de eventos na grade;
 - manter navegação funcional se `IntersectionObserver` não existir;
 - manter catálogo e rota de detalhe utilizáveis mesmo que a animação falhe;
-- não carregar fotos em resolução máxima para todos os cartões;
+- não carregar fotos em resolução máxima para cartões; na galeria, limitar a original à peça ativa e a no máximo uma vizinha de cada lado;
 - medir tamanho transferido, tempo até primeira grade e responsividade antes/depois durante QA.
 
 ## 17. Tracking e privacidade
@@ -471,7 +508,7 @@ Critérios mínimos:
 Eventos funcionais propostos:
 
 - catálogo carregado ou falhou;
-- busca aplicada, com termo somente se a política atual permitir e sem informação pessoal;
+- busca aplicada sem enviar o termo bruto;
 - categoria/unidade/cor/tamanho selecionados;
 - lote adicional exibido;
 - peça aberta na galeria;
@@ -483,6 +520,16 @@ Eventos funcionais propostos:
 - estado vazio.
 
 O reparo consiste em passar dados reais por uma interface explícita ao tracking existente. Não inclui alterar campanhas, Pixel, consentimento, endpoints ou identificadores de produção.
+
+O evento de busca pode enviar somente:
+
+- comprimento do termo;
+- se houve correspondência exata com um código existente;
+- o código apenas quando validado contra a base;
+- quantidade de resultados;
+- filtros estruturados ativos.
+
+Nenhum payload do catálogo pode incluir texto livre da busca, telefone, e-mail ou outro dado pessoal. Um teste automatizado inspecionará o payload antes do envio.
 
 ## 18. Estratégia de testes
 
@@ -504,20 +551,24 @@ Cobrir pelo menos:
 2. unidade selecionada atualiza visual, resultados e opções de refinamento;
 3. parâmetro inválido é sanitizado sem tela vazia enganosa;
 4. busca encontra por código, categoria, cor e tamanho;
-5. tamanhos numéricos aparecem quando aplicáveis;
-6. cor/tamanho incompatíveis não ficam habilitados;
-7. URL reproduz o estado do catálogo;
-8. `popstate` restaura filtros e galeria;
-9. abrir/fechar galeria preserva rolagem e foco;
-10. deep-link de peça abre a galeria correta;
-11. teclado e foco da galeria funcionam;
-12. favoritos ficam agrupados e roteados por unidade;
-13. mensagens longas são limitadas/divididas;
-14. `IntersectionObserver` ausente ainda permite carregar tudo;
-15. erro de dados, vazio e erro de imagem geram estados distintos;
-16. eventos recebem metadados reais da peça;
-17. prova virtual mantém a rota existente;
-18. `prefers-reduced-motion` remove movimentos não essenciais.
+5. seletor e deep-link alcançam todas as categorias canônicas, incluindo as quatro sem atalho editorial;
+6. filtros usam OR dentro da faceta e AND entre facetas;
+7. tamanhos numéricos aparecem quando aplicáveis;
+8. cor/tamanho incompatíveis não ficam habilitados;
+9. URL reproduz o estado do catálogo;
+10. abertura usa `pushState`, troca de peça usa `replaceState` e `popstate` não escreve histórico;
+11. deep-link válido materializa lote/galeria e `p` incompatível é removido sem perder filtros;
+12. abrir/fechar galeria preserva rolagem e restaura o foco definido para cada origem;
+13. teclado e foco da galeria funcionam;
+14. links reais para `peca.html` funcionam sem interceptação, com clique modificado e em falha de inicialização;
+15. somente a original ativa e no máximo duas vizinhas são requisitadas; respostas atrasadas não trocam a peça atual;
+16. favoritos ficam agrupados e roteados por unidade;
+17. URLs de WhatsApp respeitam 1.800 caracteres e lotes são separados por unidade;
+18. `IntersectionObserver` ausente ainda permite carregar tudo;
+19. erro de dados, vazio e erro de imagem geram estados distintos;
+20. eventos recebem metadados reais da peça e nunca o texto livre da busca, telefone ou e-mail;
+21. prova virtual aparece para uma categoria elegível, fica oculta para uma inelegível e mantém `provar.html?p=<código>`;
+22. `prefers-reduced-motion` remove movimentos não essenciais.
 
 Os testes devem usar ferramentas compatíveis com o repositório atual e evitar introduzir um framework pesado apenas para testá-lo. A escolha exata será feita no plano de implementação com base no menor custo confiável.
 
@@ -551,19 +602,23 @@ Em cada largura verificar:
 A fase 1 estará pronta para aprovação visual quando:
 
 - a cliente vir peças de ambas as unidades em **Todas**;
+- todas as categorias canônicas continuarem acessíveis pelo seletor e por deep-link, mesmo sem atalho editorial;
 - a entrada editorial não empurrar excessivamente a grade no mobile;
 - busca e filtros produzirem combinações válidas e refletirem a URL;
+- filtros aplicarem OR dentro da mesma faceta e AND entre facetas;
 - cores e tamanhos respeitarem unidade, categoria e busca;
 - tamanhos numéricos existentes puderem ser filtrados;
 - a galeria abrir sem desmontar o catálogo;
-- fechar/Voltar devolverem posição, filtros e foco;
+- histórico, fechar, Escape e Voltar seguirem a máquina de estados definida, devolvendo posição, filtros e foco;
+- a rota real de detalhe continuar funcionando sem interceptação ou quando a galeria falhar;
+- a grade usar somente miniaturas e a galeria limitar as imagens originais à ativa e a uma vizinha de cada lado;
 - texto e controles não cobrirem rosto ou área principal do vestido;
 - WhatsApp individual usar a unidade da peça;
 - favoritos forem agrupados e enviados por unidade;
-- **Provar em mim** permanecer funcional como CTA secundária;
+- **Provar em mim** permanecer funcional somente nas três categorias elegíveis e oculto nas demais;
 - loading, erro, vazio e falha de imagem forem diferentes;
 - carregamento manual funcionar sem observer;
-- tracking receber dados reais sem mudança de Pixel;
+- tracking receber dados reais sem mudança de Pixel e sem enviar texto livre da busca ou dado pessoal;
 - testes automatizados passarem;
 - QA nas cinco larguras não revelar bloqueio funcional ou regressão de identidade;
 - o Guilherme aprovar visualmente o resultado local.
