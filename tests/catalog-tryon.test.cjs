@@ -129,6 +129,688 @@ function workerClient(options) {
   });
 }
 
+class FakeEventTarget {
+  constructor() {
+    this.listeners = new Map();
+  }
+
+  addEventListener(type, listener) {
+    const listeners = this.listeners.get(String(type)) || [];
+    listeners.push(listener);
+    this.listeners.set(String(type), listeners);
+  }
+
+  removeEventListener(type, listener) {
+    const key = String(type);
+    const listeners = this.listeners.get(key) || [];
+    this.listeners.set(key, listeners.filter(candidate => candidate !== listener));
+  }
+
+  dispatchEvent(input) {
+    const event = typeof input === 'string' ? { type: input } : input;
+    if (!event || !event.type) throw new TypeError('event.type is required');
+    if (!event.target) event.target = this;
+    if (!event.preventDefault) {
+      event.preventDefault = () => { event.defaultPrevented = true; };
+    }
+    event.currentTarget = this;
+    (this.listeners.get(String(event.type)) || []).slice().forEach((listener) => {
+      listener.call(this, event);
+    });
+    return !event.defaultPrevented;
+  }
+
+  listenerCount(type) {
+    return (this.listeners.get(String(type)) || []).length;
+  }
+}
+
+function dataName(attribute) {
+  return attribute.slice(5).replace(/-([a-z])/g, (_match, letter) => letter.toUpperCase());
+}
+
+function classNames(element) {
+  return String(element.className || '').split(/\s+/).filter(Boolean);
+}
+
+class FakeElement extends FakeEventTarget {
+  constructor(tagName, ownerDocument) {
+    super();
+    this.tagName = String(tagName).toUpperCase();
+    this.ownerDocument = ownerDocument;
+    this.childNodes = [];
+    this.attributes = new Map();
+    this.dataset = {};
+    this.className = '';
+    this.hidden = false;
+    this.disabled = false;
+    this.value = '';
+    this.files = [];
+    this.open = false;
+    this.src = '';
+    this.href = '';
+    this.type = '';
+    this._textContent = '';
+    this.showModalCalls = 0;
+    this.closeCalls = 0;
+    this.focusCalls = 0;
+    this.classList = {
+      add: (...tokens) => {
+        const next = new Set(classNames(this));
+        tokens.forEach(token => next.add(String(token)));
+        this.className = Array.from(next).join(' ');
+      },
+      contains: token => classNames(this).includes(String(token)),
+    };
+  }
+
+  get children() {
+    return this.childNodes.slice();
+  }
+
+  get textContent() {
+    return this._textContent + this.childNodes.map(child => child.textContent || '').join('');
+  }
+
+  set textContent(value) {
+    this.childNodes = [];
+    this._textContent = String(value == null ? '' : value);
+  }
+
+  appendChild(child) {
+    this.childNodes.push(child);
+    return child;
+  }
+
+  replaceChildren(...children) {
+    this.childNodes = [];
+    children.forEach(child => this.appendChild(child));
+  }
+
+  setAttribute(name, value) {
+    const key = String(name);
+    const stringValue = String(value);
+    this.attributes.set(key, stringValue);
+    if (key === 'class') this.className = stringValue;
+    if (key === 'src') this.src = stringValue;
+    if (key === 'href') this.href = stringValue;
+    if (key === 'type') this.type = stringValue;
+    if (key.startsWith('data-')) this.dataset[dataName(key)] = stringValue;
+  }
+
+  getAttribute(name) {
+    const key = String(name);
+    return this.attributes.has(key) ? this.attributes.get(key) : null;
+  }
+
+  removeAttribute(name) {
+    const key = String(name);
+    this.attributes.delete(key);
+    if (key === 'src') this.src = '';
+    if (key === 'href') this.href = '';
+    if (key.startsWith('data-')) delete this.dataset[dataName(key)];
+  }
+
+  focus() {
+    this.focusCalls += 1;
+    this.ownerDocument.activeElement = this;
+  }
+
+  showModal() {
+    this.showModalCalls += 1;
+    this.open = true;
+  }
+
+  close() {
+    this.closeCalls += 1;
+    this.open = false;
+  }
+
+  click() {
+    return this.dispatchEvent({ type: 'click' });
+  }
+}
+
+class FakeDocument {
+  constructor() {
+    this.activeElement = null;
+  }
+
+  createElement(tagName) {
+    return new FakeElement(tagName, this);
+  }
+
+}
+
+function createStorageFake(initialValue) {
+  const values = new Map();
+  if (initialValue != null) values.set('kl_manequim', initialValue);
+  const calls = [];
+  return {
+    calls,
+    getItem(key) {
+      calls.push(['get', key]);
+      return values.has(key) ? values.get(key) : null;
+    },
+    setItem(key, value) {
+      calls.push(['set', key, String(value)]);
+      values.set(key, String(value));
+    },
+    removeItem(key) {
+      calls.push(['remove', key]);
+      values.delete(key);
+    },
+  };
+}
+
+const ELEMENT_IDS = Object.freeze({
+  title: 'tryon-title',
+  closeButton: 'tryon-close',
+  sizes: 'tryon-sizes',
+  unknownSize: 'tryon-unknown-size',
+  clearSize: 'tryon-clear-size',
+  categories: 'tryon-categories',
+  search: 'tryon-search',
+  dresses: 'tryon-dresses',
+  noResults: 'tryon-no-results',
+  more: 'tryon-more',
+  clearSelection: 'tryon-clear-selection',
+  file: 'tryon-file',
+  preview: 'tryon-preview',
+  previewImage: 'tryon-preview-image',
+  submit: 'tryon-submit',
+  form: 'tryon-form',
+  loading: 'tryon-loading',
+  result: 'tryon-result',
+  resultImage: 'tryon-result-image',
+  remaining: 'tryon-remaining',
+  again: 'tryon-again',
+  error: 'tryon-error',
+  errorMessage: 'tryon-error-message',
+  errorAgain: 'tryon-error-again',
+  whatsapp: 'tryon-whatsapp',
+  errorWhatsapp: 'tryon-error-whatsapp',
+});
+
+function createControllerHarness(overrides) {
+  const document = new FakeDocument();
+  const dialog = document.createElement('dialog');
+  dialog.setAttribute('id', 'catalog-tryon');
+  const elements = {};
+  Object.entries(ELEMENT_IDS).forEach(([key, id]) => {
+    let tagName = 'div';
+    if (/Button|more|clearSelection|submit|again|errorAgain|unknownSize|clearSize/.test(key)) tagName = 'button';
+    if (key === 'search' || key === 'file') tagName = 'input';
+    if (key === 'previewImage' || key === 'resultImage') tagName = 'img';
+    if (key === 'form') tagName = 'form';
+    if (key === 'whatsapp' || key === 'errorWhatsapp') tagName = 'a';
+    const element = document.createElement(tagName);
+    element.setAttribute('id', id);
+    dialog.appendChild(element);
+    elements[key] = element;
+  });
+
+  elements.sizeButtons = ['PP', 'P', 'M', 'G', 'GG'].map((size) => {
+    const button = document.createElement('button');
+    button.setAttribute('data-size', size);
+    button.setAttribute('aria-pressed', 'false');
+    elements.sizes.appendChild(button);
+    return button;
+  });
+  elements.categoryButtons = [
+    'all',
+    'vestidos-noiva',
+    'vestidos-madrinha',
+    'vestidos-debutante',
+  ].map((category) => {
+    const button = document.createElement('button');
+    button.setAttribute('data-category', category);
+    button.setAttribute('aria-pressed', category === 'all' ? 'true' : 'false');
+    elements.categories.appendChild(button);
+    return button;
+  });
+
+  const selections = [];
+  const closeRequests = [];
+  const storage = createStorageFake(overrides && overrides.mannequin);
+  const objectURL = {
+    created: [],
+    revoked: [],
+    create(file) {
+      this.created.push(file);
+      return `blob:preview-${this.created.length}`;
+    },
+    revoke(url) { this.revoked.push(url); },
+  };
+  const readFiles = [];
+  const readFile = async (file) => {
+    readFiles.push(file);
+    return 'data:image/jpeg;base64,PRIVATE_PHOTO_BYTES';
+  };
+  const workerCalls = [];
+  const workerClientFake = {
+    async run(input) {
+      workerCalls.push(input);
+      return { kind: 'success', image: 'https://img.test/generated.jpg?raw=SECRET', remaining: 2 };
+    },
+  };
+  const aborts = createAbortHarness();
+  const core = {
+    thumbUrl(product) { return `thumb:${product.k}`; },
+  };
+  const actions = {
+    CONTACTS: { barra: 'BARRA-CONTACT', sf: 'SF-CONTACT' },
+    isTryOnEligible: isEligible,
+    unitOf(product) { return product && product.un; },
+    whatsappHref(contact, message) { return `wa:${contact}:${message}`; },
+  };
+  const baseOptions = {
+    dialog,
+    elements,
+    document,
+    products: fixtures,
+    core,
+    actions,
+    storage,
+    objectURL,
+    readFile,
+    AbortController: aborts.AbortController,
+    workerClient: workerClientFake,
+    onSelectionChange(code) { selections.push(code); },
+    onRequestClose() { closeRequests.push(true); },
+  };
+  const options = Object.assign(baseOptions, overrides || {});
+  delete options.mannequin;
+  const controller = TryOn.create(options);
+  return {
+    aborts,
+    actions,
+    closeRequests,
+    controller,
+    core,
+    dialog,
+    document,
+    elements,
+    objectURL,
+    options,
+    readFiles,
+    selections,
+    storage,
+    workerCalls,
+    workerClient: workerClientFake,
+  };
+}
+
+function dressCards(harness) {
+  return harness.elements.dresses.children;
+}
+
+function cardFor(harness, code) {
+  return dressCards(harness).find(card => card.dataset.code === code);
+}
+
+function choosePhoto(harness, file) {
+  harness.elements.file.files = file ? [file] : [];
+  harness.elements.file.value = file ? 'C:\\fakepath\\private-photo.jpg' : '';
+  harness.elements.file.dispatchEvent({ type: 'change' });
+}
+
+async function submitTryOn(harness) {
+  harness.elements.form.dispatchEvent({ type: 'submit' });
+  await flushMicrotasks();
+}
+
+test('controller abre com seleção exclusiva, formulário limpo e foco no título', () => {
+  const harness = createControllerHarness();
+
+  assert.equal(harness.controller.isReady(), true);
+  assert.equal(typeof harness.controller.getSnapshot, 'function');
+  assert.equal(harness.controller.open(' nv-001 '), true);
+  assert.equal(harness.dialog.open, true);
+  assert.equal(harness.dialog.showModalCalls, 1);
+  assert.equal(harness.document.activeElement, harness.elements.title);
+  assert.equal(harness.elements.search.value, '');
+  assert.equal(harness.elements.form.hidden, false);
+  assert.equal(harness.elements.loading.hidden, true);
+  assert.equal(harness.elements.result.hidden, true);
+  assert.equal(harness.elements.error.hidden, true);
+  assert.deepEqual(harness.selections, []);
+  assert.equal(cardFor(harness, 'NV-001').getAttribute('aria-pressed'), 'true');
+  assert.equal(
+    dressCards(harness).filter(card => card.getAttribute('aria-pressed') === 'true').length,
+    1,
+  );
+});
+
+test('controller valida dependências e o mapa completo de elementos com mensagens claras', () => {
+  [undefined, null, [], 'options'].forEach((options) => {
+    assert.throws(() => TryOn.create(options), /options must be an object/);
+  });
+  const harness = createControllerHarness();
+  assert.throws(
+    () => TryOn.create({ ...harness.options, dialog: null }),
+    /requires a dialog element/,
+  );
+  assert.throws(
+    () => TryOn.create({ ...harness.options, products: null }),
+    /requires a products array/,
+  );
+  assert.throws(
+    () => TryOn.create({ ...harness.options, core: {} }),
+    /requires core\.thumbUrl/,
+  );
+  assert.throws(
+    () => TryOn.create({ ...harness.options, actions: {} }),
+    /requires actions\.isTryOnEligible/,
+  );
+  const incomplete = { ...harness.elements };
+  delete incomplete.resultImage;
+  assert.throws(
+    () => TryOn.create({ ...harness.options, elements: incomplete }),
+    /tryon-result-image/,
+  );
+  harness.controller.destroy();
+});
+
+test('seleção, limpeza e update sincronizam uma vez sem apagar filtros internos', () => {
+  const harness = createControllerHarness();
+  harness.controller.open('NV-001');
+  harness.elements.search.value = 'off-white';
+  harness.elements.search.dispatchEvent({ type: 'input' });
+  harness.elements.categoryButtons[1].click();
+  harness.elements.sizeButtons[2].click();
+
+  const nextCard = cardFor(harness, 'NV-002');
+  assert.ok(nextCard);
+  nextCard.click();
+  assert.deepEqual(harness.selections, ['NV-002']);
+  assert.equal(harness.controller.getSnapshot().selectedCode, 'NV-002');
+  const selectedCard = cardFor(harness, 'NV-002');
+  assert.equal(selectedCard.getAttribute('role'), 'listitem');
+  assert.equal(selectedCard.getAttribute('type'), 'button');
+  assert.equal(selectedCard.getAttribute('aria-pressed'), 'true');
+  assert.equal(selectedCard.children[0].tagName, 'IMG');
+  assert.equal(selectedCard.children[1].className, 'tryon-dress-copy');
+  assert.match(selectedCard.children[1].textContent, /NV-002/);
+
+  harness.elements.clearSelection.click();
+  assert.deepEqual(harness.selections, ['NV-002', null]);
+  assert.equal(harness.controller.getSnapshot().selectedCode, null);
+  assert.equal(harness.elements.search.value, 'off-white');
+  assert.equal(harness.elements.categoryButtons[1].getAttribute('aria-pressed'), 'true');
+  assert.equal(harness.elements.sizeButtons[2].getAttribute('aria-pressed'), 'true');
+
+  harness.controller.update('MD-020');
+  assert.equal(harness.controller.getSnapshot().selectedCode, 'MD-020');
+  assert.equal(harness.elements.search.value, 'off-white');
+  assert.equal(harness.elements.categoryButtons[1].getAttribute('aria-pressed'), 'true');
+  assert.deepEqual(harness.selections, ['NV-002', null]);
+
+  harness.controller.open(null);
+  assert.equal(harness.controller.getSnapshot().selectedCode, null);
+  assert.equal(harness.elements.search.value, '');
+  assert.equal(harness.elements.categoryButtons[0].getAttribute('aria-pressed'), 'true');
+  assert.equal(harness.elements.sizeButtons[2].getAttribute('aria-pressed'), 'true');
+});
+
+test('busca, categoria, manequim e lotes filtram sem mutar base nem disparar efeitos privados', () => {
+  const products = Array.from({ length: 55 }, (_, index) => ({
+    ...fixtures[index % 4],
+    k: `V-${String(index).padStart(2, '0')}`,
+    co: index === 54 ? 'azul céu' : fixtures[index % 4].co,
+    c: index === 54 ? 'vestidos-debutante' : fixtures[index % 4].c,
+  }));
+  const before = JSON.stringify(products);
+  const harness = createControllerHarness({ products, mannequin: 'M' });
+  harness.controller.open('V-00');
+
+  assert.equal(dressCards(harness).length, 24);
+  assert.equal(harness.elements.more.hidden, false);
+  assert.equal(harness.elements.sizeButtons[2].getAttribute('aria-pressed'), 'true');
+  assert.ok(dressCards(harness).every(card => !/não serve/i.test(card.textContent)));
+  harness.elements.more.click();
+  assert.equal(dressCards(harness).length, 48);
+
+  harness.elements.search.value = 'AZUL CEU';
+  harness.elements.search.dispatchEvent({ type: 'input' });
+  assert.deepEqual(dressCards(harness).map(card => card.dataset.code), ['V-54']);
+  assert.equal(harness.controller.getSnapshot().selectedCode, 'V-00');
+  harness.elements.categoryButtons[3].click();
+  assert.deepEqual(dressCards(harness).map(card => card.dataset.code), ['V-54']);
+  harness.elements.sizeButtons[3].click();
+  assert.equal(harness.elements.sizeButtons[3].getAttribute('aria-pressed'), 'true');
+  assert.ok(dressCards(harness).every(card => !/não serve/i.test(card.textContent)));
+  assert.deepEqual(harness.selections, []);
+  assert.deepEqual(harness.objectURL.created, []);
+  assert.deepEqual(harness.readFiles, []);
+  assert.deepEqual(harness.workerCalls, []);
+  assert.equal(JSON.stringify(products), before);
+  assert.ok(harness.storage.calls.every(call => call[1] === 'kl_manequim'));
+  assert.deepEqual(harness.storage.calls.at(-1), ['set', 'kl_manequim', 'G']);
+
+  harness.elements.clearSize.click();
+  assert.equal(harness.elements.sizeButtons[3].getAttribute('aria-pressed'), 'false');
+  assert.deepEqual(harness.storage.calls.at(-1), ['remove', 'kl_manequim']);
+});
+
+test('miniatura tenta original uma vez e depois marca imagem indisponível sem loop', () => {
+  const harness = createControllerHarness();
+  harness.controller.open('NV-001');
+  const card = cardFor(harness, 'NV-001');
+  const image = card.children[0];
+
+  assert.equal(image.src, 'thumb:NV-001');
+  image.dispatchEvent({ type: 'error' });
+  assert.equal(image.src, fixtures[0].u);
+  image.dispatchEvent({ type: 'error' });
+  assert.equal(image.src, '');
+  assert.equal(card.classList.contains('is-image-unavailable'), true);
+  assert.equal(image.listenerCount('error'), 0);
+  image.dispatchEvent({ type: 'error' });
+  assert.equal(image.src, '');
+});
+
+test('foto usa object URL no change e só lê/envia no submit explícito', async () => {
+  const harness = createControllerHarness();
+  const firstFile = { name: 'private-photo.jpg', type: 'image/jpeg' };
+  const secondFile = { name: 'other-private-photo.webp', type: 'image/webp' };
+  harness.controller.open('NV-001');
+
+  choosePhoto(harness, firstFile);
+  assert.deepEqual(harness.objectURL.created, [firstFile]);
+  assert.deepEqual(harness.readFiles, []);
+  assert.equal(harness.elements.preview.hidden, false);
+  assert.equal(harness.elements.previewImage.src, 'blob:preview-1');
+  assert.equal(harness.elements.submit.disabled, false);
+
+  choosePhoto(harness, secondFile);
+  assert.deepEqual(harness.objectURL.revoked, ['blob:preview-1']);
+  assert.equal(harness.elements.previewImage.src, 'blob:preview-2');
+  assert.deepEqual(harness.readFiles, []);
+  harness.controller.update('MD-020');
+  assert.equal(harness.elements.previewImage.src, 'blob:preview-2');
+  assert.equal(harness.elements.submit.disabled, false);
+  harness.controller.update('NV-001');
+
+  harness.elements.search.value = 'PRIVATE_QUERY';
+  harness.elements.search.dispatchEvent({ type: 'input' });
+  await submitTryOn(harness);
+
+  assert.deepEqual(harness.readFiles, [secondFile]);
+  assert.equal(harness.workerCalls.length, 1);
+  assert.equal(harness.workerCalls[0].garmentUrl, fixtures[0].u);
+  assert.equal(harness.workerCalls[0].imageBase64, 'data:image/jpeg;base64,PRIVATE_PHOTO_BYTES');
+  assert.equal(typeof harness.workerCalls[0].isCurrent, 'function');
+  assert.equal(harness.workerCalls[0].isCurrent(), true);
+  assert.equal(harness.workerCalls[0].signal, harness.aborts.controllers[0].signal);
+  assert.equal(harness.elements.form.hidden, true);
+  assert.equal(harness.elements.loading.hidden, true);
+  assert.equal(harness.elements.result.hidden, false);
+  assert.equal(harness.elements.resultImage.src, 'https://img.test/generated.jpg?raw=SECRET');
+  assert.match(harness.elements.remaining.textContent, /2/);
+  assert.match(harness.elements.whatsapp.href, /^wa:BARRA-CONTACT:/);
+
+  const snapshot = JSON.stringify(harness.controller.getSnapshot());
+  [
+    firstFile.name,
+    secondFile.name,
+    'PRIVATE_PHOTO_BYTES',
+    'PRIVATE_QUERY',
+    'raw=SECRET',
+  ].forEach(secret => assert.equal(snapshot.includes(secret), false, secret));
+});
+
+test('resultados do Worker têm mensagens distintas, seguras e saída por WhatsApp', async () => {
+  const outcomes = [
+    { kind: 'limit', expected: /limite/i },
+    { kind: 'invalid-response', expected: /resposta inesperada/i },
+    { kind: 'generation-error', expected: /gerar esta simulação/i },
+    { kind: 'timeout', expected: /mais tempo/i },
+    { kind: 'network', expected: /conectar/i },
+  ];
+  const messages = [];
+
+  for (const outcome of outcomes) {
+    const workerCalls = [];
+    const harness = createControllerHarness({
+      workerClient: {
+        async run(input) {
+          workerCalls.push(input);
+          return { ...outcome, raw: 'PRIVATE_PHOTO_BYTES private-photo.jpg' };
+        },
+      },
+    });
+    harness.controller.open('NV-001');
+    choosePhoto(harness, { name: 'private-photo.jpg' });
+    await submitTryOn(harness);
+
+    assert.equal(workerCalls.length, 1, outcome.kind);
+    assert.equal(harness.elements.error.hidden, false, outcome.kind);
+    assert.equal(harness.elements.result.hidden, true, outcome.kind);
+    assert.match(harness.elements.errorMessage.textContent, outcome.expected, outcome.kind);
+    assert.match(harness.elements.errorWhatsapp.href, /^wa:BARRA-CONTACT:/, outcome.kind);
+    assert.equal(harness.elements.errorMessage.textContent.includes('PRIVATE_PHOTO_BYTES'), false);
+    assert.equal(harness.elements.errorMessage.textContent.includes('private-photo.jpg'), false);
+    messages.push(harness.elements.errorMessage.textContent);
+    harness.elements.errorAgain.click();
+    assert.equal(harness.elements.form.hidden, false, outcome.kind);
+    assert.equal(harness.elements.error.hidden, true, outcome.kind);
+  }
+  assert.equal(new Set(messages).size, outcomes.length);
+});
+
+test('open/close invalidam awaits, abortam e limpam todo estado sensível', async () => {
+  const reading = deferred();
+  const workerCalls = [];
+  const harness = createControllerHarness({
+    readFile: () => reading.promise,
+    workerClient: { async run(input) { workerCalls.push(input); return { kind: 'success' }; } },
+  });
+  harness.controller.open('NV-001');
+  harness.elements.search.value = 'vinho';
+  harness.elements.search.dispatchEvent({ type: 'input' });
+  harness.elements.categoryButtons[3].click();
+  choosePhoto(harness, { name: 'private-photo.jpg' });
+  harness.elements.form.dispatchEvent({ type: 'submit' });
+  await flushMicrotasks();
+  assert.equal(harness.elements.loading.hidden, false);
+  assert.equal(harness.aborts.controllers.length, 1);
+
+  assert.equal(harness.controller.close(), true);
+  assert.equal(harness.aborts.controllers[0].signal.aborted, true);
+  assert.deepEqual(harness.objectURL.revoked, ['blob:preview-1']);
+  assert.equal(harness.elements.file.value, '');
+  assert.equal(harness.elements.preview.hidden, true);
+  assert.equal(harness.elements.previewImage.src, '');
+  assert.equal(harness.elements.resultImage.src, '');
+  assert.equal(harness.elements.loading.hidden, true);
+  assert.equal(harness.elements.result.hidden, true);
+  assert.equal(harness.elements.error.hidden, true);
+  assert.equal(harness.elements.search.value, '');
+  assert.equal(harness.elements.categoryButtons[0].getAttribute('aria-pressed'), 'true');
+  assert.equal(harness.controller.getSnapshot().selectedCode, null);
+  assert.equal(harness.dialog.open, false);
+  assert.deepEqual(harness.closeRequests, []);
+
+  reading.resolve('data:image/jpeg;base64,PRIVATE_PHOTO_BYTES');
+  await flushMicrotasks();
+  assert.deepEqual(workerCalls, []);
+  harness.controller.open(null);
+  assert.equal(harness.elements.preview.hidden, true);
+  assert.equal(harness.elements.result.hidden, true);
+  assert.equal(harness.elements.error.hidden, true);
+});
+
+test('cancelled tardio não sobrescreve nova abertura e todo await exige dialog aberto', async () => {
+  const pendingWorker = deferred();
+  const harness = createControllerHarness({
+    workerClient: { run: () => pendingWorker.promise },
+  });
+  harness.controller.open('NV-001');
+  choosePhoto(harness, { name: 'private-photo.jpg' });
+  harness.elements.form.dispatchEvent({ type: 'submit' });
+  await flushMicrotasks();
+
+  harness.controller.open('DB-010');
+  assert.equal(harness.aborts.controllers[0].signal.aborted, true);
+  pendingWorker.resolve({
+    kind: 'success',
+    image: 'https://img.test/late-result.jpg?raw=PRIVATE_PHOTO_BYTES',
+    remaining: 9,
+  });
+  await flushMicrotasks();
+  assert.equal(harness.controller.getSnapshot().selectedCode, 'DB-010');
+  assert.equal(harness.elements.result.hidden, true);
+  assert.equal(harness.elements.resultImage.src, '');
+
+  const secondWorker = deferred();
+  const second = createControllerHarness({ workerClient: { run: () => secondWorker.promise } });
+  second.controller.open('NV-001');
+  choosePhoto(second, { name: 'private-photo.jpg' });
+  second.elements.form.dispatchEvent({ type: 'submit' });
+  await flushMicrotasks();
+  second.dialog.open = false;
+  secondWorker.resolve({ kind: 'success', image: 'https://img.test/closed.jpg', remaining: 1 });
+  await flushMicrotasks();
+  assert.equal(second.elements.result.hidden, true);
+  assert.equal(second.elements.resultImage.src, '');
+});
+
+test('pedidos de fechar delegam; novamente volta ao form; destroy remove todos listeners', async () => {
+  const harness = createControllerHarness();
+  harness.controller.open('NV-001');
+  choosePhoto(harness, { name: 'private-photo.jpg' });
+  await submitTryOn(harness);
+
+  harness.elements.again.click();
+  assert.equal(harness.elements.form.hidden, false);
+  assert.equal(harness.elements.result.hidden, true);
+  assert.equal(harness.elements.resultImage.src, '');
+  harness.elements.closeButton.click();
+  assert.equal(harness.dialog.open, true);
+  const cancel = { type: 'cancel' };
+  harness.dialog.dispatchEvent(cancel);
+  assert.equal(cancel.defaultPrevented, true);
+  harness.dialog.dispatchEvent({ type: 'click', target: harness.elements.title });
+  harness.dialog.dispatchEvent({ type: 'click', target: harness.dialog });
+  assert.deepEqual(harness.closeRequests, [true, true, true]);
+  assert.equal(harness.dialog.open, true);
+
+  const staleCard = cardFor(harness, 'NV-002');
+  const selectionsBefore = harness.selections.slice();
+  assert.equal(harness.controller.destroy(), true);
+  assert.equal(harness.controller.isReady(), false);
+  assert.equal(harness.dialog.open, false);
+  assert.equal(harness.elements.closeButton.listenerCount('click'), 0);
+  assert.equal(harness.dialog.listenerCount('cancel'), 0);
+  assert.equal(staleCard.listenerCount('click'), 0);
+  staleCard.click();
+  harness.elements.closeButton.click();
+  assert.deepEqual(harness.selections, selectionsBefore);
+  assert.deepEqual(harness.closeRequests, [true, true, true]);
+  assert.equal(harness.controller.destroy(), false);
+});
+
 test('lista interna usa a base completa, o callback injetado e só categorias elegíveis', () => {
   const visited = [];
   const source = fixtures.slice().reverse();
