@@ -332,6 +332,12 @@ test('init inválido valida antes de state, storage e favoritos e rende recupera
 
   assert.deepEqual(order, ['validate']);
   assert.equal(app.getSnapshot().phase, 'data-error');
+  assert.deepEqual(JSON.parse(JSON.stringify(browser.catalogEvents.at(-1))), {
+    status: 'data-error',
+    unit: null,
+    openProduct: null,
+    resultCount: 0,
+  });
   assert.equal(browser.nodes.results.getAttribute('aria-busy'), 'false');
   assert.equal(browser.nodes.grid.children.length, 1);
   const buttons = browser.findAll(

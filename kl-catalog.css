@@ -1026,6 +1026,18 @@
     scroll-snap-type:x proximity;
     -webkit-overflow-scrolling:touch;
   }
+  .catalog-shortcuts,
+  .catalog-units,
+  .catalog-facets,
+  .catalog-active-filters{
+    scrollbar-width:none;
+  }
+  .catalog-shortcuts::-webkit-scrollbar,
+  .catalog-units::-webkit-scrollbar,
+  .catalog-facets::-webkit-scrollbar,
+  .catalog-active-filters::-webkit-scrollbar{
+    display:none;
+  }
   .catalog-shortcut{
     flex:0 0 44%;
     scroll-snap-align:start;

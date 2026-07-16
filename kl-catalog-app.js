@@ -456,6 +456,7 @@
       'Tente novamente ou escolha uma unidade para falar com a equipe.',
       true,
     );
+    dispatchCatalogState('data-error');
     if (!catalogErrorTracked) {
       catalogErrorTracked = true;
       trackCatalog('KL_Catalog_Error', { source: 'data-source' });
@@ -660,15 +661,17 @@
     if (filterAnnouncement.textContent !== message) filterAnnouncement.textContent = message;
   }
 
-  function dispatchCatalogState() {
-    if (!currentDerived || typeof root.dispatchEvent !== 'function'
+  function dispatchCatalogState(status) {
+    var resolvedStatus = status || 'success';
+    if ((resolvedStatus === 'success' && !currentDerived)
+        || typeof root.dispatchEvent !== 'function'
         || typeof root.CustomEvent !== 'function') return;
     root.dispatchEvent(new root.CustomEvent('kl:catalog-state', {
       detail: {
-        status: 'success',
-        unit: state.unit,
-        openProduct: state.openProduct,
-        resultCount: currentDerived.products.length,
+        status: resolvedStatus,
+        unit: state && state.unit || null,
+        openProduct: state && state.openProduct || null,
+        resultCount: currentDerived ? currentDerived.products.length : 0,
       },
     }));
   }

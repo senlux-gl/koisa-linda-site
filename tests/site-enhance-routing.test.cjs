@@ -34,3 +34,28 @@ test('detalhe e prova usam somente unidade válida da peça', () => {
   );
   assert.equal(Site.resolveStickyCta({ page: 'provar', product: null }, contacts).href, 'unidades.html');
 });
+
+test('contexto inicial resolve codigo e p no detalhe e p na prova virtual', () => {
+  const products = [
+    { k: 'NV-001', un: 'barra' },
+    { k: 'NV-002', un: 'sf' },
+  ];
+  const root = {
+    URLSearchParams,
+    KL_DATA: products,
+    KLCatalog: {
+      Core: {
+        validateProducts() {
+          return { ok: true, products };
+        },
+      },
+    },
+    location: { pathname: '/peca.html', search: '?codigo=NV-001' },
+  };
+
+  assert.equal(Site.initialContext(root).product.k, 'NV-001');
+  root.location.search = '?p=NV-002';
+  assert.equal(Site.initialContext(root).product.k, 'NV-002');
+  root.location.pathname = '/provar.html';
+  assert.equal(Site.initialContext(root).product.k, 'NV-002');
+});

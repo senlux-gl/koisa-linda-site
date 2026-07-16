@@ -183,7 +183,7 @@ class HomeHeroContractTest(unittest.TestCase):
             'href="unidades.html"',
             'href="https://wa.me/',
             'src="kl-tracking.js?v=20260715catalog1"',
-            'src="kl-site-enhance.js?v=20260715catalog1"',
+            'src="kl-site-enhance.js?v=20260716catalog2"',
         ):
             self.assertIn(required, html)
         protected = {
@@ -357,7 +357,7 @@ class AboutBrandContractTest(unittest.TestCase):
         html = page("sobre.html")
         for required in (
             'src="kl-tracking.js?v=20260715catalog1"',
-            'src="kl-site-enhance.js?v=20260715catalog1"',
+            'src="kl-site-enhance.js?v=20260716catalog2"',
         ):
             self.assertIn(required, html)
 
@@ -496,7 +496,7 @@ class VisiblePagesContractTest(unittest.TestCase):
                 html = page(name)
                 all_html.append(html)
                 self.assertIn('src="kl-tracking.js?v=20260715catalog1"', html)
-                self.assertIn('src="kl-site-enhance.js?v=20260715catalog1"', html)
+                self.assertIn('src="kl-site-enhance.js?v=20260716catalog2"', html)
                 self.assertEqual(1, len(re.findall(r"<h1\b", html, re.IGNORECASE)))
 
         numbers = set(re.findall(r"wa\.me/(55\d+)", "\n".join(all_html)))
@@ -510,6 +510,37 @@ class VisiblePagesContractTest(unittest.TestCase):
 
 
 class CatalogIntegrationContractTest(unittest.TestCase):
+    def test_shared_header_hamburger_is_vertical_and_touch_safe_through_1100(self):
+        css = re.sub(r"\s+", "", page("kl-site-enhance.css"))
+        self.assertIn(
+            "@media(max-width:1100px){header.menu{display:none}",
+            css,
+        )
+        self.assertIn(
+            "header.mtog{display:flex;min-width:48px;min-height:48px;",
+            css,
+        )
+        self.assertIn("header.mtog.mtog-icon{flex-direction:column}", css)
+        self.assertIn('class="mtog mtog-icon"', page("catalogo.html"))
+
+    def test_try_on_loads_catalog_runtime_for_unit_aware_sticky_cta(self):
+        html = page("provar.html")
+        assets = (
+            "kl-catalog-data.js?v=20260715db",
+            "kl-catalog-core.js?v=20260715catalog1",
+            "kl-catalog-actions.js?v=20260715catalog1",
+            "kl-tracking.js?v=20260715catalog1",
+        )
+        positions = [html.index(asset) for asset in assets]
+        self.assertEqual(positions, sorted(positions))
+
+    def test_shared_sticky_close_keeps_a_real_touch_target(self):
+        css = re.sub(r"\s+", "", page("kl-site-enhance.css"))
+        self.assertIn(
+            ".kl-sticky-cta.kl-sticky-x{min-width:44px;min-height:44px;",
+            css,
+        )
+
     def test_tracking_uses_real_catalog_source_and_explicit_api(self):
         js = page("kl-tracking.js")
         self.assertIn("window.KL_DATA", js)
@@ -543,9 +574,11 @@ class CatalogIntegrationContractTest(unittest.TestCase):
             with self.subTest(page=name):
                 html = page(name)
                 self.assertIn('src="kl-tracking.js?v=20260715catalog1"', html)
-                self.assertIn('src="kl-site-enhance.js?v=20260715catalog1"', html)
+                self.assertIn('src="kl-site-enhance.js?v=20260716catalog2"', html)
+                self.assertIn('href="kl-site-enhance.css?v=20260716catalog2"', html)
                 self.assertNotIn("20260710deep3", html)
                 self.assertNotIn("20260713r3", html)
+                self.assertNotIn("20260715hdr", html)
 
     def test_campaign_whatsapps_match_the_audited_units(self):
         expected = {
@@ -596,7 +629,7 @@ class CatalogHybridContractTest(unittest.TestCase):
             "kl-catalog-actions.js?v=20260715catalog1",
             "kl-catalog-gallery.js?v=20260715catalog1",
             "kl-tracking.js?v=20260715catalog1",
-            "kl-catalog-app.js?v=20260715catalog1",
+            "kl-catalog-app.js?v=20260716catalog2",
         )
         positions = [html.index(asset) for asset in assets]
         self.assertEqual(positions, sorted(positions))
@@ -605,7 +638,7 @@ class CatalogHybridContractTest(unittest.TestCase):
                 html,
                 rf'<script\s+defer\s+src="{re.escape(asset)}"></script>',
             )
-        self.assertIn('href="kl-catalog.css?v=20260715catalog1"', html)
+        self.assertIn('href="kl-catalog.css?v=20260716catalog2"', html)
         self.assertNotIn("const DATA=window.KL_DATA", html)
         self.assertNotIn("let cat=new URLSearchParams", html)
 
@@ -652,6 +685,9 @@ class CatalogHybridContractTest(unittest.TestCase):
         css = page("kl-catalog.css")
         mobile = balanced_css_block(css, "@media(max-width:680px)").replace(" ", "")
         self.assertIn("grid-template-columns:repeat(2,minmax(0,1fr))", mobile)
+        self.assertIn("scrollbar-width:none", mobile)
+        self.assertIn("::-webkit-scrollbar", mobile)
+        self.assertIn("display:none", mobile)
         reduced = balanced_css_block(
             css, "@media(prefers-reduced-motion:reduce)"
         ).replace(" ", "")

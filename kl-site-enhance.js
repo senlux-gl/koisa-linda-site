@@ -98,7 +98,10 @@
     try { report = core.validateProducts(root.KL_DATA); }
     catch (error) { return null; }
     if (!report || !report.ok || !Array.isArray(report.products)) return null;
-    var code = queryValue(root, page === 'peca' ? 'codigo' : 'p').trim().toUpperCase();
+    var code = page === 'peca'
+      ? (queryValue(root, 'codigo') || queryValue(root, 'p'))
+      : queryValue(root, 'p');
+    code = code.trim().toUpperCase();
     if (!code) return null;
     return report.products.find(function (product) {
       return String(product.k || '').trim().toUpperCase() === code;
@@ -221,6 +224,7 @@
 
   return {
     CONTACTS: CONTACTS,
+    initialContext: initialContext,
     resolveStickyCta: resolveStickyCta,
     init: init,
   };
