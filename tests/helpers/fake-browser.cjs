@@ -168,6 +168,19 @@ function classTokens(element) {
   return String(element.className || '').split(/\s+/).filter(Boolean);
 }
 
+function createStyleDeclaration() {
+  const style = {};
+  Object.defineProperties(style, {
+    setProperty: {
+      value(name, value) { this[String(name)] = String(value); },
+    },
+    getPropertyValue: {
+      value(name) { return this[String(name)] || ''; },
+    },
+  });
+  return style;
+}
+
 class FakeElement extends FakeEventTarget {
   constructor(tagName, ownerDocument, nodeType) {
     super();
@@ -180,8 +193,14 @@ class FakeElement extends FakeEventTarget {
     this.dataset = {};
     this.className = '';
     this.hidden = false;
+    this.style = createStyleDeclaration();
     this.value = '';
     this._textContent = '';
+    this._boundingClientRect = {
+      top: 0, right: 0, bottom: 0, left: 0, width: 0, height: 0,
+    };
+    this.focusOptions = undefined;
+    this.scrollIntoViewCalls = [];
     this.classList = {
       add: (...tokens) => {
         const next = new Set(classTokens(this));
@@ -259,6 +278,23 @@ class FakeElement extends FakeEventTarget {
     return querySelectorAllFrom(this, selector);
   }
 
+  getBoundingClientRect() {
+    return Object.assign({}, this._boundingClientRect);
+  }
+
+  setBoundingClientRect(rect) {
+    this._boundingClientRect = Object.assign({}, this._boundingClientRect, rect || {});
+  }
+
+  focus(options) {
+    if (this.ownerDocument) this.ownerDocument.activeElement = this;
+    this.focusOptions = options;
+  }
+
+  scrollIntoView(options) {
+    this.scrollIntoViewCalls.push(options);
+  }
+
   click() {
     return this.dispatchEvent({ type: 'click' });
   }
@@ -305,7 +341,10 @@ class FakeDocument extends FakeEventTarget {
     super();
     this.readyState = readyState || 'loading';
     this._ids = new Map();
+    this.documentElement = new FakeElement('html', this);
     this.body = new FakeElement('body', this);
+    this.documentElement.appendChild(this.body);
+    this.activeElement = this.body;
   }
 
   _registerId(id, element) {
@@ -342,11 +381,29 @@ function createFakeCatalogBrowser(options) {
     return node;
   }
 
+  const header = add('header');
+  header.setBoundingClientRect({ height: options.headerHeight == null ? 71 : options.headerHeight });
   const app = add('main', 'catalog-app');
-  const category = add('select', 'catalog-category', app);
-  const count = add('p', 'catalog-count', app);
-  const favoriteCount = add('span', 'catalog-favorite-count', app);
-  const units = add('fieldset', 'catalog-units', app);
+  const filterPanel = add('section', 'catalog-filters', app);
+  const category = add('select', 'catalog-category', filterPanel);
+  [
+    ['', 'Todas as categorias'],
+    ['vestidos-noiva', 'Noivas'],
+    ['vestidos-debutante', 'Debutantes'],
+    ['vestidos-madrinha', 'Madrinhas & Festa'],
+    ['ternos', 'Ternos'],
+    ['bolsas', 'Bolsas'],
+    ['calcados', 'Calçados'],
+    ['acessorios', 'Acessórios'],
+  ].forEach(([value, label]) => {
+    const option = add('option', '', category);
+    option.value = value;
+    option.textContent = label;
+  });
+  const count = add('p', 'catalog-count', filterPanel);
+  count.textContent = 'Carregando catálogo…';
+  const favoriteCount = add('span', 'catalog-favorite-count', filterPanel);
+  const units = add('fieldset', 'catalog-units', filterPanel);
   ['', 'barra', 'sf'].forEach((unit) => {
     const button = add('button', '', units);
     button.setAttribute('data-unit', unit);
@@ -355,6 +412,20 @@ function createFakeCatalogBrowser(options) {
     const shortcut = add('button', '', app);
     shortcut.setAttribute('data-shortcut-cat', value);
   });
+  const filterSentinel = add('div', 'catalog-filter-sentinel', filterPanel);
+  const filterRail = add('section', 'catalog-filter-rail', app);
+  filterRail.hidden = true;
+  const filterRailCount = add('span', 'catalog-filter-rail-count', filterRail);
+  filterRailCount.textContent = 'Carregando catálogo…';
+  const filterRailCategory = add('span', 'catalog-filter-rail-category', filterRail);
+  filterRailCategory.textContent = 'Todas as categorias';
+  const filterRailUnits = add('fieldset', 'catalog-filter-rail-units', filterRail);
+  const filterRailUnitButtons = ['', 'barra', 'sf'].map((unit) => {
+    const button = add('button', '', filterRailUnits);
+    button.setAttribute('data-unit', unit);
+    return button;
+  });
+  const filterRailAdjust = add('button', 'catalog-adjust-filters', filterRail);
   const results = add('section', 'catalog-results', app);
   results.setAttribute('aria-busy', 'true');
   const status = add('div', 'catalog-status', results);
@@ -397,18 +468,27 @@ function createFakeCatalogBrowser(options) {
     performance: { mark: name => marks.push(String(name)) },
     URLSearchParams,
   };
-  sandbox.IntersectionObserver = function IntersectionObserver(callback, observerOptions) {
-    const observer = {
-      callback,
-      options: observerOptions,
-      observed: [],
-      disconnected: false,
-      observe(node) { this.observed.push(node); },
-      disconnect() { this.disconnected = true; },
+  if (options.intersectionObserver !== false) {
+    sandbox.IntersectionObserver = function IntersectionObserver(callback, observerOptions) {
+      const observer = {
+        callback,
+        options: observerOptions,
+        observed: [],
+        disconnected: false,
+        observe(node) {
+          if (!this.observed.includes(node)) this.observed.push(node);
+        },
+        disconnect() { this.disconnected = true; },
+      };
+      observers.push(observer);
+      return observer;
     };
-    observers.push(observer);
-    return observer;
-  };
+  }
+  sandbox.matchMedia = query => ({
+    media: String(query),
+    matches: String(query) === '(prefers-reduced-motion: reduce)'
+      && Boolean(options.prefersReducedMotion),
+  });
   Object.defineProperty(sandbox, 'localStorage', {
     configurable: true,
     get() {
@@ -425,7 +505,25 @@ function createFakeCatalogBrowser(options) {
     historyOperations,
     marks,
     nodes: Object.assign(nodes, {
-      app, category, count, favoriteCount, grid, loadMore, results, sentinel, status, units,
+      app,
+      category,
+      count,
+      favoriteCount,
+      filterPanel,
+      filterRail,
+      filterRailAdjust,
+      filterRailCategory,
+      filterRailCount,
+      filterRailUnitButtons,
+      filterRailUnits,
+      filterSentinel,
+      grid,
+      header,
+      loadMore,
+      results,
+      sentinel,
+      status,
+      units,
     }),
     observers,
     storage,
@@ -434,9 +532,18 @@ function createFakeCatalogBrowser(options) {
       document.dispatchEvent({ type: 'DOMContentLoaded' });
     },
     triggerIntersection(isIntersecting) {
-      observers.filter(observer => !observer.disconnected).forEach((observer) => {
-        observer.callback([{ isIntersecting: Boolean(isIntersecting) }]);
-      });
+      observers
+        .filter(observer => !observer.disconnected && observer.observed.includes(sentinel))
+        .forEach((observer) => {
+          observer.callback([{ target: sentinel, isIntersecting: Boolean(isIntersecting) }]);
+        });
+    },
+    triggerIntersectionFor(node, entry) {
+      observers
+        .filter(observer => !observer.disconnected && observer.observed.includes(node))
+        .forEach((observer) => {
+          observer.callback([Object.assign({}, entry || {}, { target: node })]);
+        });
     },
     window: sandbox,
   };

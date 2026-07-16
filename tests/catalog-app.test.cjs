@@ -39,15 +39,6 @@ function makeProducts(count, onlyCategory) {
 
 function enhanceBrowser(browser, { sessionSeed, scrollY } = {}) {
   const { document, window } = browser;
-  const originalCreateElement = document.createElement.bind(document);
-  document.createElement = function createElement(tagName) {
-    const node = originalCreateElement(tagName);
-    node.focus = function focus(options) {
-      document.activeElement = node;
-      node.focusOptions = options;
-    };
-    return node;
-  };
   function add(tagName, id) {
     const node = document.createElement(tagName);
     node.setAttribute('id', id);
@@ -120,8 +111,25 @@ function enhanceBrowser(browser, { sessionSeed, scrollY } = {}) {
   browser.dispatchWindow = type => window.dispatchEvent({ type });
 }
 
-function mountBrowser({ raw, search, core, actions, onStorageAccess, sessionSeed, scrollY }) {
-  const browser = createFakeCatalogBrowser({ search, onStorageAccess });
+function mountBrowser({
+  raw,
+  search,
+  core,
+  actions,
+  onStorageAccess,
+  sessionSeed,
+  scrollY,
+  headerHeight,
+  intersectionObserver,
+  prefersReducedMotion,
+}) {
+  const browser = createFakeCatalogBrowser({
+    search,
+    onStorageAccess,
+    headerHeight,
+    intersectionObserver,
+    prefersReducedMotion,
+  });
   enhanceBrowser(browser, { sessionSeed, scrollY });
   browser.window.KLCatalog = { Core: core || Core, Actions: actions || Actions };
   browser.window.KL_DATA = raw;
@@ -288,12 +296,14 @@ test('erro da miniatura vira placeholder e nunca pede a original', () => {
 test('UMD mantém o subset público obrigatório e agenda init uma única vez', () => {
   const required = [
     'classifyData',
+    'createFilterRailController',
     'createPagingController',
     'createRequestMore',
     'getSnapshot',
     'gridImageFailurePolicy',
     'init',
     'pageWindow',
+    'shouldShowFilterRail',
   ];
   required.forEach(name => assert.equal(typeof App[name], 'function', name));
 
@@ -301,6 +311,78 @@ test('UMD mantém o subset público obrigatório e agenda init uma única vez', 
   assert.equal(typeof app, 'object');
   required.forEach(name => assert.equal(typeof app[name], 'function', name));
   assert.equal(browser.document.listenerCount('DOMContentLoaded'), 1);
+});
+
+test('fake browser entrega interseção somente ao observer ativo que observa o nó', () => {
+  const browser = createFakeCatalogBrowser();
+  const calls = [];
+  const filterObserver = new browser.window.IntersectionObserver(() => calls.push('filter'));
+  const pagingObserver = new browser.window.IntersectionObserver(() => calls.push('paging'));
+  const disconnectedObserver = new browser.window.IntersectionObserver(
+    () => calls.push('disconnected'),
+  );
+  filterObserver.observe(browser.nodes.filterSentinel);
+  pagingObserver.observe(browser.nodes.sentinel);
+  disconnectedObserver.observe(browser.nodes.filterSentinel);
+  disconnectedObserver.disconnect();
+
+  browser.triggerIntersectionFor(browser.nodes.filterSentinel, {
+    isIntersecting: false,
+    boundingClientRect: { top: 12 },
+  });
+
+  assert.deepEqual(calls, ['filter']);
+});
+
+test('regra do rail só mostra sentinela não intersectante acima do offset', () => {
+  assert.equal(App.shouldShowFilterRail(null, 83), false);
+  assert.equal(App.shouldShowFilterRail({ isIntersecting: false }, 83), false);
+  assert.equal(App.shouldShowFilterRail({
+    isIntersecting: false,
+    boundingClientRect: { top: 900 },
+  }, 83), false);
+  assert.equal(App.shouldShowFilterRail({
+    isIntersecting: false,
+    boundingClientRect: { top: 83 },
+  }, 83), true);
+  assert.equal(App.shouldShowFilterRail({
+    isIntersecting: true,
+    boundingClientRect: { top: 20 },
+  }, 83), false);
+});
+
+test('controller do rail usa fallback 71, inicia oculto e desconecta seu observer', () => {
+  const browser = createFakeCatalogBrowser({ headerHeight: 0 });
+  const records = [];
+  browser.nodes.filterRail.hidden = false;
+  const controller = App.createFilterRailController({
+    rail: browser.nodes.filterRail,
+    sentinel: browser.nodes.filterSentinel,
+    header: browser.nodes.header,
+    documentElement: browser.document.documentElement,
+    observerFactory(callback, options) {
+      const record = {
+        callback,
+        options,
+        disconnected: false,
+        observe(node) { this.observed = node; },
+        disconnect() { this.disconnected = true; },
+      };
+      records.push(record);
+      return record;
+    },
+  });
+
+  assert.equal(browser.nodes.filterRail.hidden, true);
+  assert.equal(controller.offset, 71);
+  assert.equal(
+    browser.document.documentElement.style.getPropertyValue('--catalog-header-offset'),
+    '71px',
+  );
+  assert.equal(records[0].options.rootMargin, '-71px 0px 0px 0px');
+  assert.strictEqual(records[0].observed, browser.nodes.filterSentinel);
+  controller.destroy();
+  assert.equal(records[0].disconnected, true);
 });
 
 test('init inválido valida antes de state, storage e favoritos e rende recuperação', () => {
@@ -407,6 +489,206 @@ test('init válido renderiza 12 thumbs e permanece idempotente', () => {
   assert.strictEqual(firstCard.children[0].children[0], firstImage);
   assert.deepEqual(browser.marks, ['kl-catalog-first-grid']);
   assert.equal(browser.nodes.loadMore.listenerCount('click'), 1);
+});
+
+test('rail usa segundo observer, altura real do header e nunca listener de scroll', () => {
+  const { browser, app } = mountBrowser({ raw: makeProducts(25), headerHeight: 83 });
+  assert.equal(browser.nodes.filterRail.hidden, true);
+
+  browser.triggerDOMContentLoaded();
+
+  assert.equal(browser.nodes.filterRail.hidden, true);
+  const railObserver = browser.observers.find(
+    observer => observer.observed.includes(browser.nodes.filterSentinel),
+  );
+  const pagingObserver = browser.observers.find(
+    observer => observer.observed.includes(browser.nodes.sentinel),
+  );
+  assert.ok(railObserver);
+  assert.ok(pagingObserver);
+  assert.notStrictEqual(railObserver, pagingObserver);
+  assert.equal(railObserver.options.rootMargin, '-83px 0px 0px 0px');
+  assert.equal(
+    browser.document.documentElement.style.getPropertyValue('--catalog-header-offset'),
+    '83px',
+  );
+
+  const pageBefore = app.getSnapshot().page;
+  browser.triggerIntersectionFor(browser.nodes.filterSentinel, {
+    isIntersecting: false,
+    boundingClientRect: { top: 900 },
+  });
+  assert.equal(browser.nodes.filterRail.hidden, true);
+  assert.equal(app.getSnapshot().page, pageBefore, 'observer do rail não pagina');
+
+  browser.triggerIntersectionFor(browser.nodes.filterSentinel, {
+    isIntersecting: false,
+    boundingClientRect: { top: 83 },
+  });
+  assert.equal(browser.nodes.filterRail.hidden, false);
+
+  browser.triggerIntersection(true);
+  assert.equal(app.getSnapshot().page, pageBefore + 1, 'trigger legado continua paginando');
+  assert.equal(browser.nodes.filterRail.hidden, false, 'trigger de paginação não toca o rail');
+
+  browser.triggerIntersectionFor(browser.nodes.filterSentinel, {
+    isIntersecting: true,
+    boundingClientRect: { top: 83 },
+  });
+  assert.equal(browser.nodes.filterRail.hidden, true);
+  assert.equal(browser.windowListenerCount('scroll'), 0);
+  assert.equal(browser.document.listenerCount('scroll'), 0);
+
+  browser.window.dispatchEvent({ type: 'pagehide', persisted: true });
+  assert.equal(railObserver.disconnected, false, 'BFCache mantém observer ativo');
+  browser.window.dispatchEvent({ type: 'pagehide', persisted: false });
+  assert.equal(railObserver.disconnected, true, 'saída definitiva desconecta observer');
+});
+
+test('sem IntersectionObserver rail fica oculto e controles compactos continuam funcionais', () => {
+  const { browser, app } = mountBrowser({
+    raw: fixtures,
+    intersectionObserver: false,
+  });
+
+  browser.triggerDOMContentLoaded();
+
+  assert.equal(browser.nodes.filterRail.hidden, true);
+  assert.equal(browser.observers.length, 0);
+  assert.equal(app.getSnapshot().pagingMode, 'manual');
+  browser.nodes.filterRailUnitButtons[1].click();
+  assert.equal(browser.historyOperations.length, 1);
+  assert.equal(browser.historyOperations[0].url, '/catalogo.html?un=barra');
+  assert.equal(browser.nodes.units.children[1].getAttribute('aria-pressed'), 'true');
+  assert.equal(browser.nodes.filterRailUnitButtons[1].getAttribute('aria-pressed'), 'true');
+  assert.equal(browser.nodes.filterRail.hidden, true);
+});
+
+test('resumo compacto espelha contador, categoria humana e unidade do state canônico', () => {
+  const { browser } = mountBrowser({ raw: makeProducts(25) });
+  browser.triggerDOMContentLoaded();
+
+  assert.equal(browser.nodes.count.textContent, '12 visíveis de 25 peças');
+  assert.equal(browser.nodes.filterRailCount.textContent, browser.nodes.count.textContent);
+  assert.equal(browser.nodes.filterRailCount.getAttribute('aria-live'), null);
+  assert.equal(browser.nodes.filterRailCategory.textContent, 'Todas as categorias');
+  assert.equal(browser.nodes.units.children[0].getAttribute('aria-pressed'), 'true');
+  assert.equal(browser.nodes.filterRailUnitButtons[0].getAttribute('aria-pressed'), 'true');
+
+  browser.triggerIntersectionFor(browser.nodes.sentinel, { isIntersecting: true });
+  assert.equal(browser.nodes.count.textContent, '24 visíveis de 25 peças');
+  assert.equal(browser.nodes.filterRailCount.textContent, browser.nodes.count.textContent);
+
+  browser.nodes.category.value = 'vestidos-madrinha';
+  browser.nodes.category.dispatchEvent({ type: 'change' });
+  assert.equal(browser.nodes.filterRailCategory.textContent, 'Madrinhas & Festa');
+  assert.equal(browser.nodes.filterRailCount.textContent, browser.nodes.count.textContent);
+});
+
+test('unidade compacta já ativa é no-op sem history, render, tracking, scroll ou paginação', () => {
+  const { browser, app } = mountBrowser({
+    raw: makeProducts(50),
+    search: '?un=sf&pg=2',
+  });
+  browser.triggerDOMContentLoaded();
+  const snapshot = app.getSnapshot();
+  const firstCard = browser.nodes.grid.children[0];
+  const historyCount = browser.historyOperations.length;
+  const trackingCount = browser.trackingCalls.length;
+  const eventCount = browser.catalogEvents.length;
+  const scrollCount = browser.scrollCalls.length;
+
+  browser.nodes.filterRailUnitButtons[2].click();
+
+  assert.deepEqual(app.getSnapshot(), snapshot);
+  assert.strictEqual(browser.nodes.grid.children[0], firstCard);
+  assert.equal(browser.historyOperations.length, historyCount);
+  assert.equal(browser.trackingCalls.length, trackingCount);
+  assert.equal(browser.catalogEvents.length, eventCount);
+  assert.equal(browser.scrollCalls.length, scrollCount);
+  assert.equal(browser.nodes.units.children[2].getAttribute('aria-pressed'), 'true');
+  assert.equal(browser.nodes.filterRailUnitButtons[2].getAttribute('aria-pressed'), 'true');
+});
+
+test('troca compacta usa patchFilters, reconcilia facetas e emite uma mudança filter-rail', () => {
+  const { browser, app } = mountBrowser({
+    raw: fixtures,
+    search: '?co=rosa&pg=2&p=MD-020',
+  });
+  browser.triggerDOMContentLoaded();
+
+  browser.nodes.filterRailUnitButtons[2].click();
+
+  assert.equal(app.getSnapshot().page, 1);
+  assert.equal(browser.historyOperations.length, 1);
+  assert.equal(browser.historyOperations[0].type, 'replace');
+  assert.equal(browser.historyOperations[0].url, '/catalogo.html?un=sf');
+  assert.equal(browser.window.location.search, '?un=sf');
+  assert.equal(browser.scrollCalls.length, 0);
+  assert.equal(browser.nodes.units.children[2].getAttribute('aria-pressed'), 'true');
+  assert.equal(browser.nodes.filterRailUnitButtons[2].getAttribute('aria-pressed'), 'true');
+  assert.equal(browser.nodes.filterRailCount.textContent, browser.nodes.count.textContent);
+  assert.equal(browser.catalogEvents.at(-1).openProduct, null);
+  const filterChanges = browser.trackingCalls.filter(call => call.name === 'KL_Filter_Change');
+  assert.equal(filterChanges.length, 1);
+  assert.equal(filterChanges[0].context.source, 'filter-rail');
+});
+
+test('unidade do painel completo mantém source unit e sincroniza o rail', () => {
+  const { browser } = mountBrowser({ raw: fixtures });
+  browser.triggerDOMContentLoaded();
+
+  browser.nodes.units.children[1].click();
+
+  const filterChanges = browser.trackingCalls.filter(call => call.name === 'KL_Filter_Change');
+  assert.equal(filterChanges.length, 1);
+  assert.equal(filterChanges[0].context.source, 'unit');
+  assert.equal(browser.nodes.units.children[1].getAttribute('aria-pressed'), 'true');
+  assert.equal(browser.nodes.filterRailUnitButtons[1].getAttribute('aria-pressed'), 'true');
+});
+
+test('Ajustar filtros rola painel e foca categoria sem alterar catálogo', () => {
+  const { browser, app } = mountBrowser({ raw: makeProducts(25) });
+  browser.triggerDOMContentLoaded();
+  const snapshot = app.getSnapshot();
+  const firstCard = browser.nodes.grid.children[0];
+  const historyCount = browser.historyOperations.length;
+  const trackingCount = browser.trackingCalls.length;
+  const eventCount = browser.catalogEvents.length;
+  const scrollCount = browser.scrollCalls.length;
+
+  browser.nodes.filterRailAdjust.click();
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(browser.nodes.filterPanel.scrollIntoViewCalls)),
+    [{ block: 'start', behavior: 'smooth' }],
+  );
+  assert.strictEqual(browser.document.activeElement, browser.nodes.category);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(browser.nodes.category.focusOptions)),
+    { preventScroll: true },
+  );
+  assert.deepEqual(app.getSnapshot(), snapshot);
+  assert.strictEqual(browser.nodes.grid.children[0], firstCard);
+  assert.equal(browser.historyOperations.length, historyCount);
+  assert.equal(browser.trackingCalls.length, trackingCount);
+  assert.equal(browser.catalogEvents.length, eventCount);
+  assert.equal(browser.scrollCalls.length, scrollCount);
+});
+
+test('Ajustar filtros respeita prefers-reduced-motion', () => {
+  const { browser } = mountBrowser({
+    raw: fixtures,
+    prefersReducedMotion: true,
+  });
+  browser.triggerDOMContentLoaded();
+
+  browser.nodes.filterRailAdjust.click();
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(browser.nodes.filterPanel.scrollIntoViewCalls)),
+    [{ block: 'start', behavior: 'auto' }],
+  );
 });
 
 test('paginação manual e observer anexam cartões e preservam os nós existentes', () => {

@@ -45,6 +45,7 @@
   var historyController = null;
   var scrollLock = null;
   var pagingController = null;
+  var filterRailController = null;
   var requestMoreHandler = null;
   var searchTimer = null;
   var filterAnnouncement = null;
@@ -113,6 +114,59 @@
     var safeBatch = finiteInteger(batchSize, 12, 1);
     var visible = Math.min(safeTotal, safePage * safeBatch);
     return { page: safePage, visible: visible, hasMore: visible < safeTotal };
+  }
+
+  function shouldShowFilterRail(entry, offset) {
+    if (!entry || entry.isIntersecting || !entry.boundingClientRect) return false;
+    var top = Number(entry.boundingClientRect.top);
+    var threshold = Number(offset);
+    return Number.isFinite(top) && Number.isFinite(threshold) && top <= threshold;
+  }
+
+  function createFilterRailController(options) {
+    options = options || {};
+    var rail = options.rail;
+    var sentinel = options.sentinel;
+    var observer = null;
+    var offset = 71;
+
+    if (options.header && typeof options.header.getBoundingClientRect === 'function') {
+      try {
+        var rect = options.header.getBoundingClientRect();
+        var measured = Number(rect && rect.height);
+        if (Number.isFinite(measured) && measured > 0) offset = measured;
+      } catch (error) { /* fallback */ }
+    }
+
+    if (rail) rail.hidden = true;
+    if (options.documentElement && options.documentElement.style
+        && typeof options.documentElement.style.setProperty === 'function') {
+      options.documentElement.style.setProperty('--catalog-header-offset', offset + 'px');
+    }
+
+    if (rail && sentinel && typeof options.observerFactory === 'function') {
+      try {
+        observer = options.observerFactory(function (entries) {
+          Array.prototype.forEach.call(entries || [], function (entry) {
+            if (entry && entry.target && entry.target !== sentinel) return;
+            rail.hidden = !shouldShowFilterRail(entry, offset);
+          });
+        }, { rootMargin: '-' + offset + 'px 0px 0px 0px' });
+        if (!observer || typeof observer.observe !== 'function') observer = null;
+        else observer.observe(sentinel);
+      } catch (error) {
+        observer = null;
+        rail.hidden = true;
+      }
+    }
+
+    return {
+      offset: offset,
+      destroy: function () {
+        if (observer && typeof observer.disconnect === 'function') observer.disconnect();
+        observer = null;
+      },
+    };
   }
 
   function createPagingController(options) {
@@ -316,6 +370,15 @@
       count: root.document.getElementById('catalog-count'),
       facets: root.document.getElementById('catalog-facets'),
       favoriteCount: root.document.getElementById('catalog-favorite-count'),
+      filterPanel: root.document.getElementById('catalog-filters'),
+      filterRail: root.document.getElementById('catalog-filter-rail'),
+      filterRailAdjust: root.document.getElementById('catalog-adjust-filters'),
+      filterRailCategory: root.document.getElementById('catalog-filter-rail-category'),
+      filterRailCount: root.document.getElementById('catalog-filter-rail-count'),
+      filterRailUnitButtons: Array.prototype.slice.call(
+        root.document.querySelectorAll('#catalog-filter-rail-units [data-unit]'),
+      ),
+      filterSentinel: root.document.getElementById('catalog-filter-sentinel'),
       favoritesClose: root.document.querySelectorAll('[data-close-favorites]')[0] || null,
       favoritesContent: root.document.getElementById('favorites-content'),
       favoritesDialog: root.document.getElementById('catalog-favorites'),
@@ -323,6 +386,7 @@
       galleryDialog: root.document.getElementById('catalog-gallery'),
       galleryImage: root.document.getElementById('gallery-image'),
       grid: root.document.getElementById('catalog-grid'),
+      header: root.document.querySelectorAll('header')[0] || null,
       loadMore: root.document.getElementById('catalog-load-more'),
       results: root.document.getElementById('catalog-results'),
       search: root.document.getElementById('catalog-search'),
@@ -371,6 +435,13 @@
   function updateFavoriteCount() {
     if (!dom || !dom.favoriteCount || !favorites) return;
     dom.favoriteCount.textContent = String(favorites.items().length);
+  }
+
+  function syncResultSummary(text) {
+    var value = String(text == null ? '' : text);
+    if (dom && dom.count) dom.count.textContent = value;
+    if (dom && dom.filterRailCount) dom.filterRailCount.textContent = value;
+    return value;
   }
 
   function syncFavoriteControls() {
@@ -422,9 +493,9 @@
     wrapper.appendChild(actions);
     dom.grid.appendChild(wrapper);
 
-    dom.count.textContent = kind === 'data-error'
+    syncResultSummary(kind === 'data-error'
       ? 'Catálogo temporariamente indisponível'
-      : 'Nenhuma peça disponível';
+      : 'Nenhuma peça disponível');
     setPhase(kind);
     runtime.resultCount = 0;
     runtime.visibleCount = 0;
@@ -531,10 +602,21 @@
   function syncShellState() {
     if (dom.category) dom.category.value = state.category || '';
     if (dom.search) dom.search.value = state.query || '';
-    dom.unitButtons.forEach(function (button) {
+    dom.unitButtons.concat(dom.filterRailUnitButtons).forEach(function (button) {
       var selected = (button.dataset.unit || null) === state.unit;
       button.setAttribute('aria-pressed', selected ? 'true' : 'false');
     });
+    if (dom.filterRailCategory) {
+      var categoryLabel = 'Todas as categorias';
+      if (state.category && dom.category) {
+        var categoryOption = Array.prototype.find.call(
+          dom.category.children || [],
+          function (option) { return option.value === state.category; },
+        );
+        if (categoryOption) categoryLabel = categoryOption.textContent;
+      }
+      dom.filterRailCategory.textContent = categoryLabel;
+    }
     dom.shortcuts.forEach(function (shortcut) {
       shortcut.setAttribute(
         'aria-pressed',
@@ -693,7 +775,7 @@
         'Escolha outra categoria ou remova um filtro para continuar.',
         false,
       );
-      dom.count.textContent = '0 peças';
+      syncResultSummary('0 peças');
       runtime.page = paging.page;
       return;
     }
@@ -705,9 +787,9 @@
     });
     dom.grid.appendChild(fragment);
     dom.loadMore.hidden = !paging.hasMore;
-    dom.count.textContent = paging.visible < currentDerived.products.length
+    syncResultSummary(paging.visible < currentDerived.products.length
       ? paging.visible + ' visíveis de ' + currentDerived.products.length + ' peças'
-      : currentDerived.products.length + (currentDerived.products.length === 1 ? ' peça' : ' peças');
+      : currentDerived.products.length + (currentDerived.products.length === 1 ? ' peça' : ' peças'));
     setPhase('ready');
     runtime.productCount = products.length;
     runtime.resultCount = currentDerived.products.length;
@@ -777,6 +859,13 @@
     return patchFilters({ category: canonical }, source || 'category');
   }
 
+  function setUnitFilter(rawUnit, source) {
+    if (!state) return false;
+    var canonical = Core.UNIT_IDS.indexOf(rawUnit) > -1 ? rawUnit : null;
+    if (state.unit === canonical) return false;
+    return patchFilters({ unit: canonical }, source || 'unit');
+  }
+
   function trackSearch() {
     if (!state.query) return false;
     var telemetry = Core.buildSearchTelemetry(
@@ -813,8 +902,7 @@
     dom.unitButtons.forEach(function (button) {
       markManual(button);
       button.addEventListener('click', function () {
-        var unit = button.dataset.unit;
-        patchFilters({ unit: Core.UNIT_IDS.indexOf(unit) > -1 ? unit : null }, 'unit');
+        setUnitFilter(button.dataset.unit, 'unit');
       });
     });
     if (dom.search) {
@@ -835,6 +923,53 @@
         }, 180);
       });
     }
+  }
+
+  function prefersReducedMotion() {
+    if (typeof root.matchMedia !== 'function') return false;
+    try {
+      return Boolean(root.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function setupFilterRail() {
+    if (!dom.filterRail) return false;
+    var options = {
+      rail: dom.filterRail,
+      sentinel: dom.filterSentinel,
+      header: dom.header,
+      documentElement: root.document.documentElement,
+    };
+    if (typeof root.IntersectionObserver === 'function') {
+      options.observerFactory = function (callback, observerOptions) {
+        return new root.IntersectionObserver(callback, observerOptions);
+      };
+    }
+    filterRailController = createFilterRailController(options);
+
+    dom.filterRailUnitButtons.forEach(function (button) {
+      markManual(button);
+      button.addEventListener('click', function () {
+        setUnitFilter(button.dataset.unit, 'filter-rail');
+      });
+    });
+    if (dom.filterRailAdjust) {
+      markManual(dom.filterRailAdjust);
+      dom.filterRailAdjust.addEventListener('click', function () {
+        if (dom.filterPanel && typeof dom.filterPanel.scrollIntoView === 'function') {
+          dom.filterPanel.scrollIntoView({
+            block: 'start',
+            behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+          });
+        }
+        if (dom.category && typeof dom.category.focus === 'function') {
+          dom.category.focus({ preventScroll: true });
+        }
+      });
+    }
+    return true;
   }
 
   function setupPaging() {
@@ -1373,11 +1508,15 @@
         renderDerived({ fromPopState: true });
       };
     root.addEventListener('popstate', onPopState);
-    root.addEventListener('pagehide', function () {
+    root.addEventListener('pagehide', function (event) {
       if (searchTimer != null && typeof root.clearTimeout === 'function') root.clearTimeout(searchTimer);
       searchTimer = null;
       savePosition();
       if (scrollLock) scrollLock.unlock({ restoreScroll: false });
+      if ((!event || !event.persisted) && filterRailController) {
+        filterRailController.destroy();
+        filterRailController = null;
+      }
     });
   }
 
@@ -1441,6 +1580,7 @@
     setupPaging();
     readPendingRestore();
     renderDerived();
+    setupFilterRail();
     setupGallery();
     setupFavorites();
     connectNavigationLifecycle();
@@ -1463,6 +1603,7 @@
 
   return {
     classifyData: classifyData,
+    createFilterRailController: createFilterRailController,
     pageWindow: pageWindow,
     createPagingController: createPagingController,
     createRequestMore: createRequestMore,
@@ -1472,5 +1613,6 @@
     gridImageFailurePolicy: gridImageFailurePolicy,
     init: init,
     getSnapshot: getSnapshot,
+    shouldShowFilterRail: shouldShowFilterRail,
   };
 }));
