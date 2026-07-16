@@ -16,7 +16,12 @@ A Prova Virtual deixa de parecer uma página externa. Ela passa a funcionar em u
 
 O fluxo de IA, upload, tamanhos, categorias, resultado, privacidade e Worker permanece funcionalmente igual. A rota `provar.html` continua existindo como ponte de compatibilidade para links antigos, mas encaminha a cliente para a experiência integrada no catálogo.
 
-Esta especificação complementa `2026-07-15-catalogo-hibrido-editorial-design.md` e substitui somente as decisões que mantinham a Prova Virtual obrigatoriamente em uma página separada.
+Esta especificação complementa `2026-07-15-catalogo-hibrido-editorial-design.md` e substitui duas decisões daquele documento:
+
+- a Prova Virtual deixa de ser obrigatoriamente uma página separada;
+- a meta de compactar o painel completo no mobile e colocar a primeira fileira dentro de aproximadamente uma primeira tela deixa de ser critério de aceite. A decisão mais recente do usuário é preservar todos os filtros atuais visíveis, inclusive no mobile, e liberar a grade fazendo o painel rolar no fluxo normal.
+
+As demais decisões e critérios do desenho anterior continuam válidos.
 
 ## 2. Contexto e causa raiz
 
@@ -24,7 +29,7 @@ Esta especificação complementa `2026-07-15-catalogo-hibrido-editorial-design.m
 
 O catálogo renderiza 19 cores e 16 tamanhos. Os 35 controles têm altura mínima de 48 px e quebram em várias linhas. Como `.catalog-tools` está em `position: sticky`, o painel pode ocupar cerca de 536 px enquanto a cliente tenta ver as peças.
 
-O usuário aprovou o formato atual dos filtros e rejeitou esconder cores e tamanhos por padrão. Portanto, a correção não compactará nem reorganizará o painel completo. Ela impedirá que esse painel grande acompanhe a rolagem.
+O usuário aprovou o formato atual dos filtros e rejeitou esconder cores e tamanhos por padrão. Portanto, a correção não compactará nem reorganizará o painel completo em nenhum viewport. Ela impedirá que esse painel grande acompanhe a rolagem. No mobile, aceita-se explicitamente que a primeira fileira possa começar depois da primeira altura de tela; a melhoria aprovada é que, depois de ultrapassado, o painel não volte a ocupar a área das peças.
 
 ### 2.2 Prova Virtual
 
@@ -88,6 +93,8 @@ O painel atual conserva:
 
 Textos, ordem, quantidade, contagens e regras de filtragem permanecem iguais. A mudança principal é remover o comportamento sticky de `.catalog-tools`, colocando o painel no fluxo normal do documento.
 
+No mobile, todos os grupos continuam acessíveis como hoje, sem recolhimento automático. Esta regra tem precedência sobre as metas de compactação e de distância até a primeira fileira definidas no desenho de 15 de julho.
+
 ### 6.2 Barra fina durante a rolagem
 
 Depois que o painel completo ultrapassar o cabeçalho, aparece `.catalog-filter-rail`, fixada logo abaixo da navegação.
@@ -115,15 +122,17 @@ A decisão considera a posição vertical do sentinela para não mostrar a barra
 
 ### 6.4 Sincronização
 
-Os botões compactos de unidade escrevem o mesmo `CatalogState.unit` usado pelos botões principais. `syncShellState()` atualiza ambos os conjuntos, e a contagem da barra fina é atualizada pelo mesmo render que escreve `#catalog-count`.
+Os botões compactos de unidade chamam a mesma ação de filtro usada pelos botões principais e escrevem o mesmo `CatalogState.unit`. Uma troca real de unidade segue integralmente o contrato atual de filtros: reconcilia facetas incompatíveis, redefine `page` para `1`, fecha qualquer produto aberto, atualiza a URL com `replaceState`, renderiza o novo conjunto e emite exatamente um `KL_Filter_Change` com origem identificável como barra compacta. `syncShellState()` atualiza ambos os conjuntos, e a contagem da barra fina é atualizada pelo mesmo render que escreve `#catalog-count`.
 
-Abrir, fechar ou usar a barra fina:
+Mostrar ou ocultar a barra fina e acionar **Ajustar filtros**:
 
 - não altera a URL por si só;
 - não cria um segundo estado de filtros;
-- não dispara evento de mudança de filtro sem mudança real;
+- não dispara evento de mudança de filtro;
 - não desmonta a grade;
 - não perde a posição nem a paginação.
+
+Pressionar uma unidade já ativa não produz commit, histórico, render ou evento. Pressionar uma unidade diferente é uma mudança real de filtro e, por isso, aplica as semânticas do parágrafo anterior. A troca não força rolagem ao topo; a posição vertical do documento permanece, embora a grade e a paginação sejam recalculadas.
 
 ## 7. Decisão 2 - Prova Virtual em diálogo
 
@@ -201,6 +210,10 @@ Regras:
 
 - sem `prova=1`, `p` continua representando a peça aberta na galeria;
 - com `prova=1`, `p` representa a peça selecionada na Prova Virtual;
+- no modo Prova Virtual, `p` é validado contra a base completa de produtos e contra `TRY_ON_CATEGORIES`, independentemente dos filtros ativos na grade. Assim, um vestido elegível continua válido mesmo que `cat`, `un`, `q`, `co` ou `tam` o excluam do conjunto visível do catálogo;
+- um `p` inexistente ou pertencente a uma categoria inelegível é removido com `replaceState`, preservando `prova=1` e todos os filtros do catálogo. O diálogo permanece aberto sem seleção e não converte esse `p` em galeria;
+- selecionar outro vestido dentro da Prova Virtual substitui `p` com `replaceState` na entrada atual, sem criar uma entrada por vestido e sem alterar os filtros da grade;
+- limpar uma seleção remove somente `p` com `replaceState`; filtros internos de busca, categoria ou manequim não alteram a URL e não invalidam uma seleção já feita;
 - `serializeState()` escreve `prova=1` somente quando `tryOn` for verdadeiro;
 - valores diferentes de `1` são ignorados;
 - abrir a Prova Virtual dentro do catálogo usa uma entrada de histórico própria;
@@ -210,6 +223,8 @@ Regras:
 - nenhum termo de busca, nome de arquivo ou dado da foto entra na URL ou no tracking.
 
 Ao abrir a Prova Virtual pela galeria, a nova entrada fica sobre o estado da galeria. Voltar restaura a galeria em vez de saltar diretamente para a grade.
+
+Ao navegar por Voltar ou Avançar, a seleção é sempre reconstruída a partir do `p` validado da entrada restaurada. O `p` da galeria anterior permanece guardado na entrada anterior do histórico e não é sobrescrito por trocas feitas dentro da Prova Virtual.
 
 ## 9. Compatibilidade de `provar.html`
 
@@ -248,6 +263,9 @@ A barra fina nunca fica acima de um diálogo.
 - limite de uso e resposta inválida continuam estados distintos;
 - fechar o diálogo durante uma requisição invalida o ciclo atual;
 - resposta atrasada nunca atualiza um diálogo fechado ou uma nova tentativa;
+- fechar o diálogo cancela logicamente a requisição e limpa imediatamente foto, preview, input de arquivo, resultado, erro e URLs de objeto;
+- cada abertura começa no formulário, com busca e categoria internas reiniciadas e seleção reconstruída exclusivamente do `p` validado; sem `p`, nenhuma seleção anterior reaparece;
+- o manequim informado pode continuar no `localStorage` conforme o comportamento atual, pois não contém a foto nem o resultado;
 - nenhuma foto, base64, nome de arquivo ou conteúdo do resultado entra em logs, URL, Pixel ou eventos;
 - o upload só ocorre depois da ação explícita **Provar em mim**;
 - o Worker e suas regras de CORS não serão alterados neste escopo.
@@ -324,8 +342,11 @@ Arquivos alterados:
 - abertura da Prova Virtual fecha visualmente a galeria sem dois diálogos simultâneos;
 - fechar restaura galeria ou grade conforme a origem;
 - deep-link e `popstate` não escrevem histórico adicional;
+- troca de vestido usa `replaceState`, e `p` inválido ou inelegível é removido sem fechar a Prova Virtual;
+- vestido elegível permanece selecionável mesmo quando não pertence ao conjunto filtrado da grade;
 - filtro de categorias elegíveis;
 - tamanho, busca, seleção e limpeza;
+- fechamento e reabertura não restauram foto, preview, resultado, erro ou seleção ausente da URL;
 - sucesso, erro, limite e resposta atrasada do Worker com mock;
 - CTA global oculto enquanto um diálogo estiver aberto;
 - `provar.html?p=<código>` preserva o código na ponte;
@@ -355,7 +376,7 @@ Arquivos alterados:
 
 O trabalho estará pronto localmente quando:
 
-1. o painel completo mantiver exatamente os filtros e contagens atuais;
+1. o painel completo mantiver exatamente os filtros e contagens atuais em desktop e mobile, sem meta de caber na primeira altura de tela;
 2. o painel completo não permanecer preso durante a navegação pelas peças;
 3. a barra fina aparecer somente depois que o painel completo sair da tela;
 4. menu e **Provar em mim** abrirem o mesmo diálogo no catálogo;
