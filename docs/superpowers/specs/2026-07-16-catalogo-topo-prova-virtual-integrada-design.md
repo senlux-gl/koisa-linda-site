@@ -336,6 +336,7 @@ Arquivos alterados:
 - painel completo não sticky;
 - barra fina oculta no carregamento e visível após o sentinela subir;
 - sincronização dos dois conjuntos de unidade;
+- troca real de unidade pela barra fina redefine a paginação, atualiza a URL e emite exatamente um `KL_Filter_Change`;
 - **Ajustar filtros** devolve foco ao painel;
 - entrada por menu sem produto;
 - entrada por peça com produto pré-selecionado;
