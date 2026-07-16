@@ -171,19 +171,27 @@
         return new Promise(function (resolve) { setTimeout(resolve, milliseconds); });
       };
     var now = typeof options.now === 'function' ? options.now : Date.now;
+    var setTimer = typeof options.setTimer === 'function'
+      ? options.setTimer
+      : function (callback, milliseconds) { return setTimeout(callback, milliseconds); };
+    var clearTimer = typeof options.clearTimer === 'function'
+      ? options.clearTimer
+      : function (timer) { clearTimeout(timer); };
+    var AbortControllerClass = Object.prototype.hasOwnProperty.call(options, 'AbortController')
+      ? options.AbortController
+      : typeof AbortController === 'function' ? AbortController : null;
     var workerUrl = String(options.workerUrl || DEFAULT_WORKER_URL).replace(/\/+$/, '');
     var pollInterval = positiveNumber(options.pollInterval, DEFAULT_POLL_INTERVAL);
     var timeout = positiveNumber(options.timeout, DEFAULT_TIMEOUT);
 
     async function run(input) {
       input = input && typeof input === 'object' ? input : {};
-      var signal = input.signal;
+      var externalSignal = input.signal;
       var checkCurrent = typeof input.isCurrent === 'function' ? input.isCurrent : function () {
         return true;
       };
 
-      function active() {
-        if (signal && signal.aborted) return false;
+      function isCurrent() {
         try {
           return checkCurrent() !== false;
         } catch (error) {
@@ -191,124 +199,244 @@
         }
       }
 
-      async function request(url, requestOptions) {
-        if (!active()) return { kind: 'cancelled' };
-        try {
-          var fetched = await fetchRequest(url, requestOptions);
-          if (!active()) return { kind: 'cancelled' };
-          return { kind: 'response', response: fetched };
-        } catch (error) {
-          if (!active() || isAbort(error, signal)) return { kind: 'cancelled' };
-          return { kind: 'network' };
-        }
-      }
-
-      async function readJson(httpResponse) {
-        if (!active()) return { kind: 'cancelled' };
-        if (!httpResponse || typeof httpResponse.json !== 'function') {
-          return { kind: 'invalid-response' };
-        }
-        try {
-          var data = await httpResponse.json();
-          if (!active()) return { kind: 'cancelled' };
-          return { kind: 'data', data: data };
-        } catch (error) {
-          if (!active() || isAbort(error, signal)) return { kind: 'cancelled' };
-          return { kind: 'invalid-response' };
-        }
-      }
-
-      async function pause() {
-        if (!active()) return { kind: 'cancelled' };
-        try {
-          await wait(pollInterval);
-          if (!active()) return { kind: 'cancelled' };
-          return { kind: 'ready' };
-        } catch (error) {
-          if (!active() || isAbort(error, signal)) return { kind: 'cancelled' };
-          return { kind: 'network' };
-        }
-      }
-
       var garmentUrl = withoutQuery(input.garmentUrl);
       if (!garmentUrl || typeof input.imageBase64 !== 'string' || !input.imageBase64) {
         return STATIC_RESULTS.invalidResponse;
       }
-      if (!active()) return STATIC_RESULTS.cancelled;
-
-      var postOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          garment_url: garmentUrl,
-          image_b64: input.imageBase64,
-        }),
-      };
-      if (signal) postOptions.signal = signal;
-
-      var post = await request(workerUrl + '/tryon', postOptions);
-      if (!active()) return STATIC_RESULTS.cancelled;
-      if (post.kind === 'cancelled') return STATIC_RESULTS.cancelled;
-      if (post.kind === 'network') return STATIC_RESULTS.network;
-      if (!post.response || typeof post.response !== 'object') {
-        return STATIC_RESULTS.invalidResponse;
-      }
-      if (post.response.status === 429) return STATIC_RESULTS.limit;
-      if (!post.response.ok) return STATIC_RESULTS.generationError;
-
-      var postJson = await readJson(post.response);
-      if (!active()) return STATIC_RESULTS.cancelled;
-      if (postJson.kind === 'cancelled') return STATIC_RESULTS.cancelled;
-      if (postJson.kind !== 'data') return STATIC_RESULTS.invalidResponse;
-      var postData = postJson.data;
-      var id = postData && postData.id != null ? String(postData.id).trim() : '';
-      var remaining = postData ? Number(postData.restam_voce) : Number.NaN;
-      if (!id || !Number.isFinite(remaining) || remaining < 0) {
-        return STATIC_RESULTS.invalidResponse;
+      if ((externalSignal && externalSignal.aborted) || !isCurrent()) {
+        return STATIC_RESULTS.cancelled;
       }
 
+      var controller = typeof AbortControllerClass === 'function'
+        ? new AbortControllerClass()
+        : null;
+      var requestSignal = controller && controller.signal ? controller.signal : externalSignal;
       var startedAt = Number(now());
-      while (true) {
-        if (!active()) return STATIC_RESULTS.cancelled;
-        if (Number(now()) - startedAt >= timeout) return STATIC_RESULTS.timeout;
+      var deadlineAt = startedAt + timeout;
+      var timedOut = false;
+      var timerCreated = false;
+      var deadlineTimer;
+      var externalAbortListener = null;
+      var resolveDeadline;
+      var resolveCancellation;
+      var timeoutOutcome = Object.freeze({ kind: 'timeout' });
+      var cancelledOutcome = Object.freeze({ kind: 'cancelled' });
+      var deadlinePromise = new Promise(function (resolve) { resolveDeadline = resolve; });
+      var cancellationPromise = new Promise(function (resolve) { resolveCancellation = resolve; });
 
-        var paused = await pause();
-        if (!active()) return STATIC_RESULTS.cancelled;
-        if (paused.kind === 'cancelled') return STATIC_RESULTS.cancelled;
-        if (paused.kind === 'network') return STATIC_RESULTS.network;
-        if (Number(now()) - startedAt >= timeout) return STATIC_RESULTS.timeout;
+      function abortInternal() {
+        if (controller && controller.signal && !controller.signal.aborted) controller.abort();
+      }
 
-        var statusOptions = signal ? { signal: signal } : undefined;
-        var polled = await request(
-          workerUrl + '/status?id=' + encodeURIComponent(id),
-          statusOptions,
-        );
-        if (!active()) return STATIC_RESULTS.cancelled;
-        if (polled.kind === 'cancelled') return STATIC_RESULTS.cancelled;
-        if (polled.kind === 'network') return STATIC_RESULTS.network;
-        if (!polled.response || typeof polled.response !== 'object') {
+      function expire() {
+        if (timedOut) return;
+        timedOut = true;
+        abortInternal();
+        resolveDeadline(timeoutOutcome);
+      }
+
+      function boundary() {
+        if ((externalSignal && externalSignal.aborted) || !isCurrent()) {
+          abortInternal();
+          return cancelledOutcome;
+        }
+        if (timedOut || Number(now()) >= deadlineAt) {
+          expire();
+          return timeoutOutcome;
+        }
+        return null;
+      }
+
+      async function bounded(promise) {
+        var before = boundary();
+        if (before) return before;
+        var operation = Promise.resolve(promise).then(function (value) {
+          return { kind: 'value', value: value };
+        }, function (error) {
+          return { kind: 'error', error: error };
+        });
+        var outcome = await Promise.race([operation, deadlinePromise, cancellationPromise]);
+        var after = boundary();
+        return after || outcome;
+      }
+
+      async function request(url, requestOptions) {
+        var before = boundary();
+        if (before) return before;
+        var pending;
+        try {
+          pending = fetchRequest(url, requestOptions);
+        } catch (error) {
+          pending = Promise.reject(error);
+        }
+        var outcome = await bounded(pending);
+        var after = boundary();
+        if (after) return after;
+        if (outcome.kind === 'timeout' || outcome.kind === 'cancelled') return outcome;
+        if (outcome.kind === 'error') {
+          return isAbort(outcome.error, requestSignal)
+            ? cancelledOutcome
+            : { kind: 'network' };
+        }
+        return { kind: 'response', response: outcome.value };
+      }
+
+      async function readJson(httpResponse) {
+        var before = boundary();
+        if (before) return before;
+        if (!httpResponse || typeof httpResponse.json !== 'function') {
+          return { kind: 'invalid-response' };
+        }
+        var pending;
+        try {
+          pending = httpResponse.json();
+        } catch (error) {
+          pending = Promise.reject(error);
+        }
+        var outcome = await bounded(pending);
+        var after = boundary();
+        if (after) return after;
+        if (outcome.kind === 'timeout' || outcome.kind === 'cancelled') return outcome;
+        if (outcome.kind === 'error') {
+          return isAbort(outcome.error, requestSignal)
+            ? cancelledOutcome
+            : { kind: 'invalid-response' };
+        }
+        return { kind: 'data', data: outcome.value };
+      }
+
+      async function pause() {
+        var before = boundary();
+        if (before) return before;
+        var pending;
+        try {
+          pending = wait(pollInterval);
+        } catch (error) {
+          pending = Promise.reject(error);
+        }
+        var outcome = await bounded(pending);
+        var after = boundary();
+        if (after) return after;
+        if (outcome.kind === 'timeout' || outcome.kind === 'cancelled') return outcome;
+        return outcome.kind === 'error' ? { kind: 'network' } : { kind: 'ready' };
+      }
+
+      try {
+        deadlineTimer = setTimer(expire, Math.max(0, deadlineAt - Number(now())));
+        timerCreated = true;
+        if (externalSignal && typeof externalSignal.addEventListener === 'function') {
+          externalAbortListener = function () {
+            abortInternal();
+            resolveCancellation(cancelledOutcome);
+          };
+          externalSignal.addEventListener('abort', externalAbortListener, { once: true });
+        }
+
+        var postOptions = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            garment_url: garmentUrl,
+            image_b64: input.imageBase64,
+          }),
+        };
+        if (requestSignal) postOptions.signal = requestSignal;
+
+        var post = await request(workerUrl + '/tryon', postOptions);
+        var checkpoint = boundary();
+        if (checkpoint) return checkpoint.kind === 'timeout'
+          ? STATIC_RESULTS.timeout
+          : STATIC_RESULTS.cancelled;
+        if (post.kind === 'timeout') return STATIC_RESULTS.timeout;
+        if (post.kind === 'cancelled') return STATIC_RESULTS.cancelled;
+        if (post.kind === 'network') return STATIC_RESULTS.network;
+        if (!post.response || typeof post.response !== 'object') {
           return STATIC_RESULTS.invalidResponse;
         }
-        if (polled.response.status === 429) return STATIC_RESULTS.limit;
-        if (!polled.response.ok) return STATIC_RESULTS.generationError;
+        if (post.response.status === 429) return STATIC_RESULTS.limit;
+        if (!post.response.ok) return STATIC_RESULTS.generationError;
 
-        var statusJson = await readJson(polled.response);
-        if (!active()) return STATIC_RESULTS.cancelled;
-        if (statusJson.kind === 'cancelled') return STATIC_RESULTS.cancelled;
-        if (statusJson.kind !== 'data') return STATIC_RESULTS.invalidResponse;
-        var statusData = statusJson.data;
-        var status = statusData && typeof statusData.status === 'string'
-          ? statusData.status.toLowerCase()
-          : '';
+        var postJson = await readJson(post.response);
+        checkpoint = boundary();
+        if (checkpoint) return checkpoint.kind === 'timeout'
+          ? STATIC_RESULTS.timeout
+          : STATIC_RESULTS.cancelled;
+        if (postJson.kind === 'timeout') return STATIC_RESULTS.timeout;
+        if (postJson.kind === 'cancelled') return STATIC_RESULTS.cancelled;
+        if (postJson.kind !== 'data') return STATIC_RESULTS.invalidResponse;
+        var postData = postJson.data;
+        var id = postData && postData.id != null ? String(postData.id).trim() : '';
+        var remaining = postData ? Number(postData.restam_voce) : Number.NaN;
+        if (!id || !Number.isFinite(remaining) || remaining < 0) {
+          return STATIC_RESULTS.invalidResponse;
+        }
 
-        if (status === 'done') {
-          if (typeof statusData.image !== 'string' || !statusData.image.trim()) {
+        while (true) {
+          checkpoint = boundary();
+          if (checkpoint) return checkpoint.kind === 'timeout'
+            ? STATIC_RESULTS.timeout
+            : STATIC_RESULTS.cancelled;
+
+          var paused = await pause();
+          checkpoint = boundary();
+          if (checkpoint) return checkpoint.kind === 'timeout'
+            ? STATIC_RESULTS.timeout
+            : STATIC_RESULTS.cancelled;
+          if (paused.kind === 'timeout') return STATIC_RESULTS.timeout;
+          if (paused.kind === 'cancelled') return STATIC_RESULTS.cancelled;
+          if (paused.kind === 'network') return STATIC_RESULTS.network;
+
+          var statusOptions = requestSignal ? { signal: requestSignal } : undefined;
+          var polled = await request(
+            workerUrl + '/status?id=' + encodeURIComponent(id),
+            statusOptions,
+          );
+          checkpoint = boundary();
+          if (checkpoint) return checkpoint.kind === 'timeout'
+            ? STATIC_RESULTS.timeout
+            : STATIC_RESULTS.cancelled;
+          if (polled.kind === 'timeout') return STATIC_RESULTS.timeout;
+          if (polled.kind === 'cancelled') return STATIC_RESULTS.cancelled;
+          if (polled.kind === 'network') return STATIC_RESULTS.network;
+          if (!polled.response || typeof polled.response !== 'object') {
             return STATIC_RESULTS.invalidResponse;
           }
-          return { kind: 'success', image: statusData.image, remaining: remaining };
+          if (polled.response.status === 429) return STATIC_RESULTS.limit;
+          if (!polled.response.ok) return STATIC_RESULTS.generationError;
+
+          var statusJson = await readJson(polled.response);
+          checkpoint = boundary();
+          if (checkpoint) return checkpoint.kind === 'timeout'
+            ? STATIC_RESULTS.timeout
+            : STATIC_RESULTS.cancelled;
+          if (statusJson.kind === 'timeout') return STATIC_RESULTS.timeout;
+          if (statusJson.kind === 'cancelled') return STATIC_RESULTS.cancelled;
+          if (statusJson.kind !== 'data') return STATIC_RESULTS.invalidResponse;
+          var statusData = statusJson.data;
+          var status = statusData && typeof statusData.status === 'string'
+            ? statusData.status.toLowerCase()
+            : '';
+
+          checkpoint = boundary();
+          if (checkpoint) return checkpoint.kind === 'timeout'
+            ? STATIC_RESULTS.timeout
+            : STATIC_RESULTS.cancelled;
+          if (status === 'done') {
+            if (typeof statusData.image !== 'string' || !statusData.image.trim()) {
+              return STATIC_RESULTS.invalidResponse;
+            }
+            return { kind: 'success', image: statusData.image, remaining: remaining };
+          }
+          if (TERMINAL_ERRORS.indexOf(status) > -1) return STATIC_RESULTS.generationError;
+          if (PENDING_STATUSES.indexOf(status) < 0) return STATIC_RESULTS.invalidResponse;
         }
-        if (TERMINAL_ERRORS.indexOf(status) > -1) return STATIC_RESULTS.generationError;
-        if (PENDING_STATUSES.indexOf(status) < 0) return STATIC_RESULTS.invalidResponse;
+      } finally {
+        if (timerCreated) clearTimer(deadlineTimer);
+        if (
+          externalSignal
+          && externalAbortListener
+          && typeof externalSignal.removeEventListener === 'function'
+        ) externalSignal.removeEventListener('abort', externalAbortListener);
       }
     }
 

@@ -34,6 +34,101 @@ function invalidJsonResponse(message, status = 200) {
   };
 }
 
+function deferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, resolve, reject };
+}
+
+async function flushMicrotasks(count = 24) {
+  for (let index = 0; index < count; index += 1) await Promise.resolve();
+}
+
+function createScheduler(initialTime = 0) {
+  let clock = initialTime;
+  let nextId = 0;
+  const timers = new Map();
+
+  function runDueTimers() {
+    let due = Array.from(timers.entries())
+      .filter(([, timer]) => timer.at <= clock)
+      .sort((left, right) => left[1].at - right[1].at || left[0] - right[0]);
+    while (due.length) {
+      due.forEach(([id, timer]) => {
+        if (!timers.delete(id)) return;
+        timer.callback();
+      });
+      due = Array.from(timers.entries())
+        .filter(([, timer]) => timer.at <= clock)
+        .sort((left, right) => left[1].at - right[1].at || left[0] - right[0]);
+    }
+  }
+
+  return {
+    now: () => clock,
+    setTimer(callback, milliseconds) {
+      nextId += 1;
+      timers.set(nextId, { callback, at: clock + Math.max(0, Number(milliseconds) || 0) });
+      return nextId;
+    },
+    clearTimer(id) { timers.delete(id); },
+    advance(milliseconds) {
+      clock += milliseconds;
+      runDueTimers();
+    },
+    pendingTimers: () => timers.size,
+  };
+}
+
+function createAbortHarness() {
+  const controllers = [];
+
+  class FakeAbortController {
+    constructor() {
+      const listeners = new Set();
+      this.signal = {
+        aborted: false,
+        addEventListener(name, listener) {
+          if (name === 'abort') listeners.add(listener);
+        },
+        removeEventListener(name, listener) {
+          if (name === 'abort') listeners.delete(listener);
+        },
+        listenerCount() { return listeners.size; },
+      };
+      this.abort = () => {
+        if (this.signal.aborted) return;
+        this.signal.aborted = true;
+        Array.from(listeners).forEach((listener) => listener());
+      };
+      controllers.push(this);
+    }
+  }
+
+  return { AbortController: FakeAbortController, controllers };
+}
+
+function workerInput(overrides) {
+  return {
+    garmentUrl: 'https://img.test/dress.jpg?x=TRACKING_VALUE',
+    imageBase64: 'PRIVATE_PHOTO_BYTES',
+    isCurrent: () => true,
+    ...(overrides || {}),
+  };
+}
+
+function workerClient(options) {
+  return TryOn.createWorkerClient({
+    setTimer: () => 1,
+    clearTimer: () => {},
+    ...options,
+  });
+}
+
 test('lista interna usa a base completa, o callback injetado e só categorias elegíveis', () => {
   const visited = [];
   const source = fixtures.slice().reverse();
@@ -164,7 +259,8 @@ test('request guard gera tokens, identifica o atual e invalida respostas antigas
 });
 
 test('Worker faz POST explícito sem query, usa só image_b64 e consulta status a cada 2500 ms', async () => {
-  let clock = 0;
+  const scheduler = createScheduler();
+  const aborts = createAbortHarness();
   const calls = [];
   const waits = [];
   const queued = [
@@ -172,16 +268,19 @@ test('Worker faz POST explícito sem query, usa só image_b64 e consulta status 
     response({ status: 'processing' }),
     response({ status: 'done', image: 'https://img.test/generated.jpg' }),
   ];
-  const client = TryOn.createWorkerClient({
+  const client = workerClient({
     fetch: async (url, options) => {
       calls.push({ url, options });
       return queued.shift();
     },
     wait: async (milliseconds) => {
       waits.push(milliseconds);
-      clock += milliseconds;
+      scheduler.advance(milliseconds);
     },
-    now: () => clock,
+    now: scheduler.now,
+    setTimer: scheduler.setTimer,
+    clearTimer: scheduler.clearTimer,
+    AbortController: aborts.AbortController,
     workerUrl: 'https://worker.test/',
   });
 
@@ -210,11 +309,16 @@ test('Worker faz POST explícito sem query, usa só image_b64 e consulta status 
     image_b64: 'data:image/png;base64,PRIVATE_PHOTO_BYTES',
   });
   assert.equal('image_url' in JSON.parse(calls[0].options.body), false);
+  assert.equal(aborts.controllers.length, 1);
+  assert.equal(calls[0].options.signal, aborts.controllers[0].signal);
+  assert.equal(calls[1].options.signal, aborts.controllers[0].signal);
+  assert.equal(aborts.controllers[0].signal.aborted, false);
+  assert.equal(scheduler.pendingTimers(), 0);
 });
 
 test('Worker retorna limite em 429 sem tentar ler ou expor a resposta', async () => {
   let jsonCalled = false;
-  const client = TryOn.createWorkerClient({
+  const client = workerClient({
     fetch: async () => ({
       ok: false,
       status: 429,
@@ -240,7 +344,7 @@ test('Worker retorna limite em 429 sem tentar ler ou expor a resposta', async ()
 
 test('Worker distingue JSON inválido, forma inválida e erro de geração', async (t) => {
   const runWithResponses = async (responses) => {
-    const client = TryOn.createWorkerClient({
+    const client = workerClient({
       fetch: async () => responses.shift(),
       wait: async () => {},
       now: () => 0,
@@ -294,7 +398,7 @@ test('Worker distingue JSON inválido, forma inválida e erro de geração', asy
 
 test('Worker distingue timeout e falha de rede sem vazar dados da requisição', async () => {
   let clock = 0;
-  const timeoutClient = TryOn.createWorkerClient({
+  const timeoutClient = workerClient({
     fetch: async (url) => url.endsWith('/tryon')
       ? response({ id: 'job', restam_voce: 1 })
       : response({ status: 'processing' }),
@@ -309,7 +413,7 @@ test('Worker distingue timeout e falha de rede sem vazar dados da requisição',
     isCurrent: () => true,
   });
 
-  const networkClient = TryOn.createWorkerClient({
+  const networkClient = workerClient({
     fetch: async () => {
       throw new Error('PRIVATE_PHOTO_BYTES private-photo.jpg https://img.test/dress.jpg?x=TRACKING_VALUE');
     },
@@ -331,9 +435,210 @@ test('Worker distingue timeout e falha de rede sem vazar dados da requisição',
   assert.equal(failures.includes('TRACKING_VALUE'), false);
 });
 
+test('deadline nasce antes do POST, limita promessa pendente e aborta o signal interno', async () => {
+  const scheduler = createScheduler();
+  const aborts = createAbortHarness();
+  const pendingPost = deferred();
+  let requestOptions;
+  const client = workerClient({
+    fetch: async (url, options) => {
+      requestOptions = options;
+      return pendingPost.promise;
+    },
+    wait: async () => {},
+    now: scheduler.now,
+    setTimer: scheduler.setTimer,
+    clearTimer: scheduler.clearTimer,
+    AbortController: aborts.AbortController,
+    workerUrl: 'https://worker.test',
+    timeout: 100,
+  });
+
+  const running = client.run(workerInput());
+  scheduler.advance(100);
+  await flushMicrotasks();
+  const observed = await Promise.race([
+    running,
+    Promise.resolve({ kind: 'still-pending' }),
+  ]);
+
+  assert.deepEqual(observed, { kind: 'timeout' });
+  assert.equal(aborts.controllers.length, 1);
+  assert.equal(requestOptions.signal, aborts.controllers[0].signal);
+  assert.equal(aborts.controllers[0].signal.aborted, true);
+  assert.equal(scheduler.pendingTimers(), 0);
+});
+
+test('POST ou POST.json concluído depois do prazo retorna timeout, nunca sucesso', async (t) => {
+  async function runLate(stage) {
+    const scheduler = createScheduler();
+    const aborts = createAbortHarness();
+    const late = deferred();
+    let fetchCount = 0;
+    const client = workerClient({
+      fetch: async () => {
+        fetchCount += 1;
+        if (fetchCount === 1 && stage === 'fetch') return late.promise;
+        if (fetchCount === 1) {
+          return { ok: true, status: 200, json: () => late.promise };
+        }
+        return response({ status: 'done', image: 'https://img.test/generated.jpg' });
+      },
+      wait: async () => {},
+      now: scheduler.now,
+      setTimer: scheduler.setTimer,
+      clearTimer: scheduler.clearTimer,
+      AbortController: aborts.AbortController,
+      workerUrl: 'https://worker.test',
+      timeout: 100,
+    });
+    const running = client.run(workerInput());
+
+    await flushMicrotasks();
+    scheduler.advance(101);
+    if (stage === 'fetch') late.resolve(response({ id: 'job', restam_voce: 1 }));
+    else late.resolve({ id: 'job', restam_voce: 1 });
+    await flushMicrotasks();
+
+    const result = await running;
+    assert.equal(fetchCount, 1);
+    assert.equal(aborts.controllers[0].signal.aborted, true);
+    assert.equal(scheduler.pendingTimers(), 0);
+    return result;
+  }
+
+  await t.test('POST fetch tardio', async () => {
+    assert.deepEqual(await runLate('fetch'), { kind: 'timeout' });
+  });
+  await t.test('POST json tardio', async () => {
+    assert.deepEqual(await runLate('json'), { kind: 'timeout' });
+  });
+});
+
+test('GET de status ou status.json pendente é limitado pelo mesmo deadline absoluto', async (t) => {
+  async function runLate(stage) {
+    const scheduler = createScheduler();
+    const aborts = createAbortHarness();
+    const late = deferred();
+    let fetchCount = 0;
+    const client = workerClient({
+      fetch: async () => {
+        fetchCount += 1;
+        if (fetchCount === 1) return response({ id: 'job', restam_voce: 1 });
+        if (stage === 'fetch') return late.promise;
+        return { ok: true, status: 200, json: () => late.promise };
+      },
+      wait: async () => {},
+      now: scheduler.now,
+      setTimer: scheduler.setTimer,
+      clearTimer: scheduler.clearTimer,
+      AbortController: aborts.AbortController,
+      workerUrl: 'https://worker.test',
+      timeout: 100,
+    });
+    const running = client.run(workerInput());
+
+    await flushMicrotasks();
+    assert.equal(fetchCount, 2);
+    scheduler.advance(100);
+    if (stage === 'fetch') {
+      late.resolve(response({ status: 'done', image: 'https://img.test/generated.jpg' }));
+    } else {
+      late.resolve({ status: 'done', image: 'https://img.test/generated.jpg' });
+    }
+    await flushMicrotasks();
+
+    const result = await running;
+    assert.equal(aborts.controllers.length, 1);
+    assert.equal(aborts.controllers[0].signal.aborted, true);
+    assert.equal(scheduler.pendingTimers(), 0);
+    return result;
+  }
+
+  await t.test('GET fetch pendente', async () => {
+    assert.deepEqual(await runLate('fetch'), { kind: 'timeout' });
+  });
+  await t.test('GET json pendente e done tardio', async () => {
+    assert.deepEqual(await runLate('json'), { kind: 'timeout' });
+  });
+});
+
+test('espera de polling pendente é limitada e sua rejeição tardia fica absorvida', async () => {
+  const scheduler = createScheduler();
+  const aborts = createAbortHarness();
+  const lateWait = deferred();
+  let fetchCount = 0;
+  const client = workerClient({
+    fetch: async () => {
+      fetchCount += 1;
+      return response({ id: 'job', restam_voce: 1 });
+    },
+    wait: async () => lateWait.promise,
+    now: scheduler.now,
+    setTimer: scheduler.setTimer,
+    clearTimer: scheduler.clearTimer,
+    AbortController: aborts.AbortController,
+    workerUrl: 'https://worker.test',
+    timeout: 100,
+  });
+  const running = client.run(workerInput());
+
+  await flushMicrotasks();
+  assert.equal(fetchCount, 1);
+  scheduler.advance(100);
+  await flushMicrotasks();
+  const result = await running;
+
+  assert.deepEqual(result, { kind: 'timeout' });
+  assert.equal(aborts.controllers[0].signal.aborted, true);
+  assert.equal(scheduler.pendingTimers(), 0);
+  lateWait.reject(new Error('late PRIVATE_PHOTO_BYTES private-photo.jpg'));
+  await flushMicrotasks();
+});
+
+test('timeout consome rejeição tardia sem unhandled rejection nem vazamento', async () => {
+  const scheduler = createScheduler();
+  const aborts = createAbortHarness();
+  const late = deferred();
+  const unhandled = [];
+  const onUnhandled = (reason) => { unhandled.push(reason); };
+  process.on('unhandledRejection', onUnhandled);
+
+  try {
+    const client = workerClient({
+      fetch: async () => late.promise,
+      wait: async () => {},
+      now: scheduler.now,
+      setTimer: scheduler.setTimer,
+      clearTimer: scheduler.clearTimer,
+      AbortController: aborts.AbortController,
+      workerUrl: 'https://worker.test',
+      timeout: 100,
+    });
+    const running = client.run(workerInput());
+
+    scheduler.advance(100);
+    await flushMicrotasks();
+    late.reject(new Error(
+      'PRIVATE_PHOTO_BYTES private-photo.jpg https://img.test/dress.jpg?x=TRACKING_VALUE',
+    ));
+    await flushMicrotasks();
+    const result = await running;
+
+    assert.deepEqual(result, { kind: 'timeout' });
+    assert.deepEqual(unhandled, []);
+    const serialized = JSON.stringify(result);
+    assert.equal(serialized.includes('PRIVATE_PHOTO_BYTES'), false);
+    assert.equal(serialized.includes('private-photo.jpg'), false);
+    assert.equal(serialized.includes('TRACKING_VALUE'), false);
+  } finally {
+    process.removeListener('unhandledRejection', onUnhandled);
+  }
+});
+
 test('guard inválido antes ou após await cancela e resposta tardia nunca é lida', async () => {
   let fetchCalls = 0;
-  const inactiveClient = TryOn.createWorkerClient({
+  const inactiveClient = workerClient({
     fetch: async () => { fetchCalls += 1; return response({}); },
     wait: async () => {},
     now: () => 0,
@@ -350,7 +655,7 @@ test('guard inválido antes ou após await cancela e resposta tardia nunca é li
   let resolveFetch;
   let current = true;
   let jsonCalled = false;
-  const delayedClient = TryOn.createWorkerClient({
+  const delayedClient = workerClient({
     fetch: () => new Promise((resolve) => { resolveFetch = resolve; }),
     wait: async () => {},
     now: () => 0,
@@ -391,7 +696,7 @@ test('invalidação entre o json e a continuação do run ainda cancela o sucess
       },
     },
   ];
-  const client = TryOn.createWorkerClient({
+  const client = workerClient({
     fetch: async () => responses.shift(),
     wait: async () => {},
     now: () => 0,
@@ -415,7 +720,7 @@ test('invalidação entre o json e a continuação do run ainda cancela o sucess
 
 test('AbortSignal e AbortError são cancelamento, não falha de rede', async () => {
   let calls = 0;
-  const client = TryOn.createWorkerClient({
+  const client = workerClient({
     fetch: async () => {
       calls += 1;
       const error = new Error('aborted PRIVATE_PHOTO_BYTES');
@@ -441,6 +746,42 @@ test('AbortSignal e AbortError são cancelamento, não falha de rede', async () 
     isCurrent: () => true,
     signal: { aborted: false },
   }), { kind: 'cancelled' });
+});
+
+test('abort externo cancela operação pendente e limpa timer, listener e rejeição tardia', async () => {
+  const scheduler = createScheduler();
+  const aborts = createAbortHarness();
+  const external = new aborts.AbortController();
+  const late = deferred();
+  let requestOptions;
+  const client = workerClient({
+    fetch: async (url, options) => {
+      requestOptions = options;
+      return late.promise;
+    },
+    wait: async () => {},
+    now: scheduler.now,
+    setTimer: scheduler.setTimer,
+    clearTimer: scheduler.clearTimer,
+    AbortController: aborts.AbortController,
+    workerUrl: 'https://worker.test',
+    timeout: 100,
+  });
+  const running = client.run(workerInput({ signal: external.signal }));
+
+  await flushMicrotasks();
+  assert.equal(aborts.controllers.length, 2);
+  external.abort();
+  await flushMicrotasks();
+  const result = await running;
+
+  assert.deepEqual(result, { kind: 'cancelled' });
+  assert.equal(requestOptions.signal, aborts.controllers[1].signal);
+  assert.equal(aborts.controllers[1].signal.aborted, true);
+  assert.equal(external.signal.listenerCount(), 0);
+  assert.equal(scheduler.pendingTimers(), 0);
+  late.reject(new Error('late PRIVATE_PHOTO_BYTES private-photo.jpg'));
+  await flushMicrotasks();
 });
 
 test('UMD publica API exata mínima sem tocar document, storage ou fetch globais', () => {
