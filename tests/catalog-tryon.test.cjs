@@ -741,6 +741,36 @@ test('open/close invalidam awaits, abortam e limpam todo estado sensível', asyn
   assert.equal(harness.elements.error.hidden, true);
 });
 
+test('cancelamento corrente volta ao form e preserva seleção e foto para nova tentativa', async () => {
+  let workerRuns = 0;
+  const harness = createControllerHarness({
+    workerClient: {
+      async run() {
+        workerRuns += 1;
+        return { kind: 'cancelled' };
+      },
+    },
+  });
+  const file = { name: 'private-photo.jpg' };
+  harness.controller.open('NV-001');
+  choosePhoto(harness, file);
+
+  await submitTryOn(harness);
+
+  assert.equal(workerRuns, 1);
+  assert.deepEqual(harness.readFiles, [file]);
+  assert.equal(harness.controller.getSnapshot().phase, 'form');
+  assert.equal(harness.controller.getSnapshot().selectedCode, 'NV-001');
+  assert.equal(harness.elements.form.hidden, false);
+  assert.equal(harness.elements.loading.hidden, true);
+  assert.equal(harness.elements.result.hidden, true);
+  assert.equal(harness.elements.error.hidden, true);
+  assert.equal(harness.elements.preview.hidden, false);
+  assert.equal(harness.elements.previewImage.src, 'blob:preview-1');
+  assert.equal(harness.elements.submit.disabled, false);
+  assert.deepEqual(harness.selections, []);
+});
+
 test('cancelled tardio não sobrescreve nova abertura e todo await exige dialog aberto', async () => {
   const pendingWorker = deferred();
   const harness = createControllerHarness({
@@ -753,13 +783,17 @@ test('cancelled tardio não sobrescreve nova abertura e todo await exige dialog 
 
   harness.controller.open('DB-010');
   assert.equal(harness.aborts.controllers[0].signal.aborted, true);
-  pendingWorker.resolve({
-    kind: 'success',
-    image: 'https://img.test/late-result.jpg?raw=PRIVATE_PHOTO_BYTES',
-    remaining: 9,
-  });
+  assert.equal(harness.controller.getSnapshot().phase, 'form');
+  assert.equal(harness.elements.form.hidden, false);
+  assert.equal(harness.elements.loading.hidden, true);
+  assert.equal(harness.elements.preview.hidden, true);
+  pendingWorker.resolve({ kind: 'cancelled' });
   await flushMicrotasks();
   assert.equal(harness.controller.getSnapshot().selectedCode, 'DB-010');
+  assert.equal(harness.controller.getSnapshot().phase, 'form');
+  assert.equal(harness.elements.form.hidden, false);
+  assert.equal(harness.elements.loading.hidden, true);
+  assert.equal(harness.elements.preview.hidden, true);
   assert.equal(harness.elements.result.hidden, true);
   assert.equal(harness.elements.resultImage.src, '');
 

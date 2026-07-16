@@ -864,7 +864,11 @@
       }
       if (!currentRequest(token)) return false;
       activeController = null;
-      if (!result || result.kind === 'cancelled') return false;
+      if (!result) return false;
+      if (result.kind === 'cancelled') {
+        showPhase('form');
+        return false;
+      }
       if (result.kind === 'success') {
         if (typeof result.image !== 'string' || !result.image.trim()) {
           showError('invalid-response', product);
