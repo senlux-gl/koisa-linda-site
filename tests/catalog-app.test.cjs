@@ -137,6 +137,62 @@ function mountBrowser({
   return { browser, app: browser.window.KLCatalog.App };
 }
 
+function createLocalLayerHistory(url, initialState) {
+  function clone(value) {
+    return value == null ? value : JSON.parse(JSON.stringify(value));
+  }
+
+  const entries = [{ url, state: clone(initialState == null ? null : initialState) }];
+  const operations = [];
+  let index = 0;
+
+  return {
+    get state() {
+      return clone(entries[index].state);
+    },
+    pushState(nextState, _title, nextUrl) {
+      entries.splice(index + 1);
+      entries.push({ url: nextUrl, state: clone(nextState) });
+      index += 1;
+      operations.push({ type: 'push', url: nextUrl, state: clone(nextState) });
+    },
+    replaceState(nextState, _title, nextUrl) {
+      entries[index] = { url: nextUrl, state: clone(nextState) };
+      operations.push({ type: 'replace', url: nextUrl, state: clone(nextState) });
+    },
+    back() {
+      if (index > 0) index -= 1;
+      operations.push({ type: 'back' });
+    },
+    snapshot() {
+      return {
+        entries: clone(entries),
+        index,
+        operations: clone(operations),
+      };
+    },
+  };
+}
+
+function createLocalDialogDependencies() {
+  const classes = new Set();
+  const calls = [];
+  return {
+    body: {
+      classList: {
+        add: name => classes.add(name),
+        remove: name => classes.delete(name),
+        contains: name => classes.has(name),
+      },
+    },
+    scrollLock: {
+      lock() { calls.push({ type: 'lock' }); },
+      unlock(options) { calls.push({ type: 'unlock', options }); },
+    },
+    calls,
+  };
+}
+
 test('distingue loading, erro de fonte, schema inválido, vazio e sucesso', () => {
   assert.equal(App.classifyData(undefined, Core.validateProducts, 'loading'), 'loading');
   assert.equal(App.classifyData(undefined, Core.validateProducts), 'data-error');
@@ -228,6 +284,172 @@ test('createRequestMore usa somente state externo para observer, manual e fim', 
   assert.equal(requestMore.snapshot, undefined);
 });
 
+test('camadas de grid, galeria e prova criam entradas reversíveis sem duplicar seleção', () => {
+  const history = createLocalLayerHistory('/catalogo.html', { analytics: { source: 'catalog' } });
+  const controller = App.createLayerHistoryController(history, { initialLayer: null });
+
+  assert.equal(controller.currentLayer(), null);
+  assert.equal(controller.currentOrigin(), null);
+  assert.equal(history.snapshot().entries.length, 1);
+  controller.openLayer('gallery', '/catalogo.html?p=NV-001', 'grid');
+  assert.deepEqual(history.state.klCatalog, { layer: 'gallery', origin: 'grid' });
+  controller.openLayer('tryOn', '/catalogo.html?prova=1&p=NV-001', 'gallery');
+  assert.deepEqual(history.state.klCatalog, { layer: 'tryOn', origin: 'gallery' });
+  controller.replaceCurrent('/catalogo.html?prova=1&p=NV-002');
+
+  const snapshot = history.snapshot();
+  assert.equal(snapshot.entries.length, 3);
+  assert.deepEqual(snapshot.operations.map(operation => operation.type), ['push', 'push', 'replace']);
+  assert.deepEqual(snapshot.entries[2].state, {
+    analytics: { source: 'catalog' },
+    klCatalog: { layer: 'tryOn', origin: 'gallery' },
+  });
+  assert.equal(controller.currentLayer(), 'tryOn');
+  assert.equal(controller.currentOrigin(), 'gallery');
+
+  assert.equal(controller.requestClose('tryOn', '/catalogo.html?p=NV-001'), 'back');
+  const afterBack = history.snapshot();
+  assert.equal(afterBack.index, 1);
+  assert.equal(afterBack.operations.at(-1).type, 'back');
+
+  const beforePop = afterBack.operations.length;
+  controller.onPopState(history.state);
+  assert.equal(history.snapshot().operations.length, beforePop);
+  assert.equal(controller.currentLayer(), 'gallery');
+  assert.equal(controller.currentOrigin(), 'grid');
+  assert.equal(controller.requestClose('gallery', '/catalogo.html'), 'back');
+  assert.equal(history.snapshot().index, 0);
+});
+
+test('deep-link sem ownership fecha por replace e preserva state alheio', () => {
+  const history = createLocalLayerHistory('/catalogo.html?prova=1&p=NV-001', {
+    router: { key: 'kept' },
+  });
+  const controller = App.createLayerHistoryController(history, { initialLayer: 'tryOn' });
+
+  assert.equal(controller.currentLayer(), 'tryOn');
+  assert.equal(controller.currentOrigin(), null);
+  assert.equal(controller.requestClose('tryOn', '/catalogo.html'), 'replace');
+  assert.equal(history.snapshot().entries.length, 1);
+  assert.deepEqual(history.snapshot().entries[0], {
+    url: '/catalogo.html',
+    state: { router: { key: 'kept' } },
+  });
+});
+
+test('controller recriado trata marcador restaurado como deep-link não possuído', () => {
+  const history = createLocalLayerHistory('/catalogo.html');
+  const firstController = App.createLayerHistoryController(history, { initialLayer: null });
+  firstController.openLayer('gallery', '/catalogo.html?p=NV-001', 'grid');
+
+  const reloadedController = App.createLayerHistoryController(history, { initialLayer: 'gallery' });
+  assert.equal(reloadedController.currentLayer(), 'gallery');
+  assert.equal(reloadedController.currentOrigin(), 'grid');
+  assert.equal(reloadedController.requestClose('gallery', '/catalogo.html'), 'replace');
+  assert.equal(history.snapshot().index, 1, 'reload nunca consome a entrada anterior com back');
+  assert.equal(history.snapshot().operations.at(-1).type, 'replace');
+});
+
+test('replaceCurrent preserva history.state e nunca cria ownership', () => {
+  const initialState = {
+    router: { key: 'deep-link' },
+    klCatalog: { layer: 'gallery', origin: 'grid' },
+  };
+  const history = createLocalLayerHistory('/catalogo.html?p=NV-001', initialState);
+  const controller = App.createLayerHistoryController(history, { initialLayer: 'gallery' });
+
+  controller.replaceCurrent('/catalogo.html?p=NV-002');
+  assert.deepEqual(history.state, initialState);
+  assert.equal(history.snapshot().entries.length, 1);
+  assert.equal(controller.requestClose('gallery', '/catalogo.html'), 'replace');
+});
+
+test('popstate só lê marcador válido e state inválido limpa a camada', () => {
+  const history = createLocalLayerHistory('/catalogo.html');
+  const controller = App.createLayerHistoryController(history, { initialLayer: null });
+  controller.openLayer('gallery', '/catalogo.html?p=NV-001', 'grid');
+  const before = history.snapshot().operations.length;
+
+  controller.onPopState({ klCatalog: { layer: 'tryOn', origin: 'menu' } });
+  assert.equal(controller.currentLayer(), 'tryOn');
+  assert.equal(controller.currentOrigin(), 'menu');
+  controller.onPopState({ klCatalog: { layer: 'favorites', origin: 'menu' } });
+  assert.equal(controller.currentLayer(), null);
+  assert.equal(controller.currentOrigin(), null);
+  controller.onPopState({ klCatalog: { layer: 'gallery', origin: 'invalid' } });
+  assert.equal(controller.currentLayer(), null);
+  assert.equal(controller.currentOrigin(), null);
+  controller.onPopState(null);
+  assert.equal(history.snapshot().operations.length, before);
+});
+
+test('controller de camadas rejeita adapter, layer e origin inválidos com TypeError claro', () => {
+  assert.throws(
+    () => App.createLayerHistoryController({}, { initialLayer: null }),
+    error => error instanceof TypeError && /history adapter is incomplete/.test(error.message),
+  );
+  assert.throws(
+    () => App.createLayerHistoryController({
+      pushState() {}, replaceState() {}, back() {},
+    }, { initialLayer: null }),
+    error => error instanceof TypeError && /history adapter is incomplete/.test(error.message),
+  );
+  const history = createLocalLayerHistory('/catalogo.html');
+  assert.throws(
+    () => App.createLayerHistoryController(history, { initialLayer: 'favorites' }),
+    error => error instanceof TypeError && /layer must be gallery or tryOn/.test(error.message),
+  );
+  const controller = App.createLayerHistoryController(history, { initialLayer: null });
+  assert.throws(
+    () => controller.openLayer('favorites', '/catalogo.html', 'menu'),
+    error => error instanceof TypeError && /layer must be gallery or tryOn/.test(error.message),
+  );
+  assert.throws(
+    () => controller.openLayer('gallery', '/catalogo.html', 'favorites'),
+    error => error instanceof TypeError && /origin must be grid, menu or gallery/.test(error.message),
+  );
+});
+
+test('dialog shell mantém um lock entre camadas e limpa uma única vez', () => {
+  const dependencies = createLocalDialogDependencies();
+  const shell = App.createDialogShell(dependencies);
+
+  assert.equal(shell.current(), null);
+  assert.equal(shell.activate('gallery'), true);
+  assert.equal(dependencies.body.classList.contains('kl-dialog-open'), true);
+  assert.deepEqual(dependencies.calls, [{ type: 'lock' }]);
+  assert.equal(shell.activate('tryOn'), true);
+  assert.equal(shell.activate('favorites'), true);
+  assert.equal(shell.current(), 'favorites');
+  assert.deepEqual(dependencies.calls, [{ type: 'lock' }]);
+
+  assert.equal(shell.clear(), true);
+  assert.equal(shell.current(), null);
+  assert.equal(dependencies.body.classList.contains('kl-dialog-open'), false);
+  assert.deepEqual(dependencies.calls, [
+    { type: 'lock' },
+    { type: 'unlock', options: { restoreScroll: true } },
+  ]);
+  assert.equal(shell.clear(), false);
+  assert.equal(dependencies.calls.length, 2);
+});
+
+test('dialog shell permite limpar sem restaurar scroll e não usa DOM global', () => {
+  const dependencies = createLocalDialogDependencies();
+  const shell = App.createDialogShell(dependencies);
+  shell.activate('tryOn');
+
+  assert.equal(shell.clear({ restoreScroll: false }), true);
+  assert.deepEqual(dependencies.calls.at(-1), {
+    type: 'unlock',
+    options: { restoreScroll: false },
+  });
+  assert.throws(
+    () => App.createDialogShell({ body: dependencies.body }),
+    error => error instanceof TypeError && /dialog shell dependencies are incomplete/.test(error.message),
+  );
+});
+
 test('grid usa push, troca usa replace e popstate nunca escreve', () => {
   const history = createHistory('/catalogo.html?un=sf');
   const controller = App.createHistoryController(history);
@@ -296,7 +518,9 @@ test('erro da miniatura vira placeholder e nunca pede a original', () => {
 test('UMD mantém o subset público obrigatório e agenda init uma única vez', () => {
   const required = [
     'classifyData',
+    'createDialogShell',
     'createFilterRailController',
+    'createLayerHistoryController',
     'createPagingController',
     'createRequestMore',
     'getSnapshot',

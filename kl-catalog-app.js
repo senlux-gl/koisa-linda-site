@@ -83,6 +83,186 @@
     return node;
   }
 
+  function createLayerHistoryController(history, options) {
+    options = options || {};
+    if (!history || (typeof history !== 'object' && typeof history !== 'function')
+        || !('state' in history) || typeof history.pushState !== 'function'
+        || typeof history.replaceState !== 'function' || typeof history.back !== 'function') {
+      throw new TypeError('history adapter is incomplete');
+    }
+
+    var layers = ['gallery', 'tryOn'];
+    var origins = ['grid', 'menu', 'gallery'];
+    var initialLayer = options.initialLayer == null ? null : options.initialLayer;
+    if (initialLayer !== null && layers.indexOf(initialLayer) === -1) {
+      throw new TypeError('layer must be gallery or tryOn');
+    }
+
+    function readState() {
+      try {
+        return history.state;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function readMarker(historyState) {
+      try {
+        var marker = historyState && historyState.klCatalog;
+        if (!marker || layers.indexOf(marker.layer) === -1
+            || origins.indexOf(marker.origin) === -1) return null;
+        return { layer: marker.layer, origin: marker.origin };
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function assertLayer(layer) {
+      if (layers.indexOf(layer) === -1) {
+        throw new TypeError('layer must be gallery or tryOn');
+      }
+    }
+
+    function assertOrigin(origin) {
+      if (origins.indexOf(origin) === -1) {
+        throw new TypeError('origin must be grid, menu or gallery');
+      }
+    }
+
+    function markerState(layer, origin) {
+      var existing = readState();
+      var next = existing && typeof existing === 'object' && !Array.isArray(existing)
+        ? Object.assign({}, existing) : {};
+      next.klCatalog = { layer: layer, origin: origin };
+      return next;
+    }
+
+    function cleanState() {
+      var existing = readState();
+      if (!existing || typeof existing !== 'object' || Array.isArray(existing)) return existing;
+      var next = Object.assign({}, existing);
+      delete next.klCatalog;
+      return next;
+    }
+
+    function sameMarker(left, right) {
+      return Boolean(left && right && left.layer === right.layer && left.origin === right.origin);
+    }
+
+    var initialMarker = readMarker(readState());
+    var currentLayer = initialLayer;
+    var currentOrigin = initialMarker && initialMarker.layer === initialLayer
+      ? initialMarker.origin : null;
+    var ownedEntries = [];
+    var ownedIndex = -1;
+    var pendingBackIndex = null;
+
+    return {
+      openLayer: function (layer, url, origin) {
+        assertLayer(layer);
+        assertOrigin(origin);
+        if (ownedIndex < 0) ownedEntries = [];
+        else ownedEntries.splice(ownedIndex + 1);
+        var marker = { layer: layer, origin: origin };
+        history.pushState(markerState(layer, origin), '', url);
+        ownedEntries.push(marker);
+        ownedIndex = ownedEntries.length - 1;
+        pendingBackIndex = null;
+        currentLayer = layer;
+        currentOrigin = origin;
+      },
+      replaceCurrent: function (url) {
+        history.replaceState(readState(), '', url);
+      },
+      requestClose: function (layer, cleanUrl) {
+        assertLayer(layer);
+        var currentMarker = { layer: currentLayer, origin: currentOrigin };
+        var owned = layer === currentLayer && ownedIndex >= 0
+          && sameMarker(ownedEntries[ownedIndex], currentMarker);
+        if (owned) {
+          pendingBackIndex = ownedIndex - 1;
+          history.back();
+          return 'back';
+        }
+        history.replaceState(cleanState(), '', cleanUrl);
+        currentLayer = null;
+        currentOrigin = null;
+        ownedIndex = -1;
+        pendingBackIndex = null;
+        return 'replace';
+      },
+      onPopState: function (historyState) {
+        var marker = readMarker(historyState);
+        currentLayer = marker ? marker.layer : null;
+        currentOrigin = marker ? marker.origin : null;
+        if (!marker) {
+          ownedIndex = -1;
+          pendingBackIndex = null;
+          return;
+        }
+
+        if (pendingBackIndex !== null) {
+          ownedIndex = pendingBackIndex >= 0
+            && sameMarker(ownedEntries[pendingBackIndex], marker) ? pendingBackIndex : -1;
+          pendingBackIndex = null;
+          return;
+        }
+
+        var match = -1;
+        for (var index = ownedEntries.length - 1; index >= 0; index -= 1) {
+          if (sameMarker(ownedEntries[index], marker)) {
+            match = index;
+            break;
+          }
+        }
+        ownedIndex = match;
+      },
+      currentLayer: function () {
+        return currentLayer;
+      },
+      currentOrigin: function () {
+        return currentOrigin;
+      },
+    };
+  }
+
+  function createDialogShell(options) {
+    if (!options || !options.body || !options.body.classList
+        || typeof options.body.classList.add !== 'function'
+        || typeof options.body.classList.remove !== 'function'
+        || !options.scrollLock || typeof options.scrollLock.lock !== 'function'
+        || typeof options.scrollLock.unlock !== 'function') {
+      throw new TypeError('dialog shell dependencies are incomplete');
+    }
+    var active = null;
+
+    return {
+      activate: function (name) {
+        if (typeof name !== 'string' || !name.trim()) {
+          throw new TypeError('dialog name is required');
+        }
+        if (active === name) return false;
+        if (active === null) {
+          options.body.classList.add('kl-dialog-open');
+          options.scrollLock.lock();
+        }
+        active = name;
+        return true;
+      },
+      clear: function (clearOptions) {
+        if (active === null) return false;
+        var restoreScroll = !clearOptions || clearOptions.restoreScroll !== false;
+        active = null;
+        options.body.classList.remove('kl-dialog-open');
+        options.scrollLock.unlock({ restoreScroll: restoreScroll });
+        return true;
+      },
+      current: function () {
+        return active;
+      },
+    };
+  }
+
   function classifyData(raw, validate, phase) {
     if (phase === 'loading') return 'loading';
     if (!Array.isArray(raw)) return 'data-error';
@@ -1603,7 +1783,9 @@
 
   return {
     classifyData: classifyData,
+    createDialogShell: createDialogShell,
     createFilterRailController: createFilterRailController,
+    createLayerHistoryController: createLayerHistoryController,
     pageWindow: pageWindow,
     createPagingController: createPagingController,
     createRequestMore: createRequestMore,
