@@ -441,12 +441,22 @@ function createControllerHarness(overrides) {
   };
 }
 
-function dressCards(harness) {
+function dressItems(harness) {
   return harness.elements.dresses.children;
+}
+
+function dressCards(harness) {
+  return dressItems(harness).map(item => item.children[0]);
 }
 
 function cardFor(harness, code) {
   return dressCards(harness).find(card => card.dataset.code === code);
+}
+
+function itemFor(harness, code) {
+  return dressItems(harness).find(item => (
+    item.children[0] && item.children[0].dataset.code === code
+  ));
 }
 
 function choosePhoto(harness, file) {
@@ -526,7 +536,8 @@ test('seleção, limpeza e update sincronizam uma vez sem apagar filtros interno
   assert.deepEqual(harness.selections, ['NV-002']);
   assert.equal(harness.controller.getSnapshot().selectedCode, 'NV-002');
   const selectedCard = cardFor(harness, 'NV-002');
-  assert.equal(selectedCard.getAttribute('role'), 'listitem');
+  assert.equal(itemFor(harness, 'NV-002').getAttribute('role'), 'listitem');
+  assert.equal(selectedCard.getAttribute('role'), null);
   assert.equal(selectedCard.getAttribute('type'), 'button');
   assert.equal(selectedCard.getAttribute('aria-pressed'), 'true');
   assert.equal(selectedCard.children[0].tagName, 'IMG');
@@ -551,6 +562,28 @@ test('seleção, limpeza e update sincronizam uma vez sem apagar filtros interno
   assert.equal(harness.elements.search.value, '');
   assert.equal(harness.elements.categoryButtons[0].getAttribute('aria-pressed'), 'true');
   assert.equal(harness.elements.sizeButtons[2].getAttribute('aria-pressed'), 'true');
+});
+
+test('cada item da lista envolve um button nativo interativo com estado pressionado', () => {
+  const harness = createControllerHarness();
+  harness.controller.open('NV-001');
+
+  const item = itemFor(harness, 'NV-001');
+  const button = cardFor(harness, 'NV-001');
+  assert.ok(item, 'wrapper do item precisa existir');
+  assert.ok(button, 'button do item precisa existir');
+  assert.equal(item.tagName, 'DIV');
+  assert.equal(item.getAttribute('role'), 'listitem');
+  assert.equal(button.tagName, 'BUTTON');
+  assert.equal(button.getAttribute('role'), null);
+  assert.equal(button.getAttribute('type'), 'button');
+  assert.equal(button.getAttribute('aria-pressed'), 'true');
+  assert.equal(button.children[0].tagName, 'IMG');
+  assert.equal(button.children[1].className, 'tryon-dress-copy');
+
+  cardFor(harness, 'NV-002').click();
+  assert.deepEqual(harness.selections, ['NV-002']);
+  assert.equal(cardFor(harness, 'NV-002').getAttribute('aria-pressed'), 'true');
 });
 
 test('busca, categoria, manequim e lotes filtram sem mutar base nem disparar efeitos privados', () => {
@@ -697,6 +730,48 @@ test('resultados do Worker têm mensagens distintas, seguras e saída por WhatsA
     assert.equal(harness.elements.error.hidden, true, outcome.kind);
   }
   assert.equal(new Set(messages).size, outcomes.length);
+});
+
+test('resposta corrente ausente ou sem kind vira invalid-response e nunca prende loading', async () => {
+  for (const malformed of [null, {}]) {
+    const harness = createControllerHarness({
+      workerClient: { async run() { return malformed; } },
+    });
+    harness.controller.open('NV-001');
+    choosePhoto(harness, { name: 'private-photo.jpg' });
+
+    await submitTryOn(harness);
+
+    assert.equal(harness.controller.getSnapshot().phase, 'error');
+    assert.equal(harness.elements.loading.hidden, true);
+    assert.equal(harness.elements.result.hidden, true);
+    assert.equal(harness.elements.error.hidden, false);
+    assert.match(harness.elements.errorMessage.textContent, /resposta inesperada/i);
+    assert.match(harness.elements.errorWhatsapp.href, /^wa:BARRA-CONTACT:/);
+  }
+});
+
+test('resposta null stale não altera a nova abertura', async () => {
+  const pendingWorker = deferred();
+  const harness = createControllerHarness({
+    workerClient: { run: () => pendingWorker.promise },
+  });
+  harness.controller.open('NV-001');
+  choosePhoto(harness, { name: 'private-photo.jpg' });
+  harness.elements.form.dispatchEvent({ type: 'submit' });
+  await flushMicrotasks();
+
+  harness.controller.open('DB-010');
+  pendingWorker.resolve(null);
+  await flushMicrotasks();
+
+  assert.equal(harness.controller.getSnapshot().selectedCode, 'DB-010');
+  assert.equal(harness.controller.getSnapshot().phase, 'form');
+  assert.equal(harness.elements.form.hidden, false);
+  assert.equal(harness.elements.loading.hidden, true);
+  assert.equal(harness.elements.preview.hidden, true);
+  assert.equal(harness.elements.result.hidden, true);
+  assert.equal(harness.elements.error.hidden, true);
 });
 
 test('open/close invalidam awaits, abortam e limpam todo estado sensível', async () => {

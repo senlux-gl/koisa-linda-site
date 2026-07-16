@@ -704,10 +704,11 @@
       visibleCount = visible.length;
       visible.forEach(function (product) {
         var code = normalizeCode(product.k);
+        var item = documentRef.createElement('div');
+        item.setAttribute('role', 'listitem');
         var card = documentRef.createElement('button');
         card.type = 'button';
         card.setAttribute('type', 'button');
-        card.setAttribute('role', 'listitem');
         card.setAttribute('data-code', code);
         card.setAttribute('aria-pressed', code === selectedCode ? 'true' : 'false');
         card.setAttribute('data-selected', code === selectedCode ? 'true' : 'false');
@@ -762,7 +763,8 @@
           renderCards();
           onSelectionChange(code);
         }, renderListeners);
-        elements.dresses.appendChild(card);
+        item.appendChild(card);
+        elements.dresses.appendChild(item);
       });
       elements.noResults.hidden = matching.length !== 0;
       elements.more.hidden = visible.length >= matching.length;
@@ -864,7 +866,15 @@
       }
       if (!currentRequest(token)) return false;
       activeController = null;
-      if (!result) return false;
+      if (
+        !result
+        || typeof result !== 'object'
+        || typeof result.kind !== 'string'
+        || !result.kind
+      ) {
+        showError('invalid-response', product);
+        return false;
+      }
       if (result.kind === 'cancelled') {
         showPhase('form');
         return false;
