@@ -148,7 +148,8 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 .lojas-duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;max-width:940px;margin:34px auto 0}
 .loja-card{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;padding-bottom:26px;text-align:center}
 .loja-card img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block}
-.loja-card h3{font-family:var(--serif);font-size:26px;color:var(--ink);margin:20px 16px 6px}
+.loja-card h3{font-family:var(--serif);font-size:26px;color:var(--ink);margin:20px 16px 4px}
+.loja-card .city{font-family:var(--sans);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin:0 16px 12px}
 .loja-card p{font-family:var(--body);font-size:16.5px;color:#5f534b;line-height:1.55;margin:0 16px 18px}
 .loja-card .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;padding:0 16px}
 @media(max-width:760px){.lojas-duo{grid-template-columns:1fr;max-width:440px}}
@@ -375,14 +376,16 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
   <div class="lojas-duo">
     <div class="loja-card">
       <img loading="lazy" src="img/loja-sf.webp" alt="Fachada da loja Koisa Linda Sao Francisco, Niteroi">
-      <h3>São Francisco · Niterói</h3>
+      <h3>Koisa Linda · São Francisco</h3>
+      <div class="city">Niterói · Matriz</div>
       <p>Av. Presidente Roosevelt, 37<br>seg a sex 9h–18h · sáb 9h–14h</p>
       <div class="acts"><a class="btn-pri" href="https://wa.me/5521970858787?text=Ol%C3%A1!%20Quero%20agendar%20uma%20visita%20na%20unidade%20S%C3%A3o%20Francisco" target="_blank">WhatsApp</a><a class="btn-out" href="https://maps.google.com/?q=Koisa+Linda+S%C3%A3o+Francisco+Niter%C3%B3i" target="_blank" rel="noopener">Ver no mapa</a></div>
     </div>
     <div class="loja-card">
       <img loading="lazy" src="img/loja-barra.webp" alt="Fachada da loja Koisa Linda na Barra, Shopping Downtown">
-      <h3>Barra · Downtown</h3>
-      <p>Av. das Américas, 500 — Bloco 8, Loja 130<br>seg a sáb 9h–19h</p>
+      <h3>Koisa Linda · Barra da Tijuca</h3>
+      <div class="city">Shopping Downtown · Bloco 8, Loja 130</div>
+      <p>Av. das Américas, 500<br>seg a sáb 9h–19h</p>
       <div class="acts"><a class="btn-pri" href="https://wa.me/5521966475383?text=Ol%C3%A1!%20Quero%20agendar%20uma%20visita%20na%20unidade%20Barra" target="_blank">WhatsApp</a><a class="btn-out" href="como-chegar.html">Como chegar em vídeo</a></div>
     </div>
   </div>
@@ -396,7 +399,7 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
   </div>
   <div class="band-sec"><a href="unidades.html">Ver endereços e horários</a></div>
 </div>
-<footer><img class="fimg" src="img/logo-kl-footer.png" alt="KL"><div class="fbrand">KOISA LINDA</div><div class="fphrase">Unindo famílias. Realizando sonhos.</div><div class="funits"><span>São Francisco</span><span>Barra da Tijuca</span></div><div class="fsoc"><a href="https://www.instagram.com/koisalinda_oficial/" target="_blank">Instagram</a><a href="https://www.facebook.com/koisalindaoficial/" target="_blank">Facebook</a><a href="https://www.tiktok.com/@koisalindaoficial" target="_blank">TikTok</a><a href="https://br.pinterest.com/koisalinda_oficial/" target="_blank">Pinterest</a></div><small>Costuramos sonhos desde 1994.<br>CNPJ 02.504.054/0001-10 · © 2026 Koisa Linda</small></footer><script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script><script id="kl-motion-js">
+<footer><img class="fimg" src="img/logo-kl-footer.png" alt="KL"><div class="fbrand">KOISA LINDA</div><div class="fphrase">Unindo famílias. Realizando sonhos.</div><div class="funits"><span>São Francisco</span><span>Barra da Tijuca</span></div><div class="fsoc"><a href="https://www.instagram.com/koisalinda_oficial/" target="_blank">Instagram</a><a href="https://www.facebook.com/koisalindaoficial/" target="_blank">Facebook</a><a href="https://www.tiktok.com/@koisalindaoficial" target="_blank">TikTok</a><a href="https://br.pinterest.com/koisalinda_oficial/" target="_blank">Pinterest</a></div><small>Costuramos sonhos desde 1994.<br>CNPJ 02.504.054/0001-10 · © 2026 Koisa Linda</small></footer><script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script><script id="kl-motion-js">
 (function(){
  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
  /* header shrink (sempre) */
@@ -423,13 +426,6 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 
   if(window.gsap&&window.ScrollTrigger){
    gsap.registerPlugin(ScrollTrigger);
-   /* smooth scroll premium (desktop) */
-   if(window.Lenis&&desk){
-    var lenis=new Lenis({lerp:.11,smoothWheel:true});
-    lenis.on('scroll',ScrollTrigger.update);
-    gsap.ticker.add(function(t){lenis.raf(t*1000);});
-    gsap.ticker.lagSmoothing(0);
-   }
    var dur=desk?1:.75,dist=desk?36:22;
    function rev(sel,vars){gsap.utils.toArray(sel).forEach(function(el){
     gsap.from(el,Object.assign({y:dist,opacity:0,duration:dur,ease:'power3.out',
@@ -452,12 +448,6 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
    rev('.split .tryon-duo',{x:desk?-30:0,y:desk?0:dist});
    rev('.split .tx',{x:desk?30:0,y:desk?0:dist});
    rev('.band h2');rev('.band p');rev('.band-cta');
-   /* parallax sutil (desktop) */
-   if(desk){
-    gsap.utils.toArray('.loja-card img').forEach(function(im){
-     gsap.set(im,{height:'112%',yPercent:-6});
-     gsap.to(im,{yPercent:0,ease:'none',scrollTrigger:{trigger:im.closest('.loja-card'),start:'top bottom',end:'bottom top',scrub:true}});});
-   }
   }else{
    /* fallback: reveals leves via IntersectionObserver (sistema anterior) */
    if(!desk)return;
