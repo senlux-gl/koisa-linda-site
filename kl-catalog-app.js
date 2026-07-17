@@ -44,6 +44,7 @@
   var galleryOriginCode = '';
   var historyController = null;
   var scrollLock = null;
+  var dialogShell = null;
   var pagingController = null;
   var filterRailController = null;
   var requestMoreHandler = null;
@@ -1290,6 +1291,28 @@
     };
   }
 
+  function setupDialogInfrastructure() {
+    if (!root.history || typeof root.history.pushState !== 'function'
+        || typeof root.history.replaceState !== 'function'
+        || typeof root.history.back !== 'function'
+        || typeof root.getComputedStyle !== 'function'
+        || !root.document.body || !root.document.documentElement) return false;
+    scrollLock = createScrollLock({
+      window: root,
+      body: root.document.body,
+      documentElement: root.document.documentElement,
+      getComputedStyle: root.getComputedStyle.bind(root),
+    });
+    dialogShell = createDialogShell({
+      body: root.document.body,
+      scrollLock: scrollLock,
+    });
+    historyController = createLayerHistoryController(root.history, {
+      initialLayer: state && state.openProduct && !state.tryOn ? 'gallery' : null,
+    });
+    return true;
+  }
+
   function productForCode(code) {
     var normalized = String(code || '').trim().toUpperCase();
     return galleryProducts.find(function (product) {
@@ -1319,30 +1342,47 @@
   }
 
   function syncGallery(code) {
-    if (!gallery || !gallery.isReady()) return;
+    if (!gallery || !gallery.isReady() || !dialogShell) return;
     if (code) {
-      scrollLock.lock();
-      gallery.open(code);
+      if (dialogShell.current() !== null && dialogShell.current() !== 'gallery') return;
+      var normalized = String(code || '').trim().toUpperCase();
+      if (!galleryOriginCode) galleryOriginCode = normalized;
+      try {
+        dialogShell.activate('gallery');
+        if (!gallery.open(normalized)) throw new Error('gallery refused product');
+      } catch (error) {
+        try { gallery.close(); } catch (closeError) { /* noop */ }
+        if (dialogShell.current() === 'gallery') dialogShell.clear();
+      }
       return;
     }
+    if (dialogShell.current() !== 'gallery') return;
     gallery.close();
-    scrollLock.unlock();
+    dialogShell.clear();
     restoreGalleryFocus();
   }
 
   function openFromGrid(code, origin) {
-    if (!gallery || !gallery.isReady() || !productForCode(code)) return false;
+    if (!gallery || !gallery.isReady() || !dialogShell || !historyController
+        || dialogShell.current() !== null || !productForCode(code)) return false;
     galleryOrigin = origin || null;
     galleryOriginCode = String(code || '').trim().toUpperCase();
     var next = cloneState(Object.assign({}, state, { openProduct: galleryOriginCode }));
-    historyController.openFromGrid(urlFor(next));
+    var clean = cloneState(Object.assign({}, state, { openProduct: null }));
+    historyController.openLayer('gallery', urlFor(next), 'grid');
     state = next;
-    scrollLock.lock();
     try {
+      dialogShell.activate('gallery');
       if (!gallery.open(galleryOriginCode)) throw new Error('gallery refused product');
     } catch (error) {
-      scrollLock.unlock();
-      historyController.requestClose(urlFor(Object.assign({}, state, { openProduct: null })));
+      try { gallery.close(); } catch (closeError) { /* noop */ }
+      if (dialogShell.current() === 'gallery') dialogShell.clear();
+      historyController.requestClose('gallery', urlFor(clean));
+      state = clean;
+      if (currentDerived) currentDerived.state = state;
+      galleryOrigin = null;
+      galleryOriginCode = '';
+      dispatchCatalogState();
       return false;
     }
     dispatchCatalogState();
@@ -1354,7 +1394,9 @@
 
   function replaceGalleryProduct(code) {
     var product = productForCode(code);
-    if (!product || !gallery || !gallery.isReady()) return false;
+    if (!product || !gallery || !gallery.isReady() || !dialogShell
+        || dialogShell.current() !== 'gallery' || !historyController
+        || historyController.currentLayer() !== 'gallery') return false;
     var previousIndex = galleryProducts.findIndex(function (item) {
       return item.k === state.openProduct;
     });
@@ -1367,7 +1409,7 @@
       navigationSource = nextIndex < previousIndex ? 'previous' : 'next';
     }
     state = cloneState(Object.assign({}, state, { openProduct: product.k }));
-    historyController.replaceProduct(urlFor(state));
+    historyController.replaceCurrent(urlFor(state));
     gallery.update(product.k);
     dispatchCatalogState();
     trackCatalog('KL_Product_Navigate', catalogContext(navigationSource, {
@@ -1377,16 +1419,17 @@
   }
 
   function requestGalleryClose() {
-    if (!historyController || !state) return false;
+    if (!historyController || !dialogShell || !state
+        || dialogShell.current() !== 'gallery') return false;
     var closingCode = String(state.openProduct || galleryOriginCode || '').trim().toUpperCase();
     if (!galleryOriginCode) galleryOriginCode = closingCode;
     var next = cloneState(Object.assign({}, state, { openProduct: null }));
-    var action = historyController.requestClose(urlFor(next));
+    var action = historyController.requestClose('gallery', urlFor(next));
     if (action === 'replace') {
       state = next;
       if (currentDerived) currentDerived.state = state;
       gallery.close();
-      scrollLock.unlock();
+      if (dialogShell.current() === 'gallery') dialogShell.clear();
       restoreGalleryFocus();
       dispatchCatalogState();
     }
@@ -1547,11 +1590,21 @@
   function setupFavorites() {
     if (!dom.favoritesDialog || !dom.favoritesContent || !dom.favoritesOpen
         || !dom.favoritesClose || typeof dom.favoritesDialog.showModal !== 'function'
-        || typeof dom.favoritesDialog.close !== 'function') return false;
+        || typeof dom.favoritesDialog.close !== 'function' || !dialogShell) return false;
     markManual(dom.favoritesOpen);
     dom.favoritesOpen.addEventListener('click', function () {
+      if (dialogShell.current() !== null || dom.favoritesDialog.open) return;
       renderFavorites();
-      if (!dom.favoritesDialog.open) dom.favoritesDialog.showModal();
+      try {
+        dialogShell.activate('favorites');
+        dom.favoritesDialog.showModal();
+      } catch (error) {
+        try {
+          if (dom.favoritesDialog.open) dom.favoritesDialog.close();
+        } catch (closeError) { /* noop */ }
+        if (dialogShell.current() === 'favorites') dialogShell.clear();
+        return;
+      }
       trackCatalog('KL_Favorites_View', catalogContext('favorites', {
         favoriteCount: favorites.items().length,
       }));
@@ -1565,6 +1618,8 @@
       if (event.target === dom.favoritesDialog) closeFavoritesDialog();
     });
     dom.favoritesDialog.addEventListener('close', function () {
+      if (dialogShell.current() !== 'favorites') return;
+      dialogShell.clear();
       if (dom.favoritesOpen && typeof dom.favoritesOpen.focus === 'function') {
         dom.favoritesOpen.focus({ preventScroll: true });
       }
@@ -1574,19 +1629,7 @@
 
   function setupGallery() {
     if (!Gallery || typeof Gallery.create !== 'function' || !dom.galleryDialog || !dom.galleryImage
-        || !root.history || typeof root.history.pushState !== 'function'
-        || typeof root.history.back !== 'function' || typeof root.getComputedStyle !== 'function'
-        || !root.document.body || !root.document.documentElement) return false;
-    historyController = createHistoryController(
-      galleryHistoryAdapter(),
-      { initialDeepLink: Boolean(state.openProduct) },
-    );
-    scrollLock = createScrollLock({
-      window: root,
-      body: root.document.body,
-      documentElement: root.document.documentElement,
-      getComputedStyle: root.getComputedStyle.bind(root),
-    });
+        || !historyController || !dialogShell) return false;
     var galleryFavorite = dom.galleryDialog.querySelector('#gallery-favorite');
     var galleryWhatsapp = dom.galleryDialog.querySelector('#gallery-whatsapp');
     var galleryTryOn = dom.galleryDialog.querySelector('#gallery-try-on');
@@ -1643,16 +1686,25 @@
       event.preventDefault();
       openFromGrid(code, anchor);
     });
-    if (state.openProduct) {
-      scrollLock.lock();
+    if (state.openProduct && !state.tryOn) {
+      galleryOriginCode = String(state.openProduct || '').trim().toUpperCase();
       try {
-        if (gallery.open(state.openProduct)) {
-          trackCatalog('KL_Product_Open', catalogContext('deep-link', {
-            productCode: state.openProduct,
-          }));
-        }
+        dialogShell.activate('gallery');
+        if (!gallery.open(state.openProduct)) throw new Error('gallery refused product');
+        trackCatalog('KL_Product_Open', catalogContext('deep-link', {
+          productCode: state.openProduct,
+        }));
+      } catch (error) {
+        var clean = cloneState(Object.assign({}, state, { openProduct: null }));
+        try { gallery.close(); } catch (closeError) { /* noop */ }
+        if (dialogShell.current() === 'gallery') dialogShell.clear();
+        historyController.requestClose('gallery', urlFor(clean));
+        state = clean;
+        if (currentDerived) currentDerived.state = state;
+        galleryOrigin = null;
+        galleryOriginCode = '';
+        dispatchCatalogState();
       }
-      catch (error) { scrollLock.unlock(); }
     }
     return true;
   }
@@ -1694,7 +1746,7 @@
       if (searchTimer != null && typeof root.clearTimeout === 'function') root.clearTimeout(searchTimer);
       searchTimer = null;
       savePosition();
-      if (scrollLock) scrollLock.unlock({ restoreScroll: false });
+      if (dialogShell) dialogShell.clear({ restoreScroll: false });
       if ((!event || !event.persisted) && filterRailController) {
         filterRailController.destroy();
         filterRailController = null;
@@ -1763,6 +1815,7 @@
     readPendingRestore();
     renderDerived();
     setupFilterRail();
+    setupDialogInfrastructure();
     setupGallery();
     setupFavorites();
     connectNavigationLifecycle();

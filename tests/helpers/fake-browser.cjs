@@ -137,6 +137,12 @@ class FakeEventTarget {
     this._listeners.set(key, listeners);
   }
 
+  removeEventListener(type, callback) {
+    const key = String(type);
+    const listeners = this._listeners.get(key) || [];
+    this._listeners.set(key, listeners.filter(record => record.callback !== callback));
+  }
+
   dispatchEvent(input) {
     const event = typeof input === 'string' ? { type: input } : input;
     const type = event && String(event.type || '');
@@ -201,6 +207,18 @@ class FakeElement extends FakeEventTarget {
     };
     this.focusOptions = undefined;
     this.scrollIntoViewCalls = [];
+    if (this.tagName === 'DIALOG') {
+      this.open = false;
+      this.showModal = () => {
+        if (this.open) throw new Error('dialog already open');
+        this.open = true;
+      };
+      this.close = () => {
+        if (!this.open) return;
+        this.open = false;
+        this.dispatchEvent({ type: 'close' });
+      };
+    }
     this.classList = {
       add: (...tokens) => {
         const next = new Set(classTokens(this));
@@ -217,6 +235,12 @@ class FakeElement extends FakeEventTarget {
 
   get children() {
     return this.childNodes.filter(node => node && node.nodeType === 1);
+  }
+
+  get isConnected() {
+    let node = this;
+    while (node && node.parentNode) node = node.parentNode;
+    return Boolean(this.ownerDocument && node === this.ownerDocument.documentElement);
   }
 
   get firstChild() {
@@ -276,6 +300,10 @@ class FakeElement extends FakeEventTarget {
 
   querySelectorAll(selector) {
     return querySelectorAllFrom(this, selector);
+  }
+
+  querySelector(selector) {
+    return this.querySelectorAll(selector)[0] || null;
   }
 
   getBoundingClientRect() {
@@ -434,6 +462,22 @@ function createFakeCatalogBrowser(options) {
   loadMore.hidden = true;
   const sentinel = add('div', 'catalog-sentinel', results);
 
+  let galleryDialog = null;
+  let galleryImage = null;
+  let favoritesDialog = null;
+  let favoritesContent = null;
+  let favoritesOpen = null;
+  let favoritesClose = null;
+  if (options.dialogs) {
+    favoritesOpen = add('button', 'catalog-open-favorites', filterPanel);
+    galleryDialog = add('dialog', 'catalog-gallery');
+    galleryImage = add('img', 'gallery-image', galleryDialog);
+    favoritesDialog = add('dialog', 'catalog-favorites');
+    favoritesClose = add('button', '', favoritesDialog);
+    favoritesClose.setAttribute('data-close-favorites', '');
+    favoritesContent = add('div', 'favorites-content', favoritesDialog);
+  }
+
   const location = {
     pathname: options.pathname || '/catalogo.html',
     search: options.search || '',
@@ -442,18 +486,44 @@ function createFakeCatalogBrowser(options) {
     reload() { this.reloadCount += 1; },
   };
   const historyOperations = [];
+  const initialUrl = location.pathname + location.search + location.hash;
+  const historyEntries = [{
+    state: cloneValue(options.historyState == null ? null : options.historyState),
+    url: initialUrl,
+  }];
+  let historyIndex = 0;
+
+  function applyUrl(url) {
+    const stringUrl = String(url);
+    const match = stringUrl.match(/^([^?#]*)(\?[^#]*)?(#.*)?$/);
+    if (match) {
+      location.pathname = match[1] || location.pathname;
+      location.search = match[2] || '';
+      location.hash = match[3] || '';
+    }
+    return stringUrl;
+  }
+
   const history = {
-    state: null,
+    get state() {
+      return cloneValue(historyEntries[historyIndex].state);
+    },
+    pushState(state, _title, url) {
+      const stringUrl = applyUrl(url);
+      historyEntries.splice(historyIndex + 1);
+      historyEntries.push({ state: cloneValue(state), url: stringUrl });
+      historyIndex += 1;
+      historyOperations.push({ type: 'push', state: cloneValue(state), url: stringUrl });
+    },
     replaceState(state, _title, url) {
-      const stringUrl = String(url);
-      this.state = state;
-      historyOperations.push({ type: 'replace', state, url: stringUrl });
-      const match = stringUrl.match(/^([^?#]*)(\?[^#]*)?(#.*)?$/);
-      if (match) {
-        location.pathname = match[1] || location.pathname;
-        location.search = match[2] || '';
-        location.hash = match[3] || '';
-      }
+      const stringUrl = applyUrl(url);
+      historyEntries[historyIndex] = { state: cloneValue(state), url: stringUrl };
+      historyOperations.push({ type: 'replace', state: cloneValue(state), url: stringUrl });
+    },
+    back() {
+      historyOperations.push({ type: 'back' });
+      if (historyIndex > 0) historyIndex -= 1;
+      applyUrl(historyEntries[historyIndex].url);
     },
   };
   const marks = [];
@@ -468,6 +538,9 @@ function createFakeCatalogBrowser(options) {
     performance: { mark: name => marks.push(String(name)) },
     URLSearchParams,
   };
+  sandbox.innerWidth = Number(options.innerWidth || 1200);
+  document.documentElement.clientWidth = Number(options.clientWidth || 1180);
+  sandbox.getComputedStyle = node => ({ paddingRight: node.style.paddingRight || '0px' });
   if (options.intersectionObserver !== false) {
     sandbox.IntersectionObserver = function IntersectionObserver(callback, observerOptions) {
       const observer = {
@@ -503,12 +576,23 @@ function createFakeCatalogBrowser(options) {
     document,
     findAll: (root, predicate) => findAll(root, predicate),
     historyOperations,
+    historySnapshot() {
+      return {
+        entries: cloneValue(historyEntries),
+        index: historyIndex,
+        operations: cloneValue(historyOperations),
+      };
+    },
     marks,
     nodes: Object.assign(nodes, {
       app,
       category,
       count,
       favoriteCount,
+      favoritesClose,
+      favoritesContent,
+      favoritesDialog,
+      favoritesOpen,
       filterPanel,
       filterRail,
       filterRailAdjust,
@@ -518,6 +602,8 @@ function createFakeCatalogBrowser(options) {
       filterRailUnits,
       filterSentinel,
       grid,
+      galleryDialog,
+      galleryImage,
       header,
       loadMore,
       results,

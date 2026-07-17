@@ -108,7 +108,7 @@ function enhanceBrowser(browser, { sessionSeed, scrollY } = {}) {
   browser.scrollCalls = [];
   window.scrollTo = (...args) => browser.scrollCalls.push(args);
   browser.sessionStorage = sessionStorage;
-  browser.dispatchWindow = type => window.dispatchEvent({ type });
+  browser.dispatchWindow = (type, init) => window.dispatchEvent(Object.assign({ type }, init || {}));
 }
 
 function mountBrowser({
@@ -122,6 +122,9 @@ function mountBrowser({
   headerHeight,
   intersectionObserver,
   prefersReducedMotion,
+  dialogs,
+  gallery,
+  historyState,
 }) {
   const browser = createFakeCatalogBrowser({
     search,
@@ -129,12 +132,75 @@ function mountBrowser({
     headerHeight,
     intersectionObserver,
     prefersReducedMotion,
+    dialogs,
+    historyState,
   });
   enhanceBrowser(browser, { sessionSeed, scrollY });
-  browser.window.KLCatalog = { Core: core || Core, Actions: actions || Actions };
+  browser.window.KLCatalog = {
+    Core: core || Core,
+    Actions: actions || Actions,
+    Gallery: gallery || undefined,
+  };
   browser.window.KL_DATA = raw;
   vm.runInNewContext(APP_SOURCE, browser.window, { filename: 'kl-catalog-app.js' });
   return { browser, app: browser.window.KLCatalog.App };
+}
+
+function createGalleryDouble(options) {
+  options = options || {};
+  const calls = [];
+  let callbacks = null;
+  let activeCode = '';
+  let controller = null;
+
+  const Gallery = {
+    shouldInterceptProductLink(event, ready) {
+      return Boolean(
+        ready && event && !event.defaultPrevented && event.button === 0
+        && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey,
+      );
+    },
+    focusReturnTarget(origin, fallback, title) {
+      return [origin, fallback, title].find(node => node && node.isConnected) || null;
+    },
+    create(nextCallbacks) {
+      callbacks = nextCallbacks;
+      controller = {
+        isReady: () => options.ready !== false,
+        open(code) {
+          calls.push({ type: 'open', code });
+          activeCode = String(code || '');
+          if (options.openDialogBeforeFailure && !nextCallbacks.dialog.open) {
+            nextCallbacks.dialog.showModal();
+          }
+          if (options.throwOnOpen) throw new Error('gallery open failed');
+          if (options.openResult === false) return false;
+          if (!nextCallbacks.dialog.open) nextCallbacks.dialog.showModal();
+          return true;
+        },
+        update(code) {
+          calls.push({ type: 'update', code });
+          activeCode = String(code || '');
+          return true;
+        },
+        close() {
+          calls.push({ type: 'close', code: activeCode });
+          if (nextCallbacks.dialog.open) nextCallbacks.dialog.close();
+          activeCode = '';
+          return true;
+        },
+        destroy: () => true,
+      };
+      return controller;
+    },
+  };
+
+  return {
+    Gallery,
+    calls,
+    callbacks: () => callbacks,
+    controller: () => controller,
+  };
 }
 
 function createLocalLayerHistory(url, initialState) {
@@ -659,6 +725,258 @@ test('controller do rail usa fallback 71, inicia oculto e desconecta seu observe
   assert.strictEqual(records[0].observed, browser.nodes.filterSentinel);
   controller.destroy();
   assert.equal(records[0].disconnected, true);
+});
+
+test('galeria da grade usa layer history, um shell e fecha somente após popstate', () => {
+  const gallery = createGalleryDouble();
+  const { browser } = mountBrowser({
+    raw: fixtures,
+    search: '?un=barra',
+    dialogs: true,
+    gallery: gallery.Gallery,
+    scrollY: 360,
+  });
+  browser.triggerDOMContentLoaded();
+  const origin = browser.nodes.grid.children[0].children[0];
+  let prevented = false;
+
+  browser.nodes.grid.dispatchEvent({
+    type: 'click',
+    target: origin,
+    button: 0,
+    metaKey: false,
+    ctrlKey: false,
+    shiftKey: false,
+    altKey: false,
+    defaultPrevented: false,
+    preventDefault() { prevented = true; this.defaultPrevented = true; },
+  });
+
+  assert.equal(prevented, true);
+  assert.equal(browser.nodes.galleryDialog.open, true);
+  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), true);
+  assert.equal(browser.document.body.style.position, 'fixed');
+  assert.deepEqual(browser.window.history.state.klCatalog, { layer: 'gallery', origin: 'grid' });
+  assert.equal(browser.historySnapshot().entries.length, 2);
+
+  const nextCode = browser.nodes.grid.children[1].dataset.code;
+  gallery.callbacks().onNavigate(nextCode);
+  assert.equal(browser.historySnapshot().entries.length, 2);
+  assert.equal(browser.historyOperations.at(-1).type, 'replace');
+  assert.deepEqual(browser.window.history.state.klCatalog, { layer: 'gallery', origin: 'grid' });
+  assert.match(browser.window.location.search, new RegExp(`p=${nextCode}`));
+
+  assert.equal(gallery.callbacks().onRequestClose(), 'back');
+  assert.equal(browser.historyOperations.at(-1).type, 'back');
+  assert.equal(browser.nodes.galleryDialog.open, true, 'back aguarda o popstate para reconciliar');
+  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), true);
+  assert.equal(browser.scrollCalls.length, 0);
+
+  browser.dispatchWindow('popstate', { state: browser.window.history.state });
+  assert.equal(browser.nodes.galleryDialog.open, false);
+  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), false);
+  assert.equal(browser.document.body.style.position, '');
+  assert.deepEqual(browser.scrollCalls, [[0, 360]]);
+  assert.equal(browser.document.activeElement && browser.document.activeElement.parentNode.dataset.code, origin.parentNode.dataset.code);
+});
+
+test('deep-link de galeria fecha por replace preservando filtros e state alheio', () => {
+  const gallery = createGalleryDouble();
+  const product = fixtures.find(item => item.c === 'vestidos-noiva');
+  const { browser } = mountBrowser({
+    raw: fixtures,
+    search: `?cat=${product.c}&un=${product.un}&p=${product.k}`,
+    dialogs: true,
+    gallery: gallery.Gallery,
+    historyState: {
+      router: { key: 'kept' },
+      klCatalog: { layer: 'gallery', origin: 'grid' },
+    },
+  });
+  browser.triggerDOMContentLoaded();
+
+  assert.equal(browser.nodes.galleryDialog.open, true);
+  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), true);
+  gallery.callbacks().onRequestClose();
+
+  assert.equal(browser.historyOperations.at(-1).type, 'replace');
+  assert.equal(browser.historySnapshot().entries.length, 1);
+  assert.match(browser.window.location.search, new RegExp(`cat=${product.c}`));
+  assert.match(browser.window.location.search, new RegExp(`un=${product.un}`));
+  assert.doesNotMatch(browser.window.location.search, /(?:^|[?&])p=/);
+  assert.deepEqual(browser.window.history.state, { router: { key: 'kept' } });
+  assert.equal(browser.nodes.galleryDialog.open, false);
+  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), false);
+});
+
+test('URL da prova não inicializa galeria e popstate inativo não rouba foco', () => {
+  const gallery = createGalleryDouble();
+  const product = fixtures.find(item => item.c === 'vestidos-noiva');
+  const { browser } = mountBrowser({
+    raw: fixtures,
+    search: `?prova=1&p=${product.k}`,
+    dialogs: true,
+    gallery: gallery.Gallery,
+  });
+  browser.triggerDOMContentLoaded();
+  assert.equal(gallery.calls.filter(call => call.type === 'open').length, 0);
+
+  const inactiveGallery = createGalleryDouble();
+  const inactive = mountBrowser({
+    raw: fixtures,
+    dialogs: true,
+    gallery: inactiveGallery.Gallery,
+  }).browser;
+  inactive.triggerDOMContentLoaded();
+  inactive.nodes.search.focus();
+  inactive.dispatchWindow('popstate', { state: inactive.window.history.state });
+  assert.equal(inactive.document.activeElement === inactive.nodes.search, true);
+});
+
+test('favoritos usam shell sem depender da galeria e todas as saídas restauram foco', () => {
+  ['button', 'cancel', 'backdrop'].forEach((exit) => {
+    const { browser } = mountBrowser({ raw: fixtures, dialogs: true, scrollY: 240 });
+    browser.triggerDOMContentLoaded();
+    const historyBefore = browser.historyOperations.length;
+    browser.nodes.favoritesOpen.click();
+
+    assert.equal(browser.nodes.favoritesDialog.open, true, exit);
+    assert.equal(browser.document.body.classList.contains('kl-dialog-open'), true, exit);
+    assert.equal(browser.document.body.style.position, 'fixed', exit);
+
+    if (exit === 'button') browser.nodes.favoritesClose.click();
+    if (exit === 'cancel') {
+      browser.nodes.favoritesDialog.dispatchEvent({
+        type: 'cancel',
+        preventDefault() { this.defaultPrevented = true; },
+      });
+    }
+    if (exit === 'backdrop') {
+      browser.nodes.favoritesDialog.dispatchEvent({
+        type: 'click',
+        target: browser.nodes.favoritesDialog,
+      });
+    }
+
+    assert.equal(browser.nodes.favoritesDialog.open, false, exit);
+    assert.equal(browser.document.body.classList.contains('kl-dialog-open'), false, exit);
+    assert.equal(browser.document.body.style.position, '', exit);
+    assert.deepEqual(browser.scrollCalls, [[0, 240]], exit);
+    assert.equal(browser.document.activeElement === browser.nodes.favoritesOpen, true, exit);
+    assert.equal(browser.historyOperations.length, historyBefore, exit);
+  });
+});
+
+test('favoritos recusam segunda camada e close atrasado não limpa galeria ativa', () => {
+  const gallery = createGalleryDouble();
+  const { browser } = mountBrowser({
+    raw: fixtures,
+    dialogs: true,
+    gallery: gallery.Gallery,
+  });
+  browser.triggerDOMContentLoaded();
+  const origin = browser.nodes.grid.children[0].children[0];
+  browser.nodes.grid.dispatchEvent({
+    type: 'click', target: origin, button: 0, defaultPrevented: false,
+    metaKey: false, ctrlKey: false, shiftKey: false, altKey: false,
+    preventDefault() { this.defaultPrevented = true; },
+  });
+
+  browser.nodes.favoritesOpen.click();
+  assert.equal(browser.nodes.galleryDialog.open, true);
+  assert.equal(browser.nodes.favoritesDialog.open, false);
+
+  browser.nodes.favoritesDialog.dispatchEvent({ type: 'close' });
+  assert.equal(browser.nodes.galleryDialog.open, true);
+  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), true);
+  assert.equal(browser.document.body.style.position, 'fixed');
+});
+
+test('falha ao abrir galeria faz rollback do dialog, shell e entrada local', () => {
+  [
+    { openResult: false },
+    { throwOnOpen: true, openDialogBeforeFailure: true },
+  ].forEach((behavior) => {
+    const gallery = createGalleryDouble(behavior);
+    const { browser } = mountBrowser({
+      raw: fixtures,
+      dialogs: true,
+      gallery: gallery.Gallery,
+      scrollY: 180,
+    });
+    browser.triggerDOMContentLoaded();
+    const origin = browser.nodes.grid.children[0].children[0];
+
+    assert.doesNotThrow(() => browser.nodes.grid.dispatchEvent({
+      type: 'click', target: origin, button: 0, defaultPrevented: false,
+      metaKey: false, ctrlKey: false, shiftKey: false, altKey: false,
+      preventDefault() { this.defaultPrevented = true; },
+    }));
+
+    assert.equal(browser.historyOperations.at(-1).type, 'back');
+    assert.equal(browser.nodes.galleryDialog.open, false);
+    assert.equal(browser.document.body.classList.contains('kl-dialog-open'), false);
+    assert.equal(browser.document.body.style.position, '');
+    assert.deepEqual(browser.scrollCalls, [[0, 180]]);
+  });
+});
+
+test('falha de showModal dos favoritos reverte shell e mantém a página utilizável', () => {
+  const { browser } = mountBrowser({ raw: fixtures, dialogs: true, scrollY: 90 });
+  browser.nodes.favoritesDialog.showModal = () => { throw new Error('showModal failed'); };
+  browser.triggerDOMContentLoaded();
+
+  assert.doesNotThrow(() => browser.nodes.favoritesOpen.click());
+  assert.equal(browser.nodes.favoritesDialog.open, false);
+  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), false);
+  assert.equal(browser.document.body.style.position, '');
+  assert.deepEqual(browser.scrollCalls, [[0, 90]]);
+});
+
+test('clique modificado mantém navegação nativa sem history ou shell', () => {
+  const gallery = createGalleryDouble();
+  const { browser } = mountBrowser({
+    raw: fixtures,
+    dialogs: true,
+    gallery: gallery.Gallery,
+  });
+  browser.triggerDOMContentLoaded();
+  const origin = browser.nodes.grid.children[0].children[0];
+  let prevented = false;
+  const historyBefore = browser.historyOperations.length;
+
+  browser.nodes.grid.dispatchEvent({
+    type: 'click', target: origin, button: 0, defaultPrevented: false,
+    metaKey: false, ctrlKey: true, shiftKey: false, altKey: false,
+    preventDefault() { prevented = true; },
+  });
+
+  assert.equal(prevented, false);
+  assert.equal(browser.nodes.galleryDialog.open, false);
+  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), false);
+  assert.equal(browser.historyOperations.length, historyBefore);
+});
+
+test('pagehide limpa o shell sem restaurar scroll e mantém teardown do rail', () => {
+  const { browser } = mountBrowser({ raw: fixtures, dialogs: true, scrollY: 510 });
+  browser.triggerDOMContentLoaded();
+  const railObserver = browser.observers.find(
+    observer => observer.observed.includes(browser.nodes.filterSentinel),
+  );
+  browser.nodes.favoritesOpen.click();
+  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), true);
+
+  browser.dispatchWindow('pagehide', { persisted: false });
+
+  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), false);
+  assert.equal(browser.document.body.style.position, '');
+  assert.deepEqual(browser.scrollCalls, []);
+  assert.equal(railObserver.disconnected, true);
+});
+
+test('CTA global fica oculto sempre que o shell de diálogo está ativo', () => {
+  const css = fs.readFileSync(path.join(__dirname, '..', 'kl-site-enhance.css'), 'utf8');
+  assert.match(css, /body\.kl-dialog-open\s+\.kl-sticky-cta\s*\{\s*display\s*:\s*none\s*!important\s*;?\s*\}/);
 });
 
 test('init inválido valida antes de state, storage e favoritos e rende recuperação', () => {
