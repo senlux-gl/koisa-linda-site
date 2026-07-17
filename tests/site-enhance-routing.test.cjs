@@ -19,23 +19,18 @@ test('matriz pública preserva campanhas e não presume loja no catálogo misto'
   });
 });
 
-test('detalhe e prova usam somente unidade válida da peça', () => {
+test('detalhe usa somente unidade válida da peça', () => {
   assert.match(
     Site.resolveStickyCta({ page: 'peca', product: { k: 'NV-001', un: 'barra' } }, contacts).href,
     /wa\.me\/101/,
-  );
-  assert.match(
-    Site.resolveStickyCta({ page: 'provar', product: { k: 'NV-002', un: 'sf' } }, contacts).href,
-    /wa\.me\/202/,
   );
   assert.equal(
     Site.resolveStickyCta({ page: 'peca', product: { k: 'X', un: 'invalida' } }, contacts).href,
     'unidades.html',
   );
-  assert.equal(Site.resolveStickyCta({ page: 'provar', product: null }, contacts).href, 'unidades.html');
 });
 
-test('contexto inicial resolve codigo e p no detalhe e p na prova virtual', () => {
+test('contexto inicial resolve codigo e p no detalhe', () => {
   const products = [
     { k: 'NV-001', un: 'barra' },
     { k: 'NV-002', un: 'sf' },
@@ -55,7 +50,5 @@ test('contexto inicial resolve codigo e p no detalhe e p na prova virtual', () =
 
   assert.equal(Site.initialContext(root).product.k, 'NV-001');
   root.location.search = '?p=NV-002';
-  assert.equal(Site.initialContext(root).product.k, 'NV-002');
-  root.location.pathname = '/provar.html';
   assert.equal(Site.initialContext(root).product.k, 'NV-002');
 });

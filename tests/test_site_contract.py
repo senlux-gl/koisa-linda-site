@@ -28,8 +28,22 @@ def catalog_products() -> list[dict]:
 SHARED_SCRIPT_PAGES = (
     "index.html", "sobre.html", "catalogo.html", "como-chegar.html",
     "servicos.html", "unidades.html", "noivas.html", "debutantes.html",
-    "madrinhas.html", "ternos.html", "peca.html", "provar.html",
+    "madrinhas.html", "ternos.html", "peca.html",
 )
+
+STATIC_TRYON_LINK_COUNTS = {
+    "index.html": 3,
+    "sobre.html": 2,
+    "catalogo.html": 2,
+    "como-chegar.html": 3,
+    "servicos.html": 2,
+    "unidades.html": 2,
+    "noivas.html": 1,
+    "debutantes.html": 1,
+    "madrinhas.html": 1,
+    "ternos.html": 1,
+    "peca.html": 1,
+}
 
 
 def balanced_css_block(css: str, marker: str) -> str:
@@ -547,16 +561,57 @@ class CatalogIntegrationContractTest(unittest.TestCase):
         self.assertIn("header.mtog.mtog-icon{flex-direction:column}", css)
         self.assertIn('class="mtog mtog-icon"', page("catalogo.html"))
 
-    def test_try_on_loads_catalog_runtime_for_unit_aware_sticky_cta(self):
+    def test_try_on_bridge_is_minimal_same_brand_and_has_a_manual_fallback(self):
         html = page("provar.html")
-        assets = (
-            "kl-catalog-data.js?v=20260715db",
-            "kl-catalog-core.js?v=20260715catalog1",
-            "kl-catalog-actions.js?v=20260715catalog1",
-            "kl-tracking.js?v=20260715catalog1",
+        self.assertIn("<title>Prova Virtual — Koisa Linda</title>", html)
+        self.assertRegex(
+            html,
+            r'<meta\s+name="robots"\s+content="noindex(?:,\s*follow)?">',
         )
-        positions = [html.index(asset) for asset in assets]
-        self.assertEqual(positions, sorted(positions))
+        for favicon in (
+            '<link rel="icon" href="img/favicon.ico" sizes="any">',
+            '<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">',
+            '<link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16.png">',
+            '<link rel="apple-touch-icon" href="img/apple-touch-icon.png">',
+        ):
+            self.assertIn(favicon, html)
+        self.assertRegex(
+            html,
+            r'<a\b[^>]*id="catalog-tryon-link"[^>]*'
+            r'href="catalogo\.html\?prova=1"[^>]*>',
+        )
+        self.assertRegex(
+            html,
+            r'<noscript>\s*<p>.*?'
+            r'href="catalogo\.html\?prova=1".*?</p>\s*</noscript>',
+        )
+        self.assertEqual(1, html.count("location.replace("))
+        self.assertNotRegex(html, r'<meta\s+http-equiv="refresh"')
+
+        folded = html.casefold()
+        for forbidden in (
+            "meta pixel", "fbq(", "kl-tracking", "kl-site-enhance",
+            "kl-catalog-", "workers.dev", "fetch(", "localstorage",
+            'type="file"', "wa.me/",
+        ):
+            self.assertNotIn(forbidden, folded)
+
+    def test_all_static_try_on_links_open_the_catalog_dialog(self):
+        total = 0
+        for name, expected_count in STATIC_TRYON_LINK_COUNTS.items():
+            with self.subTest(page=name):
+                html = page(name)
+                self.assertNotIn('href="provar.html"', html)
+                count = html.count('href="catalogo.html?prova=1"')
+                self.assertEqual(expected_count, count)
+                total += count
+        self.assertEqual(19, total)
+
+    def test_try_on_bridge_is_not_indexed_in_sitemap(self):
+        sitemap = page("sitemap.xml")
+        self.assertNotIn("provar.html", sitemap)
+        self.assertNotIn("?prova=1", sitemap)
+        self.assertEqual(1, sitemap.count("https://koisalinda.com.br/catalogo.html"))
 
     def test_shared_sticky_close_keeps_a_real_touch_target(self):
         css = re.sub(r"\s+", "", page("kl-site-enhance.css"))
@@ -584,8 +639,8 @@ class CatalogIntegrationContractTest(unittest.TestCase):
 
     def test_detail_uses_shared_modules_and_exact_try_on_allowlist(self):
         html = page("peca.html")
-        self.assertIn('src="kl-catalog-core.js?v=20260715catalog1"', html)
-        self.assertIn('src="kl-catalog-actions.js?v=20260715catalog1"', html)
+        self.assertIn('src="kl-catalog-core.js?v=20260716tryon1"', html)
+        self.assertIn('src="kl-catalog-actions.js?v=20260716tryon1"', html)
         self.assertIn("Core.validateProducts", html)
         self.assertIn("Actions.productWhatsAppHref", html)
         self.assertIn("Actions.tryOnHref", html)
@@ -599,7 +654,7 @@ class CatalogIntegrationContractTest(unittest.TestCase):
                 html = page(name)
                 self.assertIn('src="kl-tracking.js?v=20260715catalog1"', html)
                 self.assertIn('src="kl-site-enhance.js?v=20260716catalog2"', html)
-                self.assertIn('href="kl-site-enhance.css?v=20260716catalog2"', html)
+                self.assertIn('href="kl-site-enhance.css?v=20260716tryon1"', html)
                 self.assertNotIn("20260710deep3", html)
                 self.assertNotIn("20260713r3", html)
                 self.assertNotIn("20260715hdr", html)
@@ -625,24 +680,6 @@ class CatalogIntegrationContractTest(unittest.TestCase):
                 category_products = [item for item in products if item["c"] == category]
                 self.assertEqual(expected_count, len(category_products))
                 self.assertEqual({"barra"}, {item["un"] for item in category_products})
-
-    def test_try_on_whatsapp_requires_a_valid_selected_unit(self):
-        html = page("provar.html")
-        match = re.search(r"function waLink\(\)\{(.*?)\n\}", html, re.DOTALL)
-        self.assertIsNotNone(match)
-        function = match.group(1)
-        self.assertIn("picked && UNITS[picked.un]", function)
-        self.assertIn("return 'unidades.html'", function)
-        self.assertNotIn(": UNITS.barra", function)
-        numbers = re.findall(r"wa:'(55\d+)'", html)
-        self.assertEqual(
-            {
-                "dcc97840afbc12fcab7911d36037a59fadcd8f6c714b86a2c8c8b3a960d2ba99",
-                "a2613c0f61c3dcf35b472a5f1d5b03904ccbbc5b78acfbc3f578b15701a74f79",
-            },
-            {digest(number) for number in numbers},
-        )
-
 
 class CatalogHybridContractTest(unittest.TestCase):
     def _assert_catalog_rail_override_contract(self, css: str):
@@ -851,12 +888,12 @@ class CatalogHybridContractTest(unittest.TestCase):
         html = page("catalogo.html")
         assets = (
             "kl-catalog-data.js?v=20260715db",
-            "kl-catalog-core.js?v=20260715catalog1",
-            "kl-catalog-actions.js?v=20260715catalog1",
+            "kl-catalog-core.js?v=20260716tryon1",
+            "kl-catalog-actions.js?v=20260716tryon1",
             "kl-catalog-gallery.js?v=20260715catalog1",
             "kl-tracking.js?v=20260715catalog1",
             "kl-catalog-tryon.js?v=20260716tryon1",
-            "kl-catalog-app.js?v=20260716catalog2",
+            "kl-catalog-app.js?v=20260716tryon1",
         )
         for asset in assets:
             self.assertIn(asset, html, asset)
@@ -867,10 +904,10 @@ class CatalogHybridContractTest(unittest.TestCase):
                 html,
                 rf'<script\s+defer\s+src="{re.escape(asset)}"></script>',
             )
-        self.assertIn('href="kl-catalog.css?v=20260716catalog2"', html)
-        catalog_css = html.index('href="kl-catalog.css?v=20260716catalog2"')
+        self.assertIn('href="kl-catalog.css?v=20260716tryon1"', html)
+        catalog_css = html.index('href="kl-catalog.css?v=20260716tryon1"')
         tryon_css = html.index('href="kl-catalog-tryon.css?v=20260716tryon1"')
-        enhance_css = html.index('href="kl-site-enhance.css?v=20260716catalog2"')
+        enhance_css = html.index('href="kl-site-enhance.css?v=20260716tryon1"')
         self.assertLess(catalog_css, tryon_css)
         self.assertLess(tryon_css, enhance_css)
         self.assertNotIn("const DATA=window.KL_DATA", html)

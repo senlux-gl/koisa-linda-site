@@ -1604,3 +1604,69 @@ test('UMD publica API exata mínima sem tocar document, storage ou fetch globais
   assert.equal(typeof sandbox.window.KLCatalog.TryOn, 'object');
   assert.equal(typeof sandbox.window.KLCatalog.TryOn.createWorkerClient, 'function');
 });
+
+function runTryOnBridge(sourceHref) {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'provar.html'), 'utf8');
+  const scripts = Array.from(html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi));
+  assert.equal(scripts.length, 1, 'a ponte deve ter um único script inline');
+
+  const manualLink = { href: 'catalogo.html?prova=1' };
+  const replacements = [];
+  const location = {
+    href: sourceHref,
+    replace(target) {
+      replacements.push(String(target));
+    },
+  };
+  vm.runInNewContext(scripts[0][1], {
+    URL,
+    document: {
+      getElementById(id) {
+        assert.equal(id, 'catalog-tryon-link');
+        return manualLink;
+      },
+    },
+    location,
+  }, { filename: 'provar.html' });
+
+  assert.equal(replacements.length, 1, 'a ponte deve chamar location.replace uma vez');
+  assert.equal(manualLink.href, replacements[0], 'o link manual deve receber o mesmo destino');
+  return new URL(replacements[0]);
+}
+
+test('ponte da prova descarta query e hash quando não existe p', () => {
+  const target = runTryOnBridge('https://koisalinda.com.br/provar.html?origem=menu#antigo');
+  assert.equal(target.href, 'https://koisalinda.com.br/catalogo.html?prova=1');
+});
+
+test('ponte da prova normaliza espaços e caixa de p', () => {
+  const target = runTryOnBridge('https://koisalinda.com.br/provar.html?p=%20nv-001%20');
+  assert.equal(target.searchParams.get('prova'), '1');
+  assert.equal(target.searchParams.get('p'), 'NV-001');
+});
+
+test('ponte da prova lê somente o primeiro p e ignora valor vazio', () => {
+  const target = runTryOnBridge('https://koisalinda.com.br/provar.html?p=%20%20&p=NV-002');
+  assert.deepEqual(Array.from(target.searchParams.entries()), [['prova', '1']]);
+});
+
+test('ponte da prova rejeita charset inválido', () => {
+  const target = runTryOnBridge('https://koisalinda.com.br/provar.html?p=NV%23-001');
+  assert.deepEqual(Array.from(target.searchParams.entries()), [['prova', '1']]);
+});
+
+test('ponte da prova rejeita p com mais de 64 caracteres', () => {
+  const target = runTryOnBridge(`https://koisalinda.com.br/provar.html?p=${'A'.repeat(65)}`);
+  assert.deepEqual(Array.from(target.searchParams.entries()), [['prova', '1']]);
+});
+
+test('ponte da prova preserva p válido e remove parâmetros extras e hash', () => {
+  const target = runTryOnBridge(
+    'https://koisalinda.com.br/provar.html?origem=campanha&p=md_01%2Fazul&p=SEGUNDO#foto',
+  );
+  assert.equal(target.hash, '');
+  assert.deepEqual(Array.from(target.searchParams.entries()), [
+    ['prova', '1'],
+    ['p', 'MD_01/AZUL'],
+  ]);
+});

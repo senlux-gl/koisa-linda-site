@@ -1,325 +1,53 @@
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Prova Virtual — Koisa Linda</title>
-<meta name="robots" content="noindex">
-<link rel="icon" href="img/favicon.ico" sizes="any">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Questrial&display=swap" rel="stylesheet">
-<style>
-:root{--ruby:#722F37;--cream:#FBF7EF;--ink:#2c2326;--muted:#9a8d80;--line:#e7ded1;--sans:'Questrial',sans-serif;--serif:'Playfair Display',serif}
-*{box-sizing:border-box}
-body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
-.wrap{max-width:860px;margin:0 auto;padding:28px 20px 90px}
-.eyebrow{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);text-align:center}
-h1{font-family:var(--serif);font-weight:600;font-size:34px;text-align:center;margin:8px 0 4px}
-.sub{text-align:center;color:var(--muted);font-size:15px;max-width:480px;margin:0 auto 26px}
-.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:18px}
-.step-t{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--ruby);margin-bottom:14px}
-.pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.pill{display:inline-flex;align-items:center;min-height:46px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 16px;font-family:var(--sans);font-size:13.5px;color:var(--ink);cursor:pointer}
-.pill.on{background:var(--ruby);border-color:var(--ruby);color:#fff}
-.pill small{color:inherit;opacity:.65;margin-left:4px}
-.search{width:100%;min-height:48px;border:1px solid var(--line);border-radius:12px;padding:13px 16px;font-family:var(--sans);font-size:16px;background:#fff;color:var(--ink);margin-bottom:14px}
-.search:focus{outline:none;border-color:var(--ruby)}
-.dresses{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.dress{border:2px solid transparent;border-radius:12px;overflow:hidden;cursor:pointer;background:#f3ece0;aspect-ratio:3/4;position:relative}
-.dress img{width:100%;height:100%;object-fit:cover;display:block}
-.dress.sel{border-color:var(--ruby)}
-.dress.sel::after{content:'✓';position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:var(--ruby);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center}
-.dress .cap{position:absolute;bottom:0;left:0;right:0;background:rgba(114,47,55,.88);color:#fff;font-size:11.5px;text-align:center;padding:5px 2px}
-.empty-msg{color:var(--muted);text-align:center;padding:20px 0;font-size:14px}
-.picked-bar{position:sticky;bottom:12px;z-index:5;background:var(--ink);color:#fff;border-radius:999px;padding:10px 18px;display:none;align-items:center;gap:10px;font-size:13px;box-shadow:0 10px 26px rgba(44,35,38,.3)}
-.picked-bar.on{display:flex}
-.picked-bar img{width:34px;height:34px;border-radius:50%;object-fit:cover}
-.picked-bar b{font-weight:normal;color:#f4e5c4}
-.picked-bar a{margin-left:auto;color:#fff;font-size:12px;text-decoration:underline;cursor:pointer}
-.guide{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}.g-ok{position:relative;border-radius:12px;overflow:hidden;background:#f3ece0}.g-ok img{width:100%;height:100%;object-fit:cover;display:block;min-height:170px}.g-ok .tag-ok{position:absolute;top:8px;left:8px;background:#1c6b30;color:#fff;font-size:11px;letter-spacing:1px;border-radius:999px;padding:4px 10px}.g-ok .cap-ok{position:absolute;bottom:0;left:0;right:0;background:rgba(28,107,48,.88);color:#fff;font-size:11px;text-align:center;padding:6px 4px;line-height:1.35}.g-bad{display:flex;flex-direction:column;gap:8px}.g-bad .b{flex:1;display:flex;align-items:center;gap:10px;background:#fbf5f0;border:1px solid var(--line);border-radius:12px;padding:8px 12px}.g-bad .b .e{font-size:22px;filter:grayscale(.3)}.g-bad .b .t{font-size:12px;color:var(--ink);line-height:1.3}.g-bad .b .t s{color:var(--ruby);text-decoration:none;font-size:11px;display:block}.gtips{font-size:12px;color:var(--muted);text-align:center;margin:0 0 14px;line-height:1.6}.up{display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--line);border-radius:14px;padding:24px;text-align:center;cursor:pointer;transition:.2s}
-.up:hover{border-color:var(--ruby);background:#fbf5ec}
-.up img.prev{max-height:220px;border-radius:10px;margin-bottom:8px}
-.up .ico{font-size:30px}
-.hint{font-size:12px;color:var(--muted);margin-top:6px}
-.btn{display:block;width:100%;border:0;border-radius:999px;background:var(--ruby);color:#fff;font-family:var(--sans);font-size:15px;letter-spacing:1px;padding:15px;cursor:pointer;transition:.2s}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-.btn.ghost{background:#fff;color:var(--ruby);border:1px solid var(--ruby)}
-.more{display:block;margin:14px auto 0;background:none;border:1px solid var(--line);border-radius:999px;padding:10px 22px;font-family:var(--sans);font-size:13px;color:var(--ink);cursor:pointer}
-.center{text-align:center}
-.stage{text-align:center;padding:20px 0}
-.spinner{width:44px;height:44px;border:3px solid var(--line);border-top-color:var(--ruby);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 14px}
-@keyframes spin{to{transform:rotate(360deg)}}
-.result img{max-width:100%;border-radius:14px;border:1px solid var(--line)}
-.wa{display:flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:#fff;text-decoration:none;border-radius:999px;padding:15px;font-size:15px;margin-top:14px}
-.note{font-size:12px;color:var(--muted);text-align:center;margin-top:16px;line-height:1.5}
-.err{background:#fbeced;border:1px solid #e7b9bd;color:var(--ruby);border-radius:12px;padding:16px;text-align:center;font-size:15px}
-.hidden{display:none}
-.disclaimer{font-size:11px;color:var(--muted);text-align:center;font-style:italic;margin-top:10px}
-@media(max-width:620px){.dresses{grid-template-columns:repeat(2,1fr)}h1{font-size:28px}}
-@media(min-width:621px) and (max-width:860px){.dresses{grid-template-columns:repeat(3,1fr)}}
-.fitrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
-.fitlbl{font-size:13px;color:var(--muted)}
-.sizes{display:flex;gap:6px;flex-wrap:wrap}
-.sz{display:inline-flex;align-items:center;min-height:46px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 17px;font-family:var(--sans);font-size:14px;color:var(--ink);cursor:pointer;transition:.15s}
-.sz.on{background:var(--ruby);border-color:var(--ruby);color:#fff}
-.sz.clear{border-style:dashed;color:var(--muted);font-size:12px}
-.fitleg{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;font-size:11.5px;color:var(--muted)}
-.fitleg span{display:inline-flex;align-items:center;gap:5px}
-.fitleg i{width:9px;height:9px;border-radius:50%;display:inline-block}
-.dot-ok{background:#1c6b30}.dot-adj{background:#c8862a}.dot-med{background:var(--ruby)}
-.fit{position:absolute;top:6px;left:6px;z-index:2;font-size:9px;letter-spacing:.2px;padding:3px 7px;border-radius:999px;font-family:var(--sans);line-height:1;white-space:nowrap}
-.fit-ok{background:#1c6b30;color:#fff}
-.fit-adj{background:#c8862a;color:#fff}
-.fit-med{background:rgba(114,47,55,.92);color:#f4e5c4}
-.site-head{position:sticky;top:0;z-index:60;background:rgba(251,247,239,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 18px}
-.site-logo{display:flex;align-items:center;gap:9px;font-family:var(--serif);font-weight:600;font-size:16px;letter-spacing:3px;color:var(--ruby);text-decoration:none}
-.site-logo img{height:34px}
-.site-nav{display:flex;gap:6px}
-.site-nav a{display:inline-flex;align-items:center;min-height:44px;padding:8px 15px;font-family:var(--sans);font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#5f534b;text-decoration:none;border-radius:999px;transition:.15s}
-.site-nav a:hover{color:var(--ruby);background:#fff}
-@media(max-width:520px){.site-logo span{display:none}.site-nav a{padding:8px 12px;font-size:12px;letter-spacing:.5px}}
-</style><script defer src="kl-catalog-data.js?v=20260715db"></script><script defer src="kl-catalog-core.js?v=20260715catalog1"></script><script defer src="kl-catalog-actions.js?v=20260715catalog1"></script><script defer src="kl-tracking.js?v=20260715catalog1"></script><link rel="stylesheet" href="kl-site-enhance.css?v=20260716catalog2"></head>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex, follow">
+  <title>Prova Virtual — Koisa Linda</title>
+  <link rel="icon" href="img/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16.png">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <style>
+    :root{--ruby:#722f37;--cream:#fbf7ef;--paper:#fff;--ink:#2c2326;--muted:#746960;--line:#e7ded1;--gold:#b8945f}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:var(--cream);color:var(--ink);font-family:"Questrial",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+    main{width:min(100%,620px);padding:48px 34px;text-align:center;background:var(--paper);border:1px solid var(--line);border-radius:28px;box-shadow:0 22px 70px rgba(44,35,38,.09)}
+    .logo{width:78px;height:auto;margin-bottom:18px}
+    .eyebrow{margin:0 0 12px;color:var(--ruby);font-size:11px;letter-spacing:3px;text-transform:uppercase}
+    h1{margin:0;font-family:"Playfair Display",Georgia,serif;font-size:clamp(34px,7vw,52px);font-style:italic;font-weight:400;line-height:1.05}
+    p{max-width:430px;margin:18px auto 0;color:var(--muted);font-family:Georgia,serif;font-size:18px;line-height:1.55}
+    a{display:inline-flex;align-items:center;justify-content:center;min-height:48px;margin-top:26px;padding:14px 24px;border-radius:999px;background:var(--ruby);color:#fff;font-size:12px;letter-spacing:1.5px;text-decoration:none;text-transform:uppercase}
+    a:focus-visible{outline:3px solid var(--gold);outline-offset:4px}
+    noscript p{font-family:"Questrial",Arial,sans-serif;font-size:14px}
+    noscript a{display:inline-flex}
+    @media(max-width:520px){main{padding:38px 22px;border-radius:22px}.logo{width:68px}}
+  </style>
+</head>
 <body>
-<header class="site-head">
-  <a class="site-logo" href="index.html"><img src="img/logo-kl-main.png" alt="Koisa Linda"><span>Koisa Linda</span></a>
-  <nav class="site-nav"><a href="index.html">Início</a><a href="catalogo.html">Catálogo</a></nav>
-</header>
-<div class="wrap">
-  <div class="eyebrow">Prova Virtual ✨ · grátis</div>
-  <h1>Prove o vestido em você</h1>
-  <p class="sub">Escolha qualquer vestido do nosso acervo, envie uma foto sua de corpo inteiro e veja como ele fica em você.</p>
-
-  <!-- ETAPA 1: escolher vestido (catálogo completo) -->
-  <div class="card" id="c-dress">
-    <div class="step-t">1 · Escolha o vestido</div>
-    <div class="fitrow"><span class="fitlbl">Seu manequim:</span><div class="sizes" id="sizes"></div></div>
-    <div class="fitleg hidden" id="fitleg"><span><i class="dot-ok"></i>veste seu tamanho</span><span><i class="dot-adj"></i>a gente ajusta pra você</span><span><i class="dot-med"></i>sob medida</span></div>
-    <div class="pills" id="pills"></div>
-    <input class="search" id="q" type="search" placeholder="Buscar por código (ex: MD-006) ou cor…" aria-label="Buscar vestido">
-    <div class="dresses" id="dresses"></div>
-    <div class="empty-msg hidden" id="noresult">Nenhum vestido encontrado — tente outra busca.</div>
-    <button class="more hidden" id="more">Ver mais vestidos</button>
-  </div>
-
-  <!-- ETAPA 2: foto -->
-  <div class="card" id="c-photo">
-    <div class="step-t">2 · Sua foto</div>
-    <div class="guide">
-      <div class="g-ok">
-        <img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-noiva/040302-ia-thumb.jpg" alt="Exemplo de foto ideal: corpo inteiro, em pé, de frente">
-        <span class="tag-ok">ASSIM ✓</span>
-        <div class="cap-ok">Corpo inteiro · em pé · de frente<br>boa luz · fundo simples</div>
-      </div>
-      <div class="g-bad">
-        <div class="b"><span class="e">🤳</span><div class="t">Só o rosto / selfie de perto<s>não funciona — precisa aparecer o corpo todo</s></div></div>
-        <div class="b"><span class="e">🪑</span><div class="t">Sentada ou de lado<s>fique em pé, de frente pra câmera</s></div></div>
-        <div class="b"><span class="e">✂️</span><div class="t">Foto cortada no joelho<s>da cabeça aos pés, com espaço em volta</s></div></div>
-      </div>
-    </div>
-    <p class="gtips">💡 Dica: roupa mais justa ao corpo ajuda a IA a acertar o caimento — evite casacos e vestidos muito largos.</p>
-    <label class="up" id="uplabel">
-      <div class="ico">📷</div>
-      <div id="uptext">Toque para enviar sua foto</div>
-      <div class="hint">igual ao exemplo: corpo inteiro, em pé, de frente</div>
-      <input type="file" accept="image/*" id="file" class="hidden">
-    </label>
-  </div>
-
-  <div class="picked-bar" id="pbar"><img id="pimg" alt=""><span>Selecionado: <b id="pcode"></b></span><a id="ptroca">trocar</a></div>
-
-  <button class="btn" id="go" disabled>Provar em mim ✨</button>
-  <div class="disclaimer">É uma simulação por IA pra você se imaginar no vestido — o caimento real, só provando na loja 💜 Sua foto não fica salva.</div>
-
-  <!-- LOADING -->
-  <div class="card hidden" id="c-load">
-    <div class="stage"><div class="spinner"></div><div>Vestindo você…</div><div class="hint">isso leva uns 20 segundos</div></div>
-  </div>
-
-  <!-- RESULT -->
-  <div class="card hidden" id="c-result">
-    <div class="step-t">Pronto! 💜</div>
-    <div class="result center"><img id="rimg" alt="Você no vestido"></div>
-    <a class="wa" id="wa" href="#" target="_blank">Amei! Quero provar de verdade →</a>
-    <button class="btn ghost" id="again" style="margin-top:10px">Provar outro vestido</button>
-    <div class="note" id="remain"></div>
-  </div>
-
-  <!-- ERRO / ESGOTADO -->
-  <div class="card hidden" id="c-err"><div class="err" id="errmsg"></div>
-    <a class="wa" id="wa2" href="#" target="_blank" style="margin-top:14px">Falar com a loja no WhatsApp →</a>
-  </div>
-</div>
-
-<script>
-const WORKER = (localStorage.getItem('tryon_worker')) || 'https://kl-tryon.contato-4d7.workers.dev';
-const UNITS = {sf:{label:'São Francisco', wa:'5521970858787'}, barra:{label:'Barra da Tijuca', wa:'5521966475383'}};
-const CATS = [['all','Todos'],['vestidos-noiva','Noivas'],['vestidos-madrinha','Madrinhas & Festa'],['vestidos-debutante','Debutantes']];
-const BATCH = 24;
-const $ = (id) => document.getElementById(id);
-
-let ALL = [];          // todos os vestidos do catálogo
-let filtered = [];
-let shown = 0;
-let cat = 'all', term = '';
-let picked = null, photo = null;
-
-// guia de tamanho (v1): a cliente informa o manequim, o grid marca a compatibilidade
-const SIZES = ['PP','P','M','G','GG'];
-let myFit = null;
-try { myFit = localStorage.getItem('kl_manequim') || null; } catch(e){}
-function renderSizes(){
-  const box = $('sizes'); box.innerHTML = '';
-  SIZES.forEach(s => {
-    const b = document.createElement('button');
-    b.className = 'sz' + (myFit===s ? ' on' : '');
-    b.textContent = s;
-    b.onclick = () => setFit(s);
-    box.appendChild(b);
-  });
-  const clr = document.createElement('button');
-  clr.className = 'sz clear';
-  clr.textContent = myFit ? 'limpar' : 'não sei';
-  clr.onclick = () => setFit(null);
-  box.appendChild(clr);
-  $('fitleg').classList.toggle('hidden', !myFit);
-}
-function setFit(s){
-  myFit = s;
-  try { s ? localStorage.setItem('kl_manequim', s) : localStorage.removeItem('kl_manequim'); } catch(e){}
-  renderSizes(); applyFilter();
-}
-// noiva/único/numérico → sob medida · letra igual → cabe · letra diferente → ajustável. Nunca "não serve".
-function fitFor(d){
-  if (!myFit) return null;
-  const t = (d.t||'').trim().toUpperCase();
-  if (!t || t==='ÚNICO' || t==='UNICO' || !/^(PP|P|M|G|GG|XG)$/.test(t)) return {c:'med', x:'sob medida'};
-  if (t === myFit) return {c:'ok', x:'cabe'};
-  return {c:'adj', x:'ajustável'};
-}
-
-const thumbU = (u) => u.split('?')[0].replace(/\.jpg$/i, '-thumb.jpg');
-const nome = (c) => ({'vestidos-noiva':'Vestido de Noiva','vestidos-madrinha':'Vestido Madrinha & Festa','vestidos-debutante':'Vestido de Debutante'})[c] || 'Vestido';
-
-// carrega o catálogo compartilhado do site — cacheável e sem parse de HTML
-async function loadCatalog(){
-  const data = window.KL_DATA || [];
-  ALL = data.filter(d => ['vestidos-noiva','vestidos-madrinha','vestidos-debutante'].includes(d.c));
-  renderSizes(); renderPills(); applyFilter();
-  // deep-link ?p=CODIGO vindo do catálogo
-  const p = new URLSearchParams(location.search).get('p');
-  if (p) { const d = ALL.find(x => x.k.toUpperCase() === p.toUpperCase()); if (d) select(d, true); }
-}
-
-function renderPills(){
-  $('pills').innerHTML = '';
-  CATS.forEach(([id,label]) => {
-    const n = id==='all' ? ALL.length : ALL.filter(d=>d.c===id).length;
-    const b = document.createElement('button');
-    b.className = 'pill' + (cat===id?' on':'');
-    b.innerHTML = `${label}<small>${n}</small>`;
-    b.onclick = () => { cat = id; renderPills(); applyFilter(); };
-    $('pills').appendChild(b);
-  });
-}
-
-function applyFilter(){
-  const t = term.trim().toLowerCase();
-  filtered = ALL.filter(d =>
-    (cat==='all' || d.c===cat) &&
-    (!t || d.k.toLowerCase().includes(t) || (d.co||'').toLowerCase().includes(t))
-  );
-  shown = 0; $('dresses').innerHTML = '';
-  renderBatch();
-}
-
-function renderBatch(){
-  const slice = filtered.slice(shown, shown + BATCH);
-  slice.forEach(d => {
-    const el = document.createElement('div');
-    el.className = 'dress' + (picked && picked.k===d.k ? ' sel':'');
-    el.dataset.k = d.k;
-    const fit = fitFor(d);
-    const fitBadge = fit ? `<span class="fit fit-${fit.c}">${fit.x}</span>` : '';
-    el.innerHTML = `${fitBadge}<img loading="lazy" decoding="async" src="${thumbU(d.u)}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='${d.u}'}" alt="${nome(d.c)} ${d.k}"><div class="cap">${d.k}</div>`;
-    el.onclick = () => select(d);
-    $('dresses').appendChild(el);
-  });
-  shown += slice.length;
-  $('more').classList.toggle('hidden', shown >= filtered.length);
-  $('noresult').classList.toggle('hidden', filtered.length > 0);
-}
-
-function select(d, fromLink){
-  picked = d;
-  document.querySelectorAll('.dress').forEach(x => x.classList.toggle('sel', x.dataset.k===d.k));
-  $('pimg').src = thumbU(d.u); $('pcode').textContent = `${nome(d.c)} ${d.k}`;
-  $('pbar').classList.add('on');
-  try { const u = new URL(location); u.searchParams.set('p', d.k); history.replaceState(null,'',u); } catch(e){}
-  refresh();
-  if (!fromLink) $('c-photo').scrollIntoView({behavior:'smooth', block:'center'});
-}
-
-$('q').addEventListener('input', (e) => { term = e.target.value; applyFilter(); });
-$('more').onclick = renderBatch;
-$('ptroca').onclick = () => { $('c-dress').scrollIntoView({behavior:'smooth'}); };
-
-$('file').onchange = (e) => {
-  const f = e.target.files[0]; if (!f) return;
-  const r = new FileReader();
-  r.onload = () => {
-    photo = r.result;
-    const inp = $('file'); // guarda a referência ANTES do innerHTML destruir o input
-    $('uplabel').innerHTML = `<img class="prev" src="${photo}"><div class="hint">toque pra trocar</div>`;
-    $('uplabel').appendChild(inp);
-    refresh();
-  };
-  r.readAsDataURL(f);
-};
-
-function refresh(){ $('go').disabled = !(picked && photo); }
-
-$('go').onclick = async () => {
-  show('load');
-  try {
-    const payload = { garment_url: picked.u.split('?')[0], [photo.startsWith('http') ? 'image_url' : 'image_b64']: photo };
-    const res = await fetch(`${WORKER}/tryon`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-    const data = await res.json();
-    if (!res.ok) { return fail(data.motivo || data.error || 'Algo deu errado. Tente de novo.'); }
-    const id = data.id; const t0 = Date.now();
-    while (true) {
-      await new Promise(r => setTimeout(r, 2500));
-      const s = await (await fetch(`${WORKER}/status?id=${id}`)).json();
-      if (s.status === 'done') { return done(s.image, data.restam_voce); }
-      if (s.status === 'error') { return fail('Não consegui gerar dessa vez 😕 Confere se a foto está no padrão: corpo inteiro, em pé, de frente, com boa luz — e tenta de novo.'); }
-      if (Date.now() - t0 > 90000) { return fail('Demorou demais. Tente de novo.'); }
-    }
-  } catch(e) { fail('Sem conexão com o serviço. Tente de novo.'); }
-};
-
-function waLink(){
-  const un = picked && UNITS[picked.un];
-  if (!un) return 'unidades.html';
-  const m = encodeURIComponent(`Oi! Fiz a prova virtual do vestido ${picked ? picked.k : ''} (${un.label}) e amei. Quero provar de verdade 💜`);
-  return `https://wa.me/${un.wa}?text=${m}`;
-}
-
-function done(img, restam){
-  $('rimg').src = img; $('wa').href = waLink();
-  $('remain').textContent = restam > 0 ? `Você ainda pode provar mais ${restam} ${restam===1?'vestido':'vestidos'} hoje.` : 'Essa foi sua última prova de hoje 💜';
-  $('again').style.display = restam > 0 ? 'block' : 'none';
-  show('result');
-}
-function fail(msg){ $('errmsg').textContent = msg; $('wa2').href = waLink(); show('err'); }
-$('again').onclick = () => { show('form'); $('c-dress').scrollIntoView(); };
-
-function show(state){
-  ['c-dress','c-photo'].forEach(id => $(id).classList.toggle('hidden', state!=='form'));
-  $('go').style.display = state==='form' ? 'block' : 'none';
-  $('pbar').classList.toggle('on', state==='form' && !!picked);
-  document.querySelector('.disclaimer').classList.toggle('hidden', state!=='form');
-  $('c-load').classList.add('hidden'); $('c-result').classList.add('hidden'); $('c-err').classList.add('hidden');
-  if (state!=='form') $('c-' + (state==='load' ? 'load' : state)).classList.remove('hidden');
-  window.scrollTo({top:0, behavior:'smooth'});
-}
-
-// kl-catalog-data.js é defer (define window.KL_DATA depois do parse) — só carregar o catálogo quando ele existir
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadCatalog);
-else loadCatalog();
-</script>
-<script src="kl-site-enhance.js?v=20260716catalog2"></script></body></html>
+  <main>
+    <img class="logo" src="img/logo-kl-main.png" alt="Koisa Linda">
+    <p class="eyebrow">Prova Virtual</p>
+    <h1>A experiência agora está no catálogo.</h1>
+    <p>Você será levada para a Prova Virtual integrada, sem sair do universo Koisa Linda.</p>
+    <a id="catalog-tryon-link" href="catalogo.html?prova=1">Abrir Prova Virtual</a>
+    <noscript><p>Se a página não abrir automaticamente, <a href="catalogo.html?prova=1">acesse a Prova Virtual no catálogo</a>.</p></noscript>
+  </main>
+  <script>
+    (function(){
+      'use strict';
+      var source=new URL(location.href);
+      var raw=source.searchParams.get('p');
+      var code=raw===null?'':raw.trim().toUpperCase();
+      var target=new URL('catalogo.html?prova=1',location.href);
+      if(code&&code.length<=64&&/^[A-Z0-9][A-Z0-9._ /-]*$/.test(code)){
+        target.searchParams.set('p',code);
+      }
+      var href=target.href;
+      document.getElementById('catalog-tryon-link').href=href;
+      location.replace(href);
+    }());
+  </script>
+</body>
+</html>
