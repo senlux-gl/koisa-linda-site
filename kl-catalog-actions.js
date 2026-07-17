@@ -30,10 +30,14 @@
     return product && (product.un === 'barra' || product.un === 'sf') ? product.un : null;
   }
 
+  function isTryOnEligible(product) {
+    return Boolean(product && TRY_ON_CATEGORIES.indexOf(product.c) > -1);
+  }
+
   function tryOnHref(product) {
     var code = normalizeCode(product && product.k);
-    return product && TRY_ON_CATEGORIES.indexOf(product.c) > -1 && code
-      ? 'provar.html?p=' + encodeURIComponent(code)
+    return isTryOnEligible(product) && code
+      ? 'catalogo.html?prova=1&p=' + encodeURIComponent(code)
       : null;
   }
 
@@ -267,6 +271,7 @@
     TRY_ON_CATEGORIES: TRY_ON_CATEGORIES,
     buildFavoriteBatches: buildFavoriteBatches,
     createFavorites: createFavorites,
+    isTryOnEligible: isTryOnEligible,
     productMessage: productMessage,
     productWhatsAppHref: productWhatsAppHref,
     resolveSharedCta: resolveSharedCta,

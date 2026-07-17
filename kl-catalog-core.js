@@ -81,6 +81,7 @@
       colors: uniqueSorted(values(params, 'co').filter(function (value) { return colors.has(value); })),
       sizes: uniqueSorted(values(params, 'tam').filter(function (value) { return sizes.has(value); })),
       page: /^\d+$/.test(rawPage) && Number.isInteger(page) && page >= 1 ? page : 1,
+      tryOn: params.get('prova') === '1',
       openProduct: codes.has(rawProduct) ? rawProduct : null,
     };
   }
@@ -94,6 +95,7 @@
     uniqueSorted(state.colors || []).forEach(function (value) { params.append('co', value); });
     uniqueSorted(state.sizes || []).forEach(function (value) { params.append('tam', value); });
     if ((state.page || 1) > 1) params.set('pg', String(state.page));
+    if (state.tryOn) params.set('prova', '1');
     if (openProduct) params.set('p', openProduct);
     return params.toString();
   }
@@ -190,11 +192,24 @@
     return next;
   }
 
-  function derive(products, state) {
+  function derive(products, state, options) {
+    options = options || {};
     var next = reconcile(products, state);
     var filtered = filterProducts(products, next);
     var ordered = interleave(filtered);
-    next = resolveOpenProduct(ordered, next, BATCH_SIZE);
+    if (next.tryOn) {
+      var requestedCode = normalizeCode(next.openProduct);
+      var tryOnProduct = products.find(function (product) {
+        return normalizeCode(product.k) === requestedCode;
+      });
+      next.openProduct = tryOnProduct
+        && typeof options.isTryOnEligible === 'function'
+        && options.isTryOnEligible(tryOnProduct)
+        ? normalizeCode(tryOnProduct.k)
+        : null;
+    } else {
+      next = resolveOpenProduct(ordered, next, BATCH_SIZE);
+    }
     return {
       state: next,
       products: ordered,

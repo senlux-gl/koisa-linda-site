@@ -11,8 +11,16 @@ const Core = require('../kl-catalog-core.js');
 function defaultState(overrides) {
   return Object.assign({
     query: '', category: null, unit: null,
-    colors: [], sizes: [], page: 1, openProduct: null,
+    colors: [], sizes: [], page: 1, tryOn: false, openProduct: null,
   }, overrides || {});
+}
+
+function isTryOnEligible(product) {
+  return Boolean(product && [
+    'vestidos-noiva',
+    'vestidos-madrinha',
+    'vestidos-debutante',
+  ].includes(product.c));
 }
 
 function runBrowserScript(filename, sandbox) {
@@ -25,7 +33,8 @@ test('readState sanitiza aliases, inválidos e listas repetidas', () => {
   const state = Core.readState('?cat=all&un=invalida&co=vinho&co=rosa&tam=33&tam=ZZ&p=cl-033&pg=3&q=%20V%C3%8DNHO%20', fixtures);
   assert.deepEqual(state, {
     query: 'VÍNHO', category: null, unit: null,
-    colors: ['rosa', 'vinho'], sizes: ['33'], page: 3, openProduct: 'CL-033',
+    colors: ['rosa', 'vinho'], sizes: ['33'], page: 3,
+    tryOn: false, openProduct: 'CL-033',
   });
 });
 
@@ -33,8 +42,13 @@ test('readState retorna o estado canônico completo sem parâmetros', () => {
   const state = Core.readState('', fixtures);
   assert.deepEqual(state, {
     query: '', category: null, unit: null,
-    colors: [], sizes: [], page: 1, openProduct: null,
+    colors: [], sizes: [], page: 1, tryOn: false, openProduct: null,
   });
+});
+
+test('readState ativa a prova virtual somente para prova=1', () => {
+  assert.equal(Core.readState('?prova=1', fixtures).tryOn, true);
+  assert.equal(Core.readState('?prova=sim', fixtures).tryOn, false);
 });
 
 test('readState rejeita páginas que não sejam inteiros positivos estritos', () => {
@@ -46,15 +60,16 @@ test('readState rejeita páginas que não sejam inteiros positivos estritos', ()
 test('serializeState produz ordem canônica estável', () => {
   const query = Core.serializeState({
     query: 'vinho', category: 'vestidos-debutante', unit: 'sf',
-    colors: ['vinho', 'rosa'], sizes: ['M', 'P'], page: 2, openProduct: 'DB-010',
+    colors: ['vinho', 'rosa'], sizes: ['M', 'P'], page: 2,
+    tryOn: true, openProduct: 'DB-010',
   });
-  assert.equal(query, 'cat=vestidos-debutante&un=sf&q=vinho&co=rosa&co=vinho&tam=M&tam=P&pg=2&p=DB-010');
+  assert.equal(query, 'cat=vestidos-debutante&un=sf&q=vinho&co=rosa&co=vinho&tam=M&tam=P&pg=2&prova=1&p=DB-010');
 });
 
 test('serializeState omite o estado padrão e arrays vazios', () => {
   const defaultState = {
     query: '', category: null, unit: null,
-    colors: [], sizes: [], page: 1, openProduct: null,
+    colors: [], sizes: [], page: 1, tryOn: false, openProduct: null,
   };
   assert.equal(Core.serializeState(defaultState), '');
 });
@@ -173,6 +188,32 @@ test('deep-link incompatível remove só a peça aberta', () => {
   assert.equal(view.state.openProduct, null);
   assert.equal(view.state.category, 'ternos');
   assert.equal(view.state.query, 'terno');
+});
+
+test('prova virtual mantém peça elegível e página mesmo fora dos filtros da grade', () => {
+  const requested = Core.readState('?cat=ternos&un=sf&pg=3&prova=1&p=NV-001', fixtures);
+  const view = Core.derive(fixtures, requested, { isTryOnEligible });
+
+  assert.equal(view.state.tryOn, true);
+  assert.equal(view.state.openProduct, 'NV-001');
+  assert.equal(view.state.page, 3);
+  assert.equal(view.state.category, 'ternos');
+  assert.equal(view.state.unit, 'sf');
+  assert.deepEqual(view.products, []);
+});
+
+test('prova virtual remove só a peça inelegível e preserva modo e filtros', () => {
+  const requested = Core.readState(
+    '?cat=ternos&un=barra&q=terno&co=preto&tam=63&pg=2&prova=1&p=TR-001',
+    fixtures,
+  );
+  const view = Core.derive(fixtures, requested, { isTryOnEligible });
+
+  assert.deepEqual(view.state, {
+    query: 'terno', category: 'ternos', unit: 'barra',
+    colors: ['preto'], sizes: ['63'], page: 2,
+    tryOn: true, openProduct: null,
+  });
 });
 
 test('resolveOpenProduct eleva a página para revelar peça válida', () => {

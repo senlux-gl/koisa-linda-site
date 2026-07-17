@@ -177,6 +177,14 @@ test('peça individual acima do teto falha sem retornar lote parcial ou expor o 
   );
 });
 
+test('isTryOnEligible usa a allowlist canônica da prova virtual', () => {
+  Actions.TRY_ON_CATEGORIES.forEach((category) => {
+    assert.equal(Actions.isTryOnEligible({ c: category }), true, category);
+  });
+  assert.equal(Actions.isTryOnEligible({ c: 'ternos' }), false);
+  assert.equal(Actions.isTryOnEligible(null), false);
+});
+
 test('CTA individual e prova virtual seguem a unidade e o código canônico da peça', () => {
   assert.match(Actions.productWhatsAppHref(fixtures[0], contacts), /^https:\/\/wa\.me\/101\?text=/);
   assert.equal(
@@ -186,7 +194,7 @@ test('CTA individual e prova virtual seguem a unidade e o código canônico da p
   assert.equal(Actions.productWhatsAppHref({ k: 'X', un: 'invalida' }, contacts), 'unidades.html');
   assert.equal(
     Actions.tryOnHref({ ...fixtures[0], k: ' nv 001/azul ' }),
-    'provar.html?p=NV%20001%2FAZUL',
+    'catalogo.html?prova=1&p=NV%20001%2FAZUL',
   );
   assert.equal(Actions.tryOnHref(fixtures.find((item) => item.c === 'ternos')), null);
 });
@@ -238,5 +246,7 @@ test('exporta constantes públicas e API UMD no browser sem tocar document', () 
 
   assert.doesNotThrow(() => vm.runInNewContext(source, sandbox, { filename: 'kl-catalog-actions.js' }));
   assert.equal(typeof sandbox.window.KLCatalog.Actions.createFavorites, 'function');
+  assert.equal(typeof sandbox.window.KLCatalog.Actions.isTryOnEligible, 'function');
   assert.equal(typeof Actions.createFavorites, 'function');
+  assert.equal(typeof Actions.isTryOnEligible, 'function');
 });
