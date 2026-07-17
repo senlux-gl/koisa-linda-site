@@ -176,6 +176,7 @@ function createGalleryDouble(options) {
           if (options.throwOnOpen) throw new Error('gallery open failed');
           if (options.openResult === false) return false;
           if (!nextCallbacks.dialog.open) nextCallbacks.dialog.showModal();
+          nextCallbacks.dialog.focus({ preventScroll: true });
           return true;
         },
         update(code) {
@@ -783,8 +784,12 @@ test('galeria da grade usa layer history, um shell e fecha somente após popstat
 test('deep-link de galeria fecha por replace preservando filtros e state alheio', () => {
   const gallery = createGalleryDouble();
   const product = fixtures.find(item => item.c === 'vestidos-noiva');
+  const raw = fixtures.concat([{
+    c: 'vestidos-noiva', l: 'Noivas', k: 'NV-003', un: 'barra', t: 'G',
+    co: 'off-white', u: 'https://img.test/noiva/NV-003-ia.jpg',
+  }]);
   const { browser } = mountBrowser({
-    raw: fixtures,
+    raw,
     search: `?cat=${product.c}&un=${product.un}&p=${product.k}`,
     dialogs: true,
     gallery: gallery.Gallery,
@@ -797,6 +802,11 @@ test('deep-link de galeria fecha por replace preservando filtros e state alheio'
 
   assert.equal(browser.nodes.galleryDialog.open, true);
   assert.equal(browser.document.body.classList.contains('kl-dialog-open'), true);
+  const nextCode = browser.nodes.grid.children
+    .map(card => card.dataset.code)
+    .find(code => code !== product.k);
+  assert.ok(nextCode);
+  gallery.callbacks().onNavigate(nextCode);
   gallery.callbacks().onRequestClose();
 
   assert.equal(browser.historyOperations.at(-1).type, 'replace');
@@ -807,6 +817,10 @@ test('deep-link de galeria fecha por replace preservando filtros e state alheio'
   assert.deepEqual(browser.window.history.state, { router: { key: 'kept' } });
   assert.equal(browser.nodes.galleryDialog.open, false);
   assert.equal(browser.document.body.classList.contains('kl-dialog-open'), false);
+  assert.equal(
+    browser.document.activeElement && browser.document.activeElement.parentNode.dataset.code,
+    nextCode,
+  );
 });
 
 test('URL da prova não inicializa galeria e popstate inativo não rouba foco', () => {
@@ -892,6 +906,40 @@ test('favoritos recusam segunda camada e close atrasado não limpa galeria ativa
   assert.equal(browser.document.body.style.position, 'fixed');
 });
 
+test('popstate para galeria troca favoritos sem desbloquear página, focar opener ou escrever history', () => {
+  const gallery = createGalleryDouble();
+  const { browser } = mountBrowser({
+    raw: fixtures,
+    dialogs: true,
+    gallery: gallery.Gallery,
+    scrollY: 330,
+  });
+  browser.triggerDOMContentLoaded();
+  browser.nodes.favoritesOpen.click();
+  browser.nodes.favoritesClose.focus({ preventScroll: true });
+
+  const code = browser.nodes.grid.children[0].dataset.code;
+  browser.window.history.pushState({
+    router: { key: 'kept' },
+    klCatalog: { layer: 'gallery', origin: 'grid' },
+  }, '', `/catalogo.html?p=${encodeURIComponent(code)}`);
+  const operationsBeforePop = browser.historyOperations.length;
+
+  browser.dispatchWindow('popstate', { state: browser.window.history.state });
+
+  assert.equal(browser.nodes.favoritesDialog.open, false);
+  assert.equal(browser.nodes.galleryDialog.open, true);
+  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), true);
+  assert.equal(browser.document.body.style.position, 'fixed');
+  assert.deepEqual(browser.scrollCalls, []);
+  assert.equal(browser.historyOperations.length, operationsBeforePop);
+  assert.deepEqual(browser.window.history.state, {
+    router: { key: 'kept' },
+    klCatalog: { layer: 'gallery', origin: 'grid' },
+  });
+  assert.equal(browser.document.activeElement === browser.nodes.galleryDialog, true);
+});
+
 test('falha ao abrir galeria faz rollback do dialog, shell e entrada local', () => {
   [
     { openResult: false },
@@ -957,21 +1005,65 @@ test('clique modificado mantém navegação nativa sem history ou shell', () => 
   assert.equal(browser.historyOperations.length, historyBefore);
 });
 
-test('pagehide limpa o shell sem restaurar scroll e mantém teardown do rail', () => {
-  const { browser } = mountBrowser({ raw: fixtures, dialogs: true, scrollY: 510 });
-  browser.triggerDOMContentLoaded();
-  const railObserver = browser.observers.find(
-    observer => observer.observed.includes(browser.nodes.filterSentinel),
-  );
-  browser.nodes.favoritesOpen.click();
-  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), true);
+test('pagehide fecha o diálogo antes de limpar shell sem scroll e pageshow só reconcilia galeria', () => {
+  ['favorites', 'gallery'].forEach((layer) => {
+    [false, true].forEach((persisted) => {
+      const gallery = createGalleryDouble();
+      const { browser } = mountBrowser({
+        raw: fixtures,
+        dialogs: true,
+        gallery: gallery.Gallery,
+        scrollY: 510,
+      });
+      browser.triggerDOMContentLoaded();
+      const railObserver = browser.observers.find(
+        observer => observer.observed.includes(browser.nodes.filterSentinel),
+      );
+      if (layer === 'favorites') {
+        browser.nodes.favoritesOpen.click();
+      } else {
+        const origin = browser.nodes.grid.children[0].children[0];
+        browser.nodes.grid.dispatchEvent({
+          type: 'click', target: origin, button: 0, defaultPrevented: false,
+          metaKey: false, ctrlKey: false, shiftKey: false, altKey: false,
+          preventDefault() { this.defaultPrevented = true; },
+        });
+      }
+      const activeDialog = layer === 'favorites'
+        ? browser.nodes.favoritesDialog : browser.nodes.galleryDialog;
+      let lockedWhenVisualClosed = false;
+      activeDialog.addEventListener('close', () => {
+        lockedWhenVisualClosed = browser.document.body.classList.contains('kl-dialog-open')
+          && browser.document.body.style.position === 'fixed';
+      }, { once: true });
+      const operationsBeforeLifecycle = browser.historyOperations.length;
 
-  browser.dispatchWindow('pagehide', { persisted: false });
+      browser.dispatchWindow('pagehide', { persisted });
 
-  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), false);
-  assert.equal(browser.document.body.style.position, '');
-  assert.deepEqual(browser.scrollCalls, []);
-  assert.equal(railObserver.disconnected, true);
+      assert.equal(lockedWhenVisualClosed, true, `${layer}/${persisted}`);
+      assert.equal(browser.nodes.favoritesDialog.open, false, `${layer}/${persisted}`);
+      assert.equal(browser.nodes.galleryDialog.open, false, `${layer}/${persisted}`);
+      assert.equal(browser.document.body.classList.contains('kl-dialog-open'), false, `${layer}/${persisted}`);
+      assert.equal(browser.document.body.style.position, '', `${layer}/${persisted}`);
+      assert.deepEqual(browser.scrollCalls, [], `${layer}/${persisted}`);
+      assert.equal(railObserver.disconnected, !persisted, `${layer}/${persisted}`);
+      assert.equal(browser.historyOperations.length, operationsBeforeLifecycle, `${layer}/${persisted}`);
+
+      if (persisted) {
+        browser.dispatchWindow('pageshow', { persisted: true });
+        assert.equal(browser.nodes.favoritesDialog.open, false, layer);
+        assert.equal(browser.nodes.galleryDialog.open, layer === 'gallery', layer);
+        assert.equal(
+          browser.document.body.classList.contains('kl-dialog-open'),
+          layer === 'gallery',
+          layer,
+        );
+        assert.equal(browser.document.body.style.position, layer === 'gallery' ? 'fixed' : '', layer);
+        assert.deepEqual(browser.scrollCalls, [], layer);
+        assert.equal(browser.historyOperations.length, operationsBeforeLifecycle, layer);
+      }
+    });
+  });
 });
 
 test('CTA global fica oculto sempre que o shell de diálogo está ativo', () => {

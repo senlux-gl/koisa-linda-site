@@ -56,6 +56,7 @@
   var catalogLoadedTracked = false;
   var catalogErrorTracked = false;
   var galleryNavigateSource = '';
+  var suppressFavoritesCloseCleanup = false;
   var dom = null;
 
   function trackCatalog(name, context) {
@@ -1344,10 +1345,17 @@
   function syncGallery(code) {
     if (!gallery || !gallery.isReady() || !dialogShell) return;
     if (code) {
-      if (dialogShell.current() !== null && dialogShell.current() !== 'gallery') return;
+      var activeLayer = dialogShell.current();
+      if (activeLayer !== null && activeLayer !== 'gallery' && activeLayer !== 'favorites') return;
       var normalized = String(code || '').trim().toUpperCase();
       if (!galleryOriginCode) galleryOriginCode = normalized;
       try {
+        if (activeLayer === 'favorites') {
+          closeFavoritesVisualWithoutCleanup();
+          if (dom.favoritesDialog && dom.favoritesDialog.open) {
+            throw new Error('favorites dialog refused close');
+          }
+        }
         dialogShell.activate('gallery');
         if (!gallery.open(normalized)) throw new Error('gallery refused product');
       } catch (error) {
@@ -1409,6 +1417,7 @@
       navigationSource = nextIndex < previousIndex ? 'previous' : 'next';
     }
     state = cloneState(Object.assign({}, state, { openProduct: product.k }));
+    if (!galleryOrigin) galleryOriginCode = product.k;
     historyController.replaceCurrent(urlFor(state));
     gallery.update(product.k);
     dispatchCatalogState();
@@ -1455,6 +1464,35 @@
   function closeFavoritesDialog() {
     if (!dom.favoritesDialog || !dom.favoritesDialog.open) return false;
     dom.favoritesDialog.close();
+    return true;
+  }
+
+  function closeFavoritesVisualWithoutCleanup() {
+    if (!dom.favoritesDialog || !dom.favoritesDialog.open) return false;
+    suppressFavoritesCloseCleanup = true;
+    try {
+      dom.favoritesDialog.close();
+    } finally {
+      suppressFavoritesCloseCleanup = false;
+    }
+    return true;
+  }
+
+  function closeDialogForPageHide() {
+    if (!dialogShell) return false;
+    var activeLayer = dialogShell.current();
+    if (activeLayer === null) return false;
+    try {
+      if (activeLayer === 'gallery' && gallery) gallery.close();
+      if (activeLayer === 'favorites') closeFavoritesVisualWithoutCleanup();
+    } catch (error) {
+      return false;
+    }
+    if ((activeLayer === 'gallery' && dom.galleryDialog && dom.galleryDialog.open)
+        || (activeLayer === 'favorites' && dom.favoritesDialog && dom.favoritesDialog.open)) {
+      return false;
+    }
+    dialogShell.clear({ restoreScroll: false });
     return true;
   }
 
@@ -1618,6 +1656,7 @@
       if (event.target === dom.favoritesDialog) closeFavoritesDialog();
     });
     dom.favoritesDialog.addEventListener('close', function () {
+      if (suppressFavoritesCloseCleanup) return;
       if (dialogShell.current() !== 'favorites') return;
       dialogShell.clear();
       if (dom.favoritesOpen && typeof dom.favoritesOpen.focus === 'function') {
@@ -1746,11 +1785,15 @@
       if (searchTimer != null && typeof root.clearTimeout === 'function') root.clearTimeout(searchTimer);
       searchTimer = null;
       savePosition();
-      if (dialogShell) dialogShell.clear({ restoreScroll: false });
+      closeDialogForPageHide();
       if ((!event || !event.persisted) && filterRailController) {
         filterRailController.destroy();
         filterRailController = null;
       }
+    });
+    root.addEventListener('pageshow', function (event) {
+      if (!event || !event.persisted || !dialogShell || dialogShell.current() !== null) return;
+      syncGallery(state && !state.tryOn ? state.openProduct : null);
     });
   }
 
