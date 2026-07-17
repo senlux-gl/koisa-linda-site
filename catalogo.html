@@ -123,11 +123,13 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 .units{gap:30px}
 </style>
 <link rel="stylesheet" href="kl-catalog.css?v=20260716catalog2">
+<link rel="stylesheet" href="kl-catalog-tryon.css?v=20260716tryon1">
 <script defer src="kl-catalog-data.js?v=20260715db"></script>
 <script defer src="kl-catalog-core.js?v=20260715catalog1"></script>
 <script defer src="kl-catalog-actions.js?v=20260715catalog1"></script>
 <script defer src="kl-catalog-gallery.js?v=20260715catalog1"></script>
 <script defer src="kl-tracking.js?v=20260715catalog1"></script>
+<script defer src="kl-catalog-tryon.js?v=20260716tryon1"></script>
 <script defer src="kl-catalog-app.js?v=20260716catalog2"></script>
 <link rel="stylesheet" href="kl-site-enhance.css?v=20260716catalog2"></head><body><noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1720591949105146&ev=PageView&noscript=1"/></noscript><header><div class="nav"><a class="logo" href="index.html"><img src="img/logo-kl-main.png" alt="KL"><div class="wm">KOISA LINDA<small>DESDE 1994</small></div></a><nav class="menu"><a href="index.html" class="">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="cur">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav><button class="mtog mtog-icon" aria-label="Abrir menu" aria-expanded="false"><span></span><span></span><span></span></button></div><nav class="mnav"><a href="index.html" class="">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="cur">Catálogo</a><a href="provar.html" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav></header>
 
@@ -155,7 +157,7 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
     </section>
   </section>
 
-  <section class="catalog-tools" aria-label="Refinar catálogo">
+  <section id="catalog-filters" class="catalog-tools" aria-label="Refinar catálogo">
     <div class="catalog-primary-filters">
       <label class="catalog-select-label" for="catalog-category">Categoria
         <select id="catalog-category" name="cat">
@@ -182,6 +184,23 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
     <div id="catalog-facets" class="catalog-facets"></div>
     <div id="catalog-active-filters" class="catalog-active-filters" aria-label="Filtros ativos"></div>
     <p id="catalog-count" class="catalog-count" aria-live="polite">Carregando catálogo…</p>
+    <div id="catalog-filter-sentinel" aria-hidden="true"></div>
+  </section>
+
+  <section id="catalog-filter-rail" class="catalog-filter-rail" aria-label="Filtros compactos do catálogo" hidden>
+    <div class="catalog-filter-rail-inner">
+      <div class="catalog-filter-rail-summary">
+        <span id="catalog-filter-rail-count">Carregando catálogo…</span>
+        <span id="catalog-filter-rail-category">Todas as categorias</span>
+      </div>
+      <fieldset id="catalog-filter-rail-units" class="catalog-filter-rail-units">
+        <legend>Unidade</legend>
+        <button type="button" data-unit="" aria-pressed="true">Todas</button>
+        <button type="button" data-unit="barra" aria-pressed="false">Barra da Tijuca</button>
+        <button type="button" data-unit="sf" aria-pressed="false">São Francisco</button>
+      </fieldset>
+      <button id="catalog-adjust-filters" type="button" aria-controls="catalog-filters">Ajustar filtros</button>
+    </div>
   </section>
 
   <section id="catalog-results" class="catalog-results" aria-busy="true">
@@ -223,6 +242,142 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
     <button type="button" data-close-favorites aria-label="Fechar favoritos">×</button>
   </div>
   <div id="favorites-content"></div>
+</dialog>
+
+<dialog id="catalog-tryon" class="catalog-tryon" aria-labelledby="tryon-title" aria-describedby="tryon-description">
+  <div class="tryon-scroll">
+    <header class="tryon-header">
+      <div class="tryon-heading">
+        <p class="tryon-eyebrow">Prova Virtual</p>
+        <h2 id="tryon-title" tabindex="-1">Veja este vestido em você</h2>
+        <p id="tryon-description">Escolha um vestido, envie uma foto de corpo inteiro e receba uma simulação para ajudar na sua escolha.</p>
+      </div>
+      <button id="tryon-close" class="tryon-close" type="button" aria-label="Fechar Prova Virtual">
+        <span aria-hidden="true">×</span>
+      </button>
+    </header>
+
+    <form id="tryon-form" class="tryon-form" novalidate>
+      <div class="tryon-form-layout">
+        <div class="tryon-selection-column">
+          <section class="tryon-step" aria-labelledby="tryon-size-title">
+            <div class="tryon-section-heading">
+              <h3 id="tryon-size-title">Seu manequim</h3>
+              <p>Essa informação ajuda a indicar como o vestido pode vestir.</p>
+            </div>
+            <fieldset id="tryon-sizes" class="tryon-choice-group">
+              <legend class="tryon-visually-hidden">Escolha seu manequim</legend>
+              <div class="tryon-size-options">
+                <button type="button" data-size="PP" aria-pressed="false">PP</button>
+                <button type="button" data-size="P" aria-pressed="false">P</button>
+                <button type="button" data-size="M" aria-pressed="false">M</button>
+                <button type="button" data-size="G" aria-pressed="false">G</button>
+                <button type="button" data-size="GG" aria-pressed="false">GG</button>
+              </div>
+              <div class="tryon-size-actions">
+                <button id="tryon-unknown-size" class="tryon-text-action" type="button" data-size-unknown>Não sei meu tamanho</button>
+                <button id="tryon-clear-size" class="tryon-text-action" type="button" data-clear-size>Limpar tamanho</button>
+              </div>
+            </fieldset>
+          </section>
+
+          <section class="tryon-step" aria-labelledby="tryon-category-title">
+            <div class="tryon-section-heading">
+              <h3 id="tryon-category-title">Escolha uma categoria</h3>
+              <p>Veja apenas os vestidos disponíveis para a Prova Virtual.</p>
+            </div>
+            <fieldset id="tryon-categories" class="tryon-choice-group">
+              <legend class="tryon-visually-hidden">Filtre os vestidos por categoria</legend>
+              <div class="tryon-category-options">
+                <button type="button" data-category="all" aria-pressed="true">Todos</button>
+                <button type="button" data-category="vestidos-noiva" aria-pressed="false">Noivas</button>
+                <button type="button" data-category="vestidos-madrinha" aria-pressed="false">Madrinhas e festa</button>
+                <button type="button" data-category="vestidos-debutante" aria-pressed="false">Debutantes</button>
+              </div>
+            </fieldset>
+          </section>
+
+          <section class="tryon-step tryon-dress-picker" aria-labelledby="tryon-dress-title">
+            <div class="tryon-section-heading">
+              <h3 id="tryon-dress-title">Selecione o vestido</h3>
+              <p>Códigos e informações aparecem abaixo de cada foto.</p>
+            </div>
+            <div class="tryon-search-field">
+              <label for="tryon-search">Buscar vestido por código ou cor</label>
+              <input id="tryon-search" name="tryon-search" type="search" autocomplete="off" placeholder="Exemplo: NV-120 ou azul">
+            </div>
+            <div id="tryon-dresses" class="tryon-dress-grid" role="list" aria-label="Vestidos disponíveis" aria-busy="false"></div>
+            <p id="tryon-no-results" class="tryon-empty" hidden>Nenhum vestido foi encontrado com esses filtros.</p>
+            <div class="tryon-dress-actions">
+              <button id="tryon-more" class="tryon-secondary-action" type="button" hidden>Ver mais vestidos</button>
+              <button id="tryon-clear-selection" class="tryon-text-action" type="button" disabled>Limpar vestido</button>
+            </div>
+          </section>
+        </div>
+
+        <aside class="tryon-photo-column" aria-labelledby="tryon-photo-title">
+          <section class="tryon-step tryon-photo-step">
+            <div class="tryon-section-heading">
+              <h3 id="tryon-photo-title">Envie sua foto</h3>
+              <p>Use uma foto nítida, de corpo inteiro, com os braços afastados do corpo.</p>
+            </div>
+            <figure class="tryon-photo-guide">
+              <img id="tryon-photo" src="img/prova-virtual-exemplo.webp" width="1000" height="1250" loading="lazy" decoding="async" alt="Comparação lado a lado entre a foto de corpo inteiro enviada e o resultado com a mesma pessoa usando um vestido longo">
+              <figcaption>À esquerda, a foto enviada. À direita, a simulação com o vestido. Prefira fundo simples e boa iluminação.</figcaption>
+            </figure>
+
+            <div class="tryon-upload-field">
+              <label id="tryon-upload-label" class="tryon-upload-label" for="tryon-file">Escolher minha foto</label>
+              <input id="tryon-file" class="tryon-file-input" name="tryon-photo" type="file" accept="image/jpeg,image/png,image/webp">
+              <p id="tryon-file-help" class="tryon-field-help">Formatos JPG, PNG ou WebP.</p>
+            </div>
+
+            <figure id="tryon-preview" class="tryon-preview" hidden>
+              <img id="tryon-preview-image" alt="Prévia da foto escolhida">
+              <figcaption>Sua foto selecionada</figcaption>
+            </figure>
+
+            <button id="tryon-submit" class="tryon-primary-action" type="submit" disabled>Criar minha prova</button>
+            <p class="tryon-disclaimer">Sua foto será usada somente para gerar esta simulação. Envie apenas uma imagem sua ou de alguém que autorizou o uso.</p>
+          </section>
+        </aside>
+      </div>
+    </form>
+
+    <section id="tryon-loading" class="tryon-state tryon-loading" role="status" aria-live="polite" aria-atomic="true" hidden>
+      <div class="tryon-loading-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+      <h3>Estamos criando sua Prova Virtual</h3>
+      <p>Isso pode levar alguns instantes. Mantenha esta janela aberta.</p>
+    </section>
+
+    <section id="tryon-result" class="tryon-state tryon-result" aria-live="polite" aria-atomic="true" hidden>
+      <figure class="tryon-result-figure">
+        <img id="tryon-result-image" alt="Resultado da Prova Virtual com o vestido selecionado">
+        <figcaption>Simulação de caimento. A prova presencial confirma os detalhes.</figcaption>
+      </figure>
+      <div class="tryon-state-copy">
+        <p class="tryon-eyebrow">Seu resultado</p>
+        <h3>Gostou de se ver com este vestido?</h3>
+        <p id="tryon-remaining" class="tryon-balance">Seu saldo de Provas Virtuais será atualizado aqui.</p>
+        <div class="tryon-result-actions">
+          <button id="tryon-again" class="tryon-secondary-action" type="button">Provar outro vestido</button>
+          <a id="tryon-whatsapp" class="tryon-primary-action" href="unidades.html">Falar no WhatsApp</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="tryon-error" class="tryon-state tryon-error" role="alert" hidden>
+      <div class="tryon-state-copy">
+        <p class="tryon-eyebrow">Não foi possível concluir</p>
+        <h3>Vamos tentar de novo?</h3>
+        <p id="tryon-error-message">Confira sua conexão e escolha outra foto. Se precisar, nossa equipe pode ajudar.</p>
+        <div class="tryon-error-actions">
+          <button id="tryon-error-again" class="tryon-secondary-action" type="button">Tentar novamente</button>
+          <a id="tryon-error-whatsapp" class="tryon-primary-action" href="unidades.html">Falar no WhatsApp</a>
+        </div>
+      </div>
+    </section>
+  </div>
 </dialog>
 
 <footer><img class="fimg" src="img/logo-kl-footer.png" alt="KL"><div class="fbrand">KOISA LINDA</div><div class="fphrase">Unindo famílias. Realizando sonhos.</div><div class="funits"><span>São Francisco</span><span>Barra da Tijuca</span></div><div class="fsoc"><a href="https://www.instagram.com/koisalinda_oficial/" target="_blank">Instagram</a><a href="https://www.facebook.com/koisalindaoficial/" target="_blank">Facebook</a><a href="https://www.tiktok.com/@koisalindaoficial" target="_blank">TikTok</a><a href="https://br.pinterest.com/koisalinda_oficial/" target="_blank">Pinterest</a></div><small>Costuramos sonhos desde 1994.<br>CNPJ 02.504.054/0001-10 · © 2026 Koisa Linda · Protótipo para avaliação</small></footer><script id="kl-motion-js">

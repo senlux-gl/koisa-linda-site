@@ -48,6 +48,30 @@ def balanced_css_block(css: str, marker: str) -> str:
     raise AssertionError(f"bloco CSS não fechado: {marker}")
 
 
+def css_declarations_for_exact_selector(css: str, selector: str) -> list[str]:
+    declarations_by_rule = []
+    for selector_group, declarations in re.findall(r"([^{}]+)\{([^{}]*)\}", css):
+        selectors = {
+            re.sub(r"/\*.*?\*/", "", item, flags=re.DOTALL).strip()
+            for item in selector_group.split(",")
+        }
+        if selector in selectors:
+            declarations_by_rule.append(declarations)
+    return declarations_by_rule
+
+
+def css_property_values(css: str, selector: str, property_name: str) -> list[str]:
+    values = []
+    pattern = re.compile(
+        rf"(?:^|;)\s*{re.escape(property_name)}\s*:\s*([^;]+)"
+    )
+    for declarations in css_declarations_for_exact_selector(css, selector):
+        values.extend(
+            match.group(1).strip() for match in pattern.finditer(declarations)
+        )
+    return values
+
+
 def css_blocks(css: str, marker: str) -> list[str]:
     blocks = []
     offset = 0
@@ -621,6 +645,208 @@ class CatalogIntegrationContractTest(unittest.TestCase):
 
 
 class CatalogHybridContractTest(unittest.TestCase):
+    def _assert_catalog_rail_override_contract(self, css: str):
+        exact_properties = (
+            ("position", "sticky"),
+            ("top", "var(--catalog-header-offset,71px)"),
+            ("z-index", "40"),
+        )
+        for property_name, expected in exact_properties:
+            values = css_property_values(
+                css, ".catalog-filter-rail", property_name
+            )
+            self.assertTrue(values, property_name)
+            for value in values:
+                self.assertEqual(expected, re.sub(r"\s+", "", value.lower()))
+
+        outline_values = css_property_values(
+            css, ".catalog-filter-rail button:focus-visible", "outline"
+        )
+        self.assertTrue(outline_values)
+        normalized_outlines = []
+        for value in outline_values:
+            normalized = re.sub(r"\s*!important\s*$", "", value.lower()).strip()
+            normalized_outlines.append(re.sub(r"\s+", "", normalized))
+            first_token = normalized.split(maxsplit=1)[0]
+            self.assertNotEqual("none", first_token)
+            self.assertNotRegex(first_token, r"^0(?:[a-z%]+)?$")
+        self.assertIn("3pxsolidvar(--ruby)", normalized_outlines)
+
+        for value in css_property_values(
+            css, ".catalog-filter-rail button:focus-visible", "outline-width"
+        ):
+            normalized = re.sub(r"\s*!important\s*$", "", value.lower()).strip()
+            self.assertNotRegex(normalized, r"^0(?:[a-z%]+)?$")
+
+        min_heights = css_property_values(
+            css, ".catalog-filter-rail button", "min-height"
+        )
+        self.assertTrue(min_heights)
+        for value in min_heights:
+            normalized = re.sub(r"\s*!important\s*$", "", value.lower()).strip()
+            match = re.fullmatch(r"(\d+(?:\.\d+)?)px", normalized)
+            self.assertIsNotNone(match, normalized)
+            self.assertGreaterEqual(float(match.group(1)), 44, normalized)
+
+    def test_catalog_css_contract_rejects_later_invalid_overrides(self):
+        css = page("kl-catalog.css")
+        mutations = {
+            "position": (
+                "@media(max-width:680px){"
+                ".catalog-filter-rail,.mutation-probe{position:static;}}"
+            ),
+            "top": ".mutation-probe,.catalog-filter-rail{top:0;}",
+            "z-index": ".catalog-filter-rail{z-index:0;}",
+            "outline": (
+                "@media(prefers-contrast:more){.mutation-probe,"
+                ".catalog-filter-rail button:focus-visible{outline:none;}}"
+            ),
+            "outline width": (
+                ".catalog-filter-rail button:focus-visible{outline-width:0;}"
+            ),
+            "tap target": (
+                "@media(max-width:680px){.catalog-filter-rail button,"
+                ".mutation-probe{min-height:40px;}}"
+            ),
+        }
+        for name, override in mutations.items():
+            with self.subTest(mutation=name):
+                with self.assertRaises(AssertionError):
+                    self._assert_catalog_rail_override_contract(css + override)
+
+    def test_catalog_full_filters_end_with_sentinel_and_precede_compact_rail(self):
+        html = page("catalogo.html")
+        tools_match = re.search(
+            r'<section id="catalog-filters" class="catalog-tools"[^>]*>.*?</section>',
+            html,
+            flags=re.DOTALL,
+        )
+        rail_match = re.search(
+            r'<section id="catalog-filter-rail" class="catalog-filter-rail"[^>]*\bhidden\b[^>]*>.*?</section>',
+            html,
+            flags=re.DOTALL,
+        )
+
+        self.assertIsNotNone(tools_match)
+        self.assertIsNotNone(rail_match)
+        tools = tools_match.group(0)
+        self.assertRegex(
+            tools,
+            r'<p id="catalog-count" class="catalog-count" aria-live="polite">'
+            r'Carregando catálogo…</p>\s*'
+            r'<div id="catalog-filter-sentinel" aria-hidden="true"></div>\s*</section>$',
+        )
+        results_start = html.index('<section id="catalog-results"', rail_match.end())
+        self.assertEqual("", html[tools_match.end() : rail_match.start()].strip())
+        self.assertEqual("", html[rail_match.end() : results_start].strip())
+
+    def test_catalog_compact_rail_has_mirrored_static_controls(self):
+        html = page("catalogo.html")
+        rail = section_with_class(html, "catalog-filter-rail")
+
+        self.assertRegex(
+            rail,
+            r'<div class="catalog-filter-rail-summary">\s*'
+            r'<span id="catalog-filter-rail-count">Carregando catálogo…</span>\s*'
+            r'<span id="catalog-filter-rail-category">Todas as categorias</span>\s*'
+            r'</div>',
+        )
+        self.assertNotIn("aria-live", rail)
+        self.assertNotRegex(rail, r"<select\b")
+        self.assertNotIn('name="rail-cat"', rail)
+        self.assertRegex(
+            rail,
+            r'(?s)<fieldset id="catalog-filter-rail-units" class="catalog-filter-rail-units">'
+            r'.*?<button type="button" data-unit="" aria-pressed="true">Todas</button>'
+            r'.*?<button type="button" data-unit="barra" aria-pressed="false">Barra da Tijuca</button>'
+            r'.*?<button type="button" data-unit="sf" aria-pressed="false">São Francisco</button>'
+            r'.*?</fieldset>',
+        )
+        self.assertRegex(
+            rail,
+            r'<button id="catalog-adjust-filters"[^>]*aria-controls="catalog-filters"[^>]*>'
+            r'\s*Ajustar filtros\s*</button>',
+        )
+
+    def test_catalog_full_panel_scrolls_while_compact_rail_is_sticky(self):
+        css = page("kl-catalog.css")
+        self._assert_catalog_rail_override_contract(css)
+        tools = balanced_css_block(css, ".catalog-tools").replace(" ", "")
+        tools_rules = [
+            declarations.replace(" ", "")
+            for declarations in css_declarations_for_exact_selector(
+                css, ".catalog-tools"
+            )
+        ]
+        hidden = balanced_css_block(css, ".catalog-filter-rail[hidden]").replace(" ", "")
+
+        self.assertTrue(tools_rules)
+        for declarations in tools_rules:
+            self.assertNotRegex(declarations, r"(?<![-\w])position:")
+            self.assertNotRegex(declarations, r"(?<![-\w])top:")
+            self.assertNotIn("z-index:", declarations)
+        self.assertIn(
+            "scroll-margin-top:calc(var(--catalog-header-offset,71px)+16px)",
+            tools,
+        )
+        self.assertIn("display:none", hidden)
+
+    def test_catalog_compact_controls_are_touch_and_keyboard_accessible(self):
+        css = page("kl-catalog.css")
+        self._assert_catalog_rail_override_contract(css)
+        pressed = balanced_css_block(
+            css, '.catalog-filter-rail-units button[aria-pressed="true"]'
+        ).replace(" ", "")
+        reduced_transparency = balanced_css_block(
+            css, "@media(prefers-reduced-transparency:reduce)"
+        )
+        rail_transparency_fallback = re.sub(
+            r"\s+",
+            "",
+            balanced_css_block(reduced_transparency, ".catalog-tools,"),
+        )
+
+        self.assertNotIn(".catalog-filter-rail select", css)
+        self.assertIn("background:var(--ruby)", pressed)
+        self.assertIn("border-color:var(--ruby)", pressed)
+        self.assertIn("color:#fff", pressed)
+        self.assertIn(".catalog-tools,.catalog-filter-rail", rail_transparency_fallback)
+        self.assertIn("background:var(--cream)", rail_transparency_fallback)
+        self.assertIn("-webkit-backdrop-filter:none", rail_transparency_fallback)
+        self.assertIn("backdrop-filter:none", rail_transparency_fallback)
+
+    def test_catalog_mobile_hides_only_compact_category_and_units(self):
+        css = page("kl-catalog.css")
+        mobile = balanced_css_block(css, "@media(max-width:680px)")
+        hidden_selectors = set()
+        for selector_group, declarations in re.findall(
+            r"([^{}]+)\{([^{}]*)\}", mobile
+        ):
+            if re.search(r"display\s*:\s*none\b", declarations):
+                hidden_selectors.update(
+                    selector.strip() for selector in selector_group.split(",")
+                )
+
+        self.assertIn("#catalog-filter-rail-category", hidden_selectors)
+        self.assertIn(".catalog-filter-rail-units", hidden_selectors)
+        for visible_rail_selector in (
+            "#catalog-filter-rail-count",
+            "#catalog-adjust-filters",
+            ".catalog-filter-rail-summary",
+            ".catalog-filter-rail-inner",
+            ".catalog-filter-rail",
+        ):
+            self.assertNotIn(visible_rail_selector, hidden_selectors)
+        for full_filter_selector in (
+            ".catalog-tools",
+            ".catalog-units",
+            ".catalog-facets",
+            ".catalog-facet-group",
+            ".catalog-facet-options",
+            ".catalog-active-filters",
+        ):
+            self.assertNotIn(full_filter_selector, hidden_selectors)
+
     def test_catalog_loads_split_assets_in_dependency_order(self):
         html = page("catalogo.html")
         assets = (
@@ -629,8 +855,11 @@ class CatalogHybridContractTest(unittest.TestCase):
             "kl-catalog-actions.js?v=20260715catalog1",
             "kl-catalog-gallery.js?v=20260715catalog1",
             "kl-tracking.js?v=20260715catalog1",
+            "kl-catalog-tryon.js?v=20260716tryon1",
             "kl-catalog-app.js?v=20260716catalog2",
         )
+        for asset in assets:
+            self.assertIn(asset, html, asset)
         positions = [html.index(asset) for asset in assets]
         self.assertEqual(positions, sorted(positions))
         for asset in assets:
@@ -639,8 +868,258 @@ class CatalogHybridContractTest(unittest.TestCase):
                 rf'<script\s+defer\s+src="{re.escape(asset)}"></script>',
             )
         self.assertIn('href="kl-catalog.css?v=20260716catalog2"', html)
+        catalog_css = html.index('href="kl-catalog.css?v=20260716catalog2"')
+        tryon_css = html.index('href="kl-catalog-tryon.css?v=20260716tryon1"')
+        enhance_css = html.index('href="kl-site-enhance.css?v=20260716catalog2"')
+        self.assertLess(catalog_css, tryon_css)
+        self.assertLess(tryon_css, enhance_css)
         self.assertNotIn("const DATA=window.KL_DATA", html)
         self.assertNotIn("let cat=new URLSearchParams", html)
+
+    def test_catalog_tryon_dialog_has_accessible_static_structure(self):
+        html = page("catalogo.html")
+        dialogs = list(re.finditer(
+            r'<dialog\b[^>]*\bid="(catalog-(?:gallery|favorites|tryon))"[^>]*>'
+            r'.*?</dialog>',
+            html,
+            flags=re.DOTALL,
+        ))
+        self.assertEqual(
+            ["catalog-gallery", "catalog-favorites", "catalog-tryon"],
+            [dialog.group(1) for dialog in dialogs],
+        )
+        match = re.search(
+            r'<dialog\s+id="catalog-tryon"\s+class="catalog-tryon"\s+'
+            r'aria-labelledby="tryon-title"\s+'
+            r'aria-describedby="tryon-description">(.*?)</dialog>',
+            html,
+            flags=re.DOTALL,
+        )
+        self.assertIsNotNone(match)
+        dialog = match.group(1)
+
+        self.assertRegex(dialog, r'<h2\s+id="tryon-title"\s+tabindex="-1">')
+        self.assertRegex(
+            dialog,
+            r'<button[^>]+id="tryon-close"[^>]+type="button"[^>]+'
+            r'aria-label="Fechar Prova Virtual"',
+        )
+        self.assertRegex(dialog, r'<label[^>]+for="tryon-search"')
+        self.assertRegex(dialog, r'<input[^>]+id="tryon-search"[^>]+type="search"')
+        self.assertRegex(dialog, r'<label[^>]+for="tryon-file"')
+        self.assertRegex(dialog, r'<input[^>]+id="tryon-file"[^>]+type="file"')
+        self.assertIn('src="img/prova-virtual-exemplo.webp"', dialog)
+
+        required_ids = (
+            "tryon-title", "tryon-description", "tryon-close", "tryon-sizes",
+            "tryon-categories", "tryon-search", "tryon-dresses", "tryon-more",
+            "tryon-clear-selection", "tryon-photo", "tryon-file",
+            "tryon-preview", "tryon-submit", "tryon-form", "tryon-loading",
+            "tryon-result", "tryon-result-image", "tryon-again", "tryon-error",
+            "tryon-error-message", "tryon-whatsapp",
+        )
+        for element_id in required_ids:
+            self.assertEqual(1, dialog.count(f'id="{element_id}"'), element_id)
+
+    def test_catalog_tryon_form_covers_selection_upload_and_disclaimer(self):
+        html = page("catalogo.html")
+        dialog = re.search(
+            r'<dialog\s+id="catalog-tryon".*?>(.*?)</dialog>',
+            html,
+            flags=re.DOTALL,
+        )
+        self.assertIsNotNone(dialog)
+        source = dialog.group(1)
+        form = re.search(
+            r'<form[^>]+id="tryon-form"[^>]*>(.*?)</form>',
+            source,
+            flags=re.DOTALL,
+        )
+        self.assertIsNotNone(form)
+        form_source = form.group(1)
+
+        sizes = re.search(
+            r'<fieldset[^>]+id="tryon-sizes"[^>]*>(.*?)</fieldset>',
+            form_source,
+            flags=re.DOTALL,
+        )
+        categories = re.search(
+            r'<fieldset[^>]+id="tryon-categories"[^>]*>(.*?)</fieldset>',
+            form_source,
+            flags=re.DOTALL,
+        )
+        self.assertIsNotNone(sizes)
+        self.assertIsNotNone(categories)
+        for size in ("PP", "P", "M", "G", "GG"):
+            self.assertRegex(
+                sizes.group(1),
+                rf'<button[^>]+data-size="{size}"[^>]*>{size}</button>',
+            )
+        self.assertIn("Não sei meu tamanho", sizes.group(1))
+        self.assertIn('id="tryon-clear-size"', sizes.group(1))
+        for category in (
+            "all", "vestidos-noiva", "vestidos-madrinha", "vestidos-debutante",
+        ):
+            self.assertIn(f'data-category="{category}"', categories.group(1))
+
+        self.assertRegex(
+            form_source,
+            r'<button[^>]+id="tryon-submit"[^>]+type="submit"[^>]+disabled',
+        )
+        self.assertRegex(
+            form_source,
+            r'<input[^>]+id="tryon-file"[^>]+accept="image/[^">]+"',
+        )
+        self.assertRegex(
+            form_source,
+            re.compile(
+                r'<figure[^>]+class="[^"]*tryon-photo-guide[^"]*"[^>]*>.*?'
+                r'<img[^>]+id="tryon-photo"[^>]*>\s*<figcaption>',
+                flags=re.DOTALL,
+            ),
+        )
+        self.assertIn('class="tryon-disclaimer"', form_source)
+        self.assertNotRegex(source, r'\b(?:onclick|style)\s*=')
+
+    def test_catalog_tryon_photo_guide_explains_input_and_result(self):
+        html = page("catalogo.html")
+        guide = re.search(
+            r'<figure\s+class="tryon-photo-guide">\s*'
+            r'<img[^>]+alt="([^"]+)"[^>]*>\s*'
+            r'<figcaption>(.*?)</figcaption>',
+            html,
+            flags=re.DOTALL,
+        )
+        self.assertIsNotNone(guide)
+        self.assertEqual(
+            "Comparação lado a lado entre a foto de corpo inteiro enviada e o "
+            "resultado com a mesma pessoa usando um vestido longo",
+            guide.group(1),
+        )
+        self.assertEqual(
+            "À esquerda, a foto enviada. À direita, a simulação com o vestido. "
+            "Prefira fundo simples e boa iluminação.",
+            guide.group(2).strip(),
+        )
+
+    def test_catalog_tryon_states_use_one_live_region_per_announcement(self):
+        html = page("catalogo.html")
+        dialog = re.search(
+            r'<dialog\s+id="catalog-tryon".*?>(.*?)</dialog>',
+            html,
+            flags=re.DOTALL,
+        )
+        self.assertIsNotNone(dialog)
+        source = dialog.group(1)
+
+        form = re.search(r'<form[^>]+id="tryon-form".*?</form>', source, re.DOTALL)
+        loading = re.search(r'<section[^>]+id="tryon-loading"[^>]*>', source)
+        result = re.search(r'<section[^>]+id="tryon-result"[^>]*>', source)
+        error = re.search(r'<section[^>]+id="tryon-error"[^>]*>', source)
+        for state in (form, loading, result, error):
+            self.assertIsNotNone(state)
+
+        self.assertNotIn("aria-live", form.group(0).split(">", 1)[0])
+        self.assertIn('role="status"', loading.group(0))
+        self.assertIn('aria-live="polite"', loading.group(0))
+        self.assertIn('aria-live="polite"', result.group(0))
+        self.assertIn('role="alert"', error.group(0))
+        self.assertNotIn("aria-live", error.group(0))
+        self.assertNotRegex(source, r'role="alert"[^>]+aria-live=')
+        self.assertRegex(loading.group(0), r'\bhidden\b')
+        self.assertRegex(result.group(0), r'\bhidden\b')
+        self.assertRegex(error.group(0), r'\bhidden\b')
+
+    def test_catalog_tryon_css_is_mobile_safe_and_never_covers_actions(self):
+        self.assertTrue(
+            (ROOT / "kl-catalog-tryon.css").is_file(),
+            "kl-catalog-tryon.css precisa existir",
+        )
+        css = page("kl-catalog-tryon.css")
+        dialog = balanced_css_block(css, ".catalog-tryon").replace(" ", "")
+        scroll = balanced_css_block(css, ".tryon-scroll").replace(" ", "")
+        mobile = balanced_css_block(css, "@media(max-width:680px)")
+        mobile_dialog = balanced_css_block(
+            mobile, ".catalog-tryon"
+        ).replace(" ", "")
+
+        self.assertIn("overflow-x:hidden", dialog)
+        self.assertIn("overflow-y:auto", scroll)
+        self.assertIn("overscroll-behavior:contain", scroll)
+        self.assertIn("width:100vw", mobile_dialog)
+        self.assertIn("height:100dvh", mobile_dialog)
+        self.assertIn("max-height:none", mobile_dialog)
+        self.assertIn("border-radius:0", mobile_dialog)
+
+        for selector_group, declarations in re.findall(r"([^{}]+)\{([^{}]*)\}", css):
+            if "tryon" not in selector_group:
+                continue
+            self.assertNotRegex(
+                declarations,
+                r"(?:^|;)\s*position\s*:\s*(?:fixed|sticky)\b",
+                selector_group.strip(),
+            )
+
+    def test_catalog_tryon_centers_desktop_and_resets_margin_on_mobile(self):
+        css = page("kl-catalog-tryon.css")
+        margins = [
+            re.sub(r"\s+", "", value.lower())
+            for value in css_property_values(css, ".catalog-tryon", "margin")
+        ]
+        mobile = balanced_css_block(css, "@media(max-width:680px)")
+        mobile_dialog = balanced_css_block(
+            mobile, ".catalog-tryon"
+        ).replace(" ", "")
+
+        self.assertEqual(["auto", "0"], margins)
+        self.assertIn("margin:0", mobile_dialog)
+
+    def test_catalog_tryon_upload_label_exposes_the_hidden_input_focus(self):
+        css = page("kl-catalog-tryon.css")
+        upload_focus = balanced_css_block(
+            css, ".tryon-upload-field:focus-within .tryon-upload-label"
+        ).replace(" ", "")
+
+        self.assertIn("outline:3pxsolidvar(--ruby)", upload_focus)
+        self.assertIn("outline-offset:3px", upload_focus)
+
+    def test_catalog_tryon_controls_focus_and_motion_contract(self):
+        self.assertTrue(
+            (ROOT / "kl-catalog-tryon.css").is_file(),
+            "kl-catalog-tryon.css precisa existir",
+        )
+        css = page("kl-catalog-tryon.css")
+        close = balanced_css_block(css, "#tryon-close").replace(" ", "")
+        controls = balanced_css_block(
+            css, ".catalog-tryon button,"
+        ).replace(" ", "")
+        focus = balanced_css_block(
+            css, ".catalog-tryon :focus-visible"
+        ).replace(" ", "")
+        reduced = balanced_css_block(
+            css, "@media(prefers-reduced-motion:reduce)"
+        ).replace(" ", "")
+
+        self.assertIn("width:48px", close)
+        self.assertIn("height:48px", close)
+        self.assertRegex(controls, r"min-height:(?:44|48)px")
+        self.assertIn("outline:3pxsolidvar(--ruby)", focus)
+        self.assertIn("transition:none", reduced)
+        self.assertIn("animation:none", reduced)
+
+        for value in re.findall(r"transition(?:-property)?\s*:\s*([^;}]+)", css):
+            normalized = re.sub(
+                r"\s*!important\b", "", value.strip().lower()
+            ).strip()
+            if normalized == "none":
+                continue
+            self.assertNotIn("all", normalized)
+            properties = re.findall(r"(?:^|,)\s*([a-z-]+)", normalized)
+            self.assertTrue(properties)
+            self.assertTrue(
+                set(properties).issubset({"transform", "opacity"}),
+                normalized,
+            )
 
     def test_catalog_shell_is_semantic_and_complete(self):
         html = page("catalogo.html")
