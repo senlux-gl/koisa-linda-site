@@ -169,6 +169,7 @@ function createTryOnDouble(options) {
     shouldInterceptLink: TryOnModule.shouldInterceptLink,
     createWorkerClient(workerOptions) {
       calls.push({ type: 'createWorkerClient', options: workerOptions });
+      if (options.throwOnWorkerClient) throw new Error('worker client setup failed');
       return {
         run() {
           workerRuns += 1;
@@ -177,6 +178,7 @@ function createTryOnDouble(options) {
       };
     },
     create(nextCallbacks) {
+      if (options.throwOnCreate) throw new Error('try-on setup failed');
       callbacks = nextCallbacks;
       assert.equal(Array.isArray(nextCallbacks.products), true);
       controller = {
@@ -992,6 +994,13 @@ test('menu abre Prova Virtual sem peça, preserva filtros e volta ao mesmo link 
   assert.equal(modified.prevented(), false);
   assert.equal(browser.historyOperations.length, 0);
   assert.equal(browser.nodes.tryOnDialog.open, false);
+  const modifiedTracking = browser.trackingCalls.filter(
+    call => call.name === 'KL_Try_On_Click',
+  );
+  assert.equal(modifiedTracking.length, 1);
+  assert.equal(modifiedTracking[0].context.source, 'shortcut');
+  assert.equal(modifiedTracking[0].context.productCode, null);
+  assert.doesNotMatch(JSON.stringify(modifiedTracking[0].context), /image|base64|file|query/i);
 
   const menuLink = browser.nodes.tryOnEntries[0];
   menuLink.focus();
@@ -1013,6 +1022,11 @@ test('menu abre Prova Virtual sem peça, preserva filtros e volta ao mesmo link 
   assert.equal(tryOn.callbacks().elements.categoryButtons.length, 4);
   assert.equal(browser.workerFetchCalls.length, 0);
   assert.equal(tryOn.workerRuns(), 0);
+  assert.equal(
+    browser.trackingCalls.filter(call => call.name === 'KL_Try_On_Click').length,
+    2,
+    'clique simples não duplica tracking após o clique modificado',
+  );
 
   const historyBeforeSelection = browser.historyOperations.length;
   tryOn.callbacks().onSelectionChange('NV-002');
@@ -1063,6 +1077,19 @@ test('galeria transita para Prova Virtual com uma entrada, um lock e volta à me
   ));
 
   const beforeTryOn = browser.historySnapshot();
+  const modified = dispatchPrimaryClick(browser.nodes.galleryTryOn, { button: 1 });
+  assert.equal(modified.prevented(), false);
+  assert.deepEqual(browser.historySnapshot(), beforeTryOn);
+  assert.equal(browser.nodes.galleryDialog.open, true);
+  assert.equal(browser.nodes.tryOnDialog.open, false);
+  const modifiedTracking = browser.trackingCalls.filter(
+    call => call.name === 'KL_Try_On_Click',
+  );
+  assert.equal(modifiedTracking.length, 1);
+  assert.equal(modifiedTracking[0].context.source, 'gallery');
+  assert.equal(modifiedTracking[0].context.productCode, productCode);
+  assert.doesNotMatch(JSON.stringify(modifiedTracking[0].context), /image|base64|file|query/i);
+
   const click = dispatchPrimaryClick(browser.nodes.galleryTryOn);
   assert.equal(click.prevented(), true);
   assert.equal(browser.historySnapshot().entries.length, beforeTryOn.entries.length + 1);
@@ -1075,7 +1102,7 @@ test('galeria transita para Prova Virtual com uma entrada, um lock e volta à me
   assert.equal(tryOn.controller().getSnapshot().selectedCode, productCode);
   assert.equal(
     browser.trackingCalls.filter(call => call.name === 'KL_Try_On_Click').length,
-    1,
+    2,
   );
   const tracking = browser.trackingCalls.find(call => call.name === 'KL_Try_On_Click');
   assert.equal(tracking.context.productCode, productCode);
@@ -1093,7 +1120,7 @@ test('galeria transita para Prova Virtual com uma entrada, um lock e volta à me
   assert.equal(gallery.calls.filter(call => call.type === 'open').at(-1).code, productCode);
   assert.equal(
     browser.trackingCalls.filter(call => call.name === 'KL_Try_On_Click').length,
-    1,
+    2,
     'reconciliação não duplica tracking',
   );
 
@@ -1204,19 +1231,144 @@ test('restauração de posição remove estado modal e ignora snapshot durante P
 
 test('integração da Prova Virtual fica inerte quando APIs privadas do navegador faltam', () => {
   const tryOn = createTryOnDouble();
+  const gallery = createGalleryDouble();
   const { browser } = mountBrowser({
     raw: fixtures,
+    search: '?cat=vestidos-noiva&un=barra&prova=1&p=NV-001',
     dialogs: true,
+    gallery: gallery.Gallery,
     tryOn: tryOn.TryOn,
     tryOnDialog: true,
     tryOnApis: false,
   });
   browser.triggerDOMContentLoaded();
+  assert.match(browser.window.location.search, /cat=vestidos-noiva/);
+  assert.match(browser.window.location.search, /un=barra/);
+  assert.doesNotMatch(browser.window.location.search, /prova=|(?:^|[?&])p=/);
+  assert.equal(browser.historyOperations.length, 1);
+  assert.equal(browser.historyOperations[0].type, 'replace');
+
   const click = dispatchPrimaryClick(browser.nodes.tryOnEntries[0]);
   assert.equal(click.prevented(), false);
   assert.equal(tryOn.calls.length, 0);
   assert.equal(browser.nodes.tryOnDialog.open, false);
+
+  const origin = browser.nodes.grid.children[0].children[0];
+  dispatchPrimaryClick(browser.nodes.grid, { target: origin, currentTarget: browser.nodes.grid });
+  assert.equal(browser.nodes.galleryDialog.open, true);
+  assert.equal(browser.historyOperations.at(-1).type, 'push');
+  assert.equal(browser.window.history.state.klCatalog.layer, 'gallery');
+});
+
+test('falha interna no setup da Prova Virtual também volta ao grid canônico', () => {
+  const tryOn = createTryOnDouble({ throwOnCreate: true });
+  const gallery = createGalleryDouble();
+  const { browser } = mountBrowser({
+    raw: fixtures,
+    search: '?cat=vestidos-noiva&un=sf&prova=1&p=NV-002',
+    dialogs: true,
+    gallery: gallery.Gallery,
+    tryOn: tryOn.TryOn,
+    tryOnDialog: true,
+    tryOnApis: true,
+  });
+
+  browser.triggerDOMContentLoaded();
+
+  assert.match(browser.window.location.search, /cat=vestidos-noiva/);
+  assert.match(browser.window.location.search, /un=sf/);
+  assert.doesNotMatch(browser.window.location.search, /prova=|(?:^|[?&])p=/);
+  assert.equal(browser.historyOperations.length, 1);
+  assert.equal(browser.historyOperations[0].type, 'replace');
+  assert.equal(browser.nodes.tryOnDialog.open, false);
+
+  const origin = browser.nodes.grid.children[0].children[0];
+  dispatchPrimaryClick(browser.nodes.grid, { target: origin, currentTarget: browser.nodes.grid });
+  assert.equal(browser.nodes.galleryDialog.open, true);
+  assert.equal(browser.window.history.state.klCatalog.layer, 'gallery');
+});
+
+test('entrada mobile restaura foco no botão visível do menu, não no link oculto', () => {
+  const tryOn = createTryOnDouble();
+  const { browser } = mountBrowser({
+    raw: fixtures,
+    dialogs: true,
+    tryOn: tryOn.TryOn,
+    tryOnDialog: true,
+    tryOnApis: true,
+  });
+  const menuToggle = browser.document.createElement('button');
+  menuToggle.className = 'mtog';
+  browser.nodes.header.appendChild(menuToggle);
+  browser.triggerDOMContentLoaded();
+
+  const mobileLink = browser.nodes.tryOnEntries[1];
+  assert.equal(dispatchPrimaryClick(mobileLink).prevented(), true);
+  assert.equal(tryOn.callbacks().onRequestClose(), 'back');
+  browser.dispatchWindow('popstate', { state: browser.window.history.state });
+
+  assert.equal(browser.document.activeElement === menuToggle, true);
+  assert.equal(browser.document.activeElement === mobileLink, false);
+});
+
+test('falha visual em clique simples é interceptada sem push, back ou navegação concorrente', () => {
+  const tryOn = createTryOnDouble({ openResult: false });
+  const { browser } = mountBrowser({
+    raw: fixtures,
+    dialogs: true,
+    tryOn: tryOn.TryOn,
+    tryOnDialog: true,
+    tryOnApis: true,
+  });
+  browser.triggerDOMContentLoaded();
+  const initialUrl = browser.window.location.pathname + browser.window.location.search;
+
+  const click = dispatchPrimaryClick(browser.nodes.tryOnEntries[0]);
+
+  assert.equal(click.prevented(), true);
   assert.equal(browser.historyOperations.length, 0);
+  assert.equal(browser.window.location.pathname + browser.window.location.search, initialUrl);
+  assert.equal(browser.nodes.tryOnDialog.open, false);
+  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), false);
+  assert.equal(
+    browser.trackingCalls.filter(call => call.name === 'KL_Try_On_Click').length,
+    1,
+  );
+});
+
+test('falha ao abrir Prova Virtual pela galeria mantém a peça e o lock sem tocar no history', () => {
+  const gallery = createGalleryDouble();
+  const tryOn = createTryOnDouble({ openResult: false });
+  const { browser } = mountBrowser({
+    raw: fixtures,
+    dialogs: true,
+    gallery: gallery.Gallery,
+    tryOn: tryOn.TryOn,
+    tryOnDialog: true,
+    tryOnApis: true,
+    scrollY: 315,
+  });
+  browser.triggerDOMContentLoaded();
+  const origin = browser.nodes.grid.children[0].children[0];
+  dispatchPrimaryClick(browser.nodes.grid, { target: origin, currentTarget: browser.nodes.grid });
+  const productCode = origin.parentNode.dataset.code;
+  const beforeTryOn = browser.historySnapshot();
+
+  const click = dispatchPrimaryClick(browser.nodes.galleryTryOn);
+
+  assert.equal(click.prevented(), true);
+  assert.deepEqual(browser.historySnapshot(), beforeTryOn);
+  assert.equal(browser.nodes.galleryDialog.open, true);
+  assert.equal(browser.nodes.tryOnDialog.open, false);
+  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), true);
+  assert.equal(browser.document.body.style.position, 'fixed');
+  assert.deepEqual(browser.scrollCalls, []);
+  assert.deepEqual(browser.window.history.state.klCatalog, { layer: 'gallery', origin: 'grid' });
+  assert.equal(gallery.calls.filter(call => call.type === 'open').at(-1).code, productCode);
+  assert.equal(
+    browser.trackingCalls.filter(call => call.name === 'KL_Try_On_Click').length,
+    1,
+  );
 });
 
 test('favoritos usam shell sem depender da galeria e todas as saídas restauram foco', () => {

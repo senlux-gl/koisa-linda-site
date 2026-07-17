@@ -1396,6 +1396,15 @@
 
   function restoreTryOnFocus() {
     var target = tryOnOrigin && tryOnOrigin.isConnected ? tryOnOrigin : dom.title;
+    var ancestor = target;
+    while (ancestor && ancestor !== dom.header) {
+      if (ancestor.classList && ancestor.classList.contains('mnav')) {
+        var menuToggle = root.document.querySelectorAll('.mtog')[0] || null;
+        if (menuToggle && menuToggle.isConnected) target = menuToggle;
+        break;
+      }
+      ancestor = ancestor.parentNode;
+    }
     if (!target || typeof target.focus !== 'function') return;
     if (target === dom.title) {
       focusCatalogTitle();
@@ -1427,7 +1436,20 @@
         return true;
       } catch (error) {
         try { tryOn.close(); } catch (closeError) { /* noop */ }
-        if (dialogShell.current() === 'tryOn') dialogShell.clear();
+        if (activeLayer === 'gallery' && gallery && gallery.isReady()
+            && nextState.openProduct) {
+          try {
+            dialogShell.activate('gallery');
+            if (dom.galleryDialog.open) gallery.update(nextState.openProduct);
+            else if (!gallery.open(nextState.openProduct)) {
+              throw new Error('gallery refused restore');
+            }
+            return false;
+          } catch (restoreError) {
+            try { gallery.close(); } catch (galleryCloseError) { /* noop */ }
+          }
+        }
+        if (dialogShell.current() !== null) dialogShell.clear();
         return false;
       }
     }
@@ -1494,12 +1516,18 @@
         || dialogShell.current() !== null || !productForCode(code)) return false;
     galleryOrigin = origin || null;
     galleryOriginCode = String(code || '').trim().toUpperCase();
-    var next = cloneState(Object.assign({}, state, { openProduct: galleryOriginCode }));
-    var clean = cloneState(Object.assign({}, state, { openProduct: null }));
+    var next = cloneState(Object.assign({}, state, {
+      tryOn: false,
+      openProduct: galleryOriginCode,
+    }));
+    var clean = cloneState(Object.assign({}, state, {
+      tryOn: false,
+      openProduct: null,
+    }));
     historyController.openLayer('gallery', urlFor(next), 'grid');
     state = next;
     if (currentDerived) currentDerived.state = state;
-    if (!reconcileDialogs(state)) {
+    if (!reconcileDialogs(next)) {
       historyController.requestClose('gallery', urlFor(clean));
       state = clean;
       if (currentDerived) currentDerived.state = state;
@@ -1654,20 +1682,75 @@
     var next = cloneState(deriveState(requested).state);
     if (normalized && next.openProduct !== normalized) return false;
     var previous = state;
+    var previousTryOnOrigin = tryOnOrigin;
     tryOnOrigin = originElement || null;
-    historyController.openLayer('tryOn', urlFor(next), origin);
-    state = next;
-    if (currentDerived) currentDerived.state = state;
-    if (!reconcileDialogs(state)) {
-      historyController.requestClose('tryOn', urlFor(previous));
-      state = previous;
-      if (currentDerived) currentDerived.state = state;
+    if (!reconcileDialogs(next)) {
+      tryOnOrigin = previousTryOnOrigin;
+      if (origin === 'gallery' && (dialogShell.current() !== 'gallery'
+          || !dom.galleryDialog || !dom.galleryDialog.open)) {
+        reconcileDialogs(previous, { restoreFocus: false });
+      }
       return false;
     }
+    try {
+      historyController.openLayer('tryOn', urlFor(next), origin);
+    } catch (error) {
+      tryOnOrigin = previousTryOnOrigin;
+      reconcileDialogs(previous, { restoreFocus: false });
+      return false;
+    }
+    state = next;
+    if (currentDerived) currentDerived.state = state;
     dispatchCatalogState();
-    trackCatalog('KL_Try_On_Click', catalogContext(origin, {
-      productCode: normalized || null,
+    return true;
+  }
+
+  function trackTryOnClick(source, productCode) {
+    return trackCatalog('KL_Try_On_Click', catalogContext(source, {
+      productCode: productCode || null,
     }));
+  }
+
+  function bindTryOnEntries() {
+    dom.tryOnEntries.forEach(function (entry) {
+      markManual(entry);
+      entry.addEventListener('click', function (event) {
+        trackTryOnClick('shortcut', null);
+        if (!tryOn || !tryOn.isReady() || !TryOn
+            || typeof TryOn.shouldInterceptLink !== 'function'
+            || !TryOn.shouldInterceptLink(event, entry)) return;
+        event.preventDefault();
+        openTryOnLayer(null, 'menu', entry);
+      });
+    });
+  }
+
+  function canonicalizeUnavailableTryOn() {
+    if (!state || !state.tryOn) return false;
+    var next = cloneState(deriveState(Object.assign({}, state, {
+      tryOn: false,
+      openProduct: null,
+    })).state);
+    var nextUrl = urlFor(next);
+    var replaced = false;
+    if (historyController && historyController.currentLayer() === 'tryOn') {
+      try {
+        replaced = historyController.requestClose('tryOn', nextUrl) === 'replace';
+      } catch (error) {
+        replaced = false;
+      }
+    }
+    if (!replaced && root.history && typeof root.history.replaceState === 'function') {
+      var historyState = root.history.state;
+      if (historyState && typeof historyState === 'object' && !Array.isArray(historyState)) {
+        historyState = Object.assign({}, historyState);
+        delete historyState.klCatalog;
+      }
+      root.history.replaceState(historyState, '', nextUrl);
+    }
+    state = next;
+    if (currentDerived) currentDerived.state = state;
+    dispatchCatalogState();
     return true;
   }
 
@@ -1722,14 +1805,6 @@
     }
     if (!tryOn || !tryOn.isReady()) return false;
 
-    dom.tryOnEntries.forEach(function (entry) {
-      markManual(entry);
-      entry.addEventListener('click', function (event) {
-        if (!TryOn.shouldInterceptLink(event, entry)) return;
-        if (!openTryOnLayer(null, 'menu', entry)) return;
-        event.preventDefault();
-      });
-    });
     return true;
   }
 
@@ -1968,12 +2043,13 @@
       }));
     });
     if (galleryTryOn) galleryTryOn.addEventListener('click', function (event) {
-      if (!tryOn || !tryOn.isReady() || !TryOn
-          || !TryOn.shouldInterceptLink(event, galleryTryOn)) return;
       var product = productForCode(state.openProduct);
       if (!product) return;
-      if (!openTryOnLayer(product.k, 'gallery', galleryTryOn)) return;
+      trackTryOnClick('gallery', product.k);
+      if (!tryOn || !tryOn.isReady() || !TryOn
+          || !TryOn.shouldInterceptLink(event, galleryTryOn)) return;
       event.preventDefault();
+      openTryOnLayer(product.k, 'gallery', galleryTryOn);
     });
     dom.grid.addEventListener('click', function (event) {
       var anchor = closestAnchor(event.target);
@@ -2099,7 +2175,8 @@
     setupFilterRail();
     setupDialogInfrastructure();
     setupGallery();
-    setupTryOn(storage);
+    bindTryOnEntries();
+    if (!setupTryOn(storage)) canonicalizeUnavailableTryOn();
     setupFavorites();
     reconcileDialogs(state, { source: state.openProduct && !state.tryOn ? 'deep-link' : '' });
     connectNavigationLifecycle();
