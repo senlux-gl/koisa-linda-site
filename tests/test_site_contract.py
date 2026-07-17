@@ -548,6 +548,15 @@ class VisiblePagesContractTest(unittest.TestCase):
 
 
 class CatalogIntegrationContractTest(unittest.TestCase):
+    def test_catalog_mobile_menu_link_closes_visual_and_accessibility_state(self):
+        html = re.sub(r"\s+", "", page("catalogo.html"))
+
+        self.assertIn(
+            'document.body.classList.remove("mopen");'
+            'b.setAttribute("aria-expanded","false")',
+            html,
+        )
+
     def test_shared_header_hamburger_is_vertical_and_touch_safe_through_1100(self):
         css = re.sub(r"\s+", "", page("kl-site-enhance.css"))
         self.assertIn(
