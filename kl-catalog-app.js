@@ -792,14 +792,14 @@
     photo.appendChild(image);
 
     var meta = element('div', 'catalog-card-meta');
-    var titleLink = element('a', '', product.l || 'Peça');
+    var titleLink = element('a', '', product.k);
     markManual(titleLink);
     titleLink.href = photo.href;
     var code = element('span');
     var unit = Core.unitOf(product);
     if (!unit) throw new TypeError('createCard requires a validated product');
     var unitLabels = { barra: 'Barra da Tijuca', sf: 'São Francisco' };
-    code.textContent = product.k + ' · ' + unitLabels[unit];
+    code.textContent = unitLabels[unit];
     var favorite = element('button');
     markManual(favorite);
     favorite.type = 'button';

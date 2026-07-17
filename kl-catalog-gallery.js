@@ -220,11 +220,10 @@
 
     function syncProduct(product) {
       activeCode = product.k;
-      title.textContent = product.l || 'Peça';
-      code.textContent = product.k;
+      title.textContent = product.k;
+      code.textContent = product.l || '';
       unit.textContent = core.unitOf(product) === 'sf' ? 'São Francisco' : 'Barra da Tijuca';
       clear(specs);
-      spec('Categoria', product.l);
       spec('Cor', product.co);
       spec('Tamanho', product.t);
       var saved = Boolean(options.isFavorite(product.k));
