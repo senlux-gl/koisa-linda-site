@@ -34,11 +34,14 @@
   var Core = null;
   var Actions = null;
   var Gallery = null;
+  var TryOn = null;
   var products = [];
   var state = null;
   var currentDerived = null;
   var favorites = null;
   var gallery = null;
+  var tryOn = null;
+  var tryOnOrigin = null;
   var galleryProducts = [];
   var galleryOrigin = null;
   var galleryOriginCode = '';
@@ -547,6 +550,40 @@
   }
 
   function collectDom() {
+    var tryOnElements = {
+      title: root.document.getElementById('tryon-title'),
+      closeButton: root.document.getElementById('tryon-close'),
+      sizes: root.document.getElementById('tryon-sizes'),
+      unknownSize: root.document.getElementById('tryon-unknown-size'),
+      clearSize: root.document.getElementById('tryon-clear-size'),
+      categories: root.document.getElementById('tryon-categories'),
+      search: root.document.getElementById('tryon-search'),
+      dresses: root.document.getElementById('tryon-dresses'),
+      noResults: root.document.getElementById('tryon-no-results'),
+      more: root.document.getElementById('tryon-more'),
+      clearSelection: root.document.getElementById('tryon-clear-selection'),
+      file: root.document.getElementById('tryon-file'),
+      preview: root.document.getElementById('tryon-preview'),
+      previewImage: root.document.getElementById('tryon-preview-image'),
+      submit: root.document.getElementById('tryon-submit'),
+      form: root.document.getElementById('tryon-form'),
+      loading: root.document.getElementById('tryon-loading'),
+      result: root.document.getElementById('tryon-result'),
+      resultImage: root.document.getElementById('tryon-result-image'),
+      remaining: root.document.getElementById('tryon-remaining'),
+      again: root.document.getElementById('tryon-again'),
+      error: root.document.getElementById('tryon-error'),
+      errorMessage: root.document.getElementById('tryon-error-message'),
+      errorAgain: root.document.getElementById('tryon-error-again'),
+      whatsapp: root.document.getElementById('tryon-whatsapp'),
+      errorWhatsapp: root.document.getElementById('tryon-error-whatsapp'),
+      sizeButtons: Array.prototype.slice.call(
+        root.document.querySelectorAll('#tryon-sizes [data-size]'),
+      ),
+      categoryButtons: Array.prototype.slice.call(
+        root.document.querySelectorAll('#tryon-categories [data-category]'),
+      ),
+    };
     return {
       app: root.document.getElementById('catalog-app'),
       activeFilters: root.document.getElementById('catalog-active-filters'),
@@ -569,6 +606,7 @@
       favoritesOpen: root.document.getElementById('catalog-open-favorites'),
       galleryDialog: root.document.getElementById('catalog-gallery'),
       galleryImage: root.document.getElementById('gallery-image'),
+      galleryTryOn: root.document.getElementById('gallery-try-on'),
       grid: root.document.getElementById('catalog-grid'),
       header: root.document.querySelectorAll('header')[0] || null,
       loadMore: root.document.getElementById('catalog-load-more'),
@@ -580,6 +618,11 @@
       ),
       status: root.document.getElementById('catalog-status'),
       title: root.document.getElementById('catalog-title'),
+      tryOnDialog: root.document.getElementById('catalog-tryon'),
+      tryOnElements: tryOnElements,
+      tryOnEntries: Array.prototype.slice.call(
+        root.document.querySelectorAll('[data-catalog-tryon-entry]'),
+      ),
       unitButtons: Array.prototype.slice.call(
         root.document.querySelectorAll('#catalog-units [data-unit]'),
       ),
@@ -590,6 +633,12 @@
     return Object.assign({}, source, {
       colors: (source && source.colors || []).slice(),
       sizes: (source && source.sizes || []).slice(),
+    });
+  }
+
+  function deriveState(nextState) {
+    return Core.derive(products, nextState, {
+      isTryOnEligible: Actions.isTryOnEligible,
     });
   }
 
@@ -985,7 +1034,7 @@
   }
 
   function renderDerived(options) {
-    var derived = Core.derive(products, state);
+    var derived = deriveState(state);
     state = cloneState(derived.state);
     currentDerived = derived;
     galleryProducts.splice.apply(
@@ -1020,7 +1069,7 @@
       page: 1,
       openProduct: null,
     }));
-    var reconciled = cloneState(Core.derive(products, requested).state);
+    var reconciled = cloneState(deriveState(requested).state);
     commit(reconciled, { source: 'filter', replaceHistory: true });
     announceRemoved(requested, reconciled);
     if (source) {
@@ -1188,6 +1237,7 @@
   function restoreKey(sourceState) {
     var keyState = cloneState(sourceState);
     keyState.openProduct = null;
+    keyState.tryOn = false;
     var query = Core.serializeState(keyState);
     var pathname = root.location && root.location.pathname || 'catalogo.html';
     return 'kl:catalog-position:' + pathname + (query ? '?' + query : '');
@@ -1219,7 +1269,7 @@
   }
 
   function readPendingRestore() {
-    if (state.openProduct) return;
+    if (state.tryOn || state.openProduct) return;
     var storage = sessionStorageSafe();
     if (!storage) return;
     var key = restoreKey(state);
@@ -1309,7 +1359,9 @@
       scrollLock: scrollLock,
     });
     historyController = createLayerHistoryController(root.history, {
-      initialLayer: state && state.openProduct && !state.tryOn ? 'gallery' : null,
+      initialLayer: state && state.tryOn
+        ? 'tryOn'
+        : state && state.openProduct ? 'gallery' : null,
     });
     return true;
   }
@@ -1342,12 +1394,47 @@
     target.focus({ preventScroll: true });
   }
 
-  function syncGallery(code) {
-    if (!gallery || !gallery.isReady() || !dialogShell) return;
-    if (code) {
-      var activeLayer = dialogShell.current();
-      if (activeLayer !== null && activeLayer !== 'gallery' && activeLayer !== 'favorites') return;
-      var normalized = String(code || '').trim().toUpperCase();
+  function restoreTryOnFocus() {
+    var target = tryOnOrigin && tryOnOrigin.isConnected ? tryOnOrigin : dom.title;
+    if (!target || typeof target.focus !== 'function') return;
+    if (target === dom.title) {
+      focusCatalogTitle();
+      return;
+    }
+    target.focus({ preventScroll: true });
+  }
+
+  function reconcileDialogs(nextState, options) {
+    options = options || {};
+    if (!dialogShell || !nextState) return false;
+    var activeLayer = dialogShell.current();
+    var wantsTryOn = Boolean(nextState.tryOn);
+    var wantsGallery = !wantsTryOn && Boolean(nextState.openProduct);
+
+    if (wantsTryOn) {
+      if (!tryOn || !tryOn.isReady()) return false;
+      try {
+        if (activeLayer === 'favorites') {
+          closeFavoritesVisualWithoutCleanup();
+          if (dom.favoritesDialog && dom.favoritesDialog.open) {
+            throw new Error('favorites dialog refused close');
+          }
+        }
+        if (gallery && dom.galleryDialog && dom.galleryDialog.open) gallery.close();
+        dialogShell.activate('tryOn');
+        if (dom.tryOnDialog.open) tryOn.update(nextState.openProduct || null);
+        else if (!tryOn.open(nextState.openProduct || null)) throw new Error('try-on refused open');
+        return true;
+      } catch (error) {
+        try { tryOn.close(); } catch (closeError) { /* noop */ }
+        if (dialogShell.current() === 'tryOn') dialogShell.clear();
+        return false;
+      }
+    }
+
+    if (wantsGallery) {
+      if (!gallery || !gallery.isReady()) return false;
+      var normalized = String(nextState.openProduct || '').trim().toUpperCase();
       if (!galleryOriginCode) galleryOriginCode = normalized;
       try {
         if (activeLayer === 'favorites') {
@@ -1356,18 +1443,50 @@
             throw new Error('favorites dialog refused close');
           }
         }
+        if (tryOn && dom.tryOnDialog && dom.tryOnDialog.open) tryOn.close();
         dialogShell.activate('gallery');
-        if (!gallery.open(normalized)) throw new Error('gallery refused product');
+        if (dom.galleryDialog.open) gallery.update(normalized);
+        else if (!gallery.open(normalized)) throw new Error('gallery refused product');
+        if (activeLayer === 'tryOn' && dom.galleryTryOn
+            && typeof dom.galleryTryOn.focus === 'function') {
+          dom.galleryTryOn.focus({ preventScroll: true });
+        }
+        if (options.source === 'deep-link') {
+          trackCatalog('KL_Product_Open', catalogContext('deep-link', {
+            productCode: normalized,
+          }));
+        }
+        return true;
       } catch (error) {
         try { gallery.close(); } catch (closeError) { /* noop */ }
         if (dialogShell.current() === 'gallery') dialogShell.clear();
+        return false;
       }
-      return;
     }
-    if (dialogShell.current() !== 'gallery') return;
-    gallery.close();
-    dialogShell.clear();
-    restoreGalleryFocus();
+
+    if (activeLayer === 'gallery') {
+      if (gallery) gallery.close();
+      dialogShell.clear(options.clearOptions);
+      if (options.restoreFocus !== false) restoreGalleryFocus();
+      return true;
+    }
+    if (activeLayer === 'tryOn') {
+      if (tryOn) tryOn.close();
+      dialogShell.clear(options.clearOptions);
+      if (options.restoreFocus !== false) restoreTryOnFocus();
+      return true;
+    }
+    if (activeLayer === 'favorites') {
+      closeFavoritesVisualWithoutCleanup();
+      if (dom.favoritesDialog && dom.favoritesDialog.open) return false;
+      dialogShell.clear(options.clearOptions);
+      return true;
+    }
+    return activeLayer === null;
+  }
+
+  function syncGallery() {
+    return reconcileDialogs(state);
   }
 
   function openFromGrid(code, origin) {
@@ -1379,12 +1498,8 @@
     var clean = cloneState(Object.assign({}, state, { openProduct: null }));
     historyController.openLayer('gallery', urlFor(next), 'grid');
     state = next;
-    try {
-      dialogShell.activate('gallery');
-      if (!gallery.open(galleryOriginCode)) throw new Error('gallery refused product');
-    } catch (error) {
-      try { gallery.close(); } catch (closeError) { /* noop */ }
-      if (dialogShell.current() === 'gallery') dialogShell.clear();
+    if (currentDerived) currentDerived.state = state;
+    if (!reconcileDialogs(state)) {
       historyController.requestClose('gallery', urlFor(clean));
       state = clean;
       if (currentDerived) currentDerived.state = state;
@@ -1437,9 +1552,7 @@
     if (action === 'replace') {
       state = next;
       if (currentDerived) currentDerived.state = state;
-      gallery.close();
-      if (dialogShell.current() === 'gallery') dialogShell.clear();
-      restoreGalleryFocus();
+      reconcileDialogs(state);
       dispatchCatalogState();
     }
     return action;
@@ -1478,6 +1591,148 @@
     return true;
   }
 
+  function readFileAsDataUrl(file) {
+    return new Promise(function (resolve, reject) {
+      var reader;
+      try {
+        reader = new root.FileReader();
+      } catch (error) {
+        reject(error);
+        return;
+      }
+      reader.onload = function () {
+        if (typeof reader.result === 'string' && reader.result) resolve(reader.result);
+        else reject(new TypeError('file reader returned no data'));
+      };
+      reader.onerror = function () { reject(reader.error || new Error('file read failed')); };
+      reader.onabort = function () { reject(new Error('file read cancelled')); };
+      try { reader.readAsDataURL(file); } catch (error) { reject(error); }
+    });
+  }
+
+  function replaceTryOnSelection(code) {
+    if (!tryOn || !tryOn.isReady() || !historyController || !dialogShell
+        || dialogShell.current() !== 'tryOn' || !state || !state.tryOn) return false;
+    var requested = cloneState(Object.assign({}, state, {
+      tryOn: true,
+      openProduct: code || null,
+    }));
+    var next = cloneState(deriveState(requested).state);
+    state = next;
+    if (currentDerived) currentDerived.state = state;
+    historyController.replaceCurrent(urlFor(state));
+    return true;
+  }
+
+  function requestTryOnClose() {
+    if (!tryOn || !historyController || !dialogShell || !state
+        || dialogShell.current() !== 'tryOn') return false;
+    var next = cloneState(deriveState(Object.assign({}, state, {
+      tryOn: false,
+      openProduct: null,
+    })).state);
+    var action = historyController.requestClose('tryOn', urlFor(next));
+    if (action === 'replace') {
+      state = next;
+      if (currentDerived) currentDerived.state = state;
+      reconcileDialogs(state);
+      dispatchCatalogState();
+    }
+    return action;
+  }
+
+  function openTryOnLayer(code, origin, originElement) {
+    if (!tryOn || !tryOn.isReady() || !historyController || !dialogShell || !state) return false;
+    var activeLayer = dialogShell.current();
+    if ((origin === 'menu' && activeLayer !== null)
+        || (origin === 'gallery' && activeLayer !== 'gallery')) return false;
+    var normalized = String(code || '').trim().toUpperCase();
+    var requested = cloneState(Object.assign({}, state, {
+      tryOn: true,
+      openProduct: normalized || null,
+    }));
+    var next = cloneState(deriveState(requested).state);
+    if (normalized && next.openProduct !== normalized) return false;
+    var previous = state;
+    tryOnOrigin = originElement || null;
+    historyController.openLayer('tryOn', urlFor(next), origin);
+    state = next;
+    if (currentDerived) currentDerived.state = state;
+    if (!reconcileDialogs(state)) {
+      historyController.requestClose('tryOn', urlFor(previous));
+      state = previous;
+      if (currentDerived) currentDerived.state = state;
+      return false;
+    }
+    dispatchCatalogState();
+    trackCatalog('KL_Try_On_Click', catalogContext(origin, {
+      productCode: normalized || null,
+    }));
+    return true;
+  }
+
+  function setupTryOn(storage) {
+    if (!TryOn || typeof TryOn.create !== 'function'
+        || typeof TryOn.createWorkerClient !== 'function'
+        || typeof TryOn.shouldInterceptLink !== 'function'
+        || !dom.tryOnDialog || !historyController || !dialogShell
+        || typeof root.fetch !== 'function'
+        || typeof root.FileReader !== 'function'
+        || typeof root.AbortController !== 'function'
+        || !root.URL || typeof root.URL.createObjectURL !== 'function'
+        || typeof root.URL.revokeObjectURL !== 'function'
+        || typeof root.setTimeout !== 'function' || typeof root.clearTimeout !== 'function') {
+      return false;
+    }
+
+    var workerClient;
+    try {
+      workerClient = TryOn.createWorkerClient({
+        fetch: root.fetch.bind(root),
+        wait: function (milliseconds) {
+          return new Promise(function (resolve) { root.setTimeout(resolve, milliseconds); });
+        },
+        now: function () { return Date.now(); },
+        setTimer: root.setTimeout.bind(root),
+        clearTimer: root.clearTimeout.bind(root),
+        AbortController: root.AbortController,
+        workerUrl: TryOn.DEFAULT_WORKER_URL,
+      });
+      tryOn = TryOn.create({
+        dialog: dom.tryOnDialog,
+        document: root.document,
+        elements: dom.tryOnElements,
+        products: products,
+        core: Core,
+        actions: Actions,
+        workerClient: workerClient,
+        readFile: readFileAsDataUrl,
+        AbortController: root.AbortController,
+        objectURL: {
+          create: root.URL.createObjectURL.bind(root.URL),
+          revoke: root.URL.revokeObjectURL.bind(root.URL),
+        },
+        storage: storage,
+        onSelectionChange: replaceTryOnSelection,
+        onRequestClose: requestTryOnClose,
+      });
+    } catch (error) {
+      tryOn = null;
+      return false;
+    }
+    if (!tryOn || !tryOn.isReady()) return false;
+
+    dom.tryOnEntries.forEach(function (entry) {
+      markManual(entry);
+      entry.addEventListener('click', function (event) {
+        if (!TryOn.shouldInterceptLink(event, entry)) return;
+        if (!openTryOnLayer(null, 'menu', entry)) return;
+        event.preventDefault();
+      });
+    });
+    return true;
+  }
+
   function closeDialogForPageHide() {
     if (!dialogShell) return false;
     var activeLayer = dialogShell.current();
@@ -1485,11 +1740,13 @@
     try {
       if (activeLayer === 'gallery' && gallery) gallery.close();
       if (activeLayer === 'favorites') closeFavoritesVisualWithoutCleanup();
+      if (activeLayer === 'tryOn' && tryOn) tryOn.close();
     } catch (error) {
       return false;
     }
     if ((activeLayer === 'gallery' && dom.galleryDialog && dom.galleryDialog.open)
-        || (activeLayer === 'favorites' && dom.favoritesDialog && dom.favoritesDialog.open)) {
+        || (activeLayer === 'favorites' && dom.favoritesDialog && dom.favoritesDialog.open)
+        || (activeLayer === 'tryOn' && dom.tryOnDialog && dom.tryOnDialog.open)) {
       return false;
     }
     dialogShell.clear({ restoreScroll: false });
@@ -1710,12 +1967,13 @@
         unit: Core.unitOf(product),
       }));
     });
-    if (galleryTryOn) galleryTryOn.addEventListener('click', function () {
+    if (galleryTryOn) galleryTryOn.addEventListener('click', function (event) {
+      if (!tryOn || !tryOn.isReady() || !TryOn
+          || !TryOn.shouldInterceptLink(event, galleryTryOn)) return;
       var product = productForCode(state.openProduct);
       if (!product) return;
-      trackCatalog('KL_Try_On_Click', catalogContext('gallery', {
-        productCode: product.k,
-      }));
+      if (!openTryOnLayer(product.k, 'gallery', galleryTryOn)) return;
+      event.preventDefault();
     });
     dom.grid.addEventListener('click', function (event) {
       var anchor = closestAnchor(event.target);
@@ -1725,26 +1983,6 @@
       event.preventDefault();
       openFromGrid(code, anchor);
     });
-    if (state.openProduct && !state.tryOn) {
-      galleryOriginCode = String(state.openProduct || '').trim().toUpperCase();
-      try {
-        dialogShell.activate('gallery');
-        if (!gallery.open(state.openProduct)) throw new Error('gallery refused product');
-        trackCatalog('KL_Product_Open', catalogContext('deep-link', {
-          productCode: state.openProduct,
-        }));
-      } catch (error) {
-        var clean = cloneState(Object.assign({}, state, { openProduct: null }));
-        try { gallery.close(); } catch (closeError) { /* noop */ }
-        if (dialogShell.current() === 'gallery') dialogShell.clear();
-        historyController.requestClose('gallery', urlFor(clean));
-        state = clean;
-        if (currentDerived) currentDerived.state = state;
-        galleryOrigin = null;
-        galleryOriginCode = '';
-        dispatchCatalogState();
-      }
-    }
     return true;
   }
 
@@ -1758,7 +1996,7 @@
         },
         derive: function (nextState) {
           state = cloneState(nextState);
-          var derived = Core.derive(products, state);
+          var derived = deriveState(state);
           state = cloneState(derived.state);
           currentDerived = derived;
           galleryProducts.splice.apply(
@@ -1793,7 +2031,7 @@
     });
     root.addEventListener('pageshow', function (event) {
       if (!event || !event.persisted || !dialogShell || dialogShell.current() !== null) return;
-      syncGallery(state && !state.tryOn ? state.openProduct : null);
+      reconcileDialogs(state, { restoreFocus: false });
     });
   }
 
@@ -1810,6 +2048,7 @@
     Core = root.KLCatalog && root.KLCatalog.Core;
     Actions = root.KLCatalog && root.KLCatalog.Actions;
     Gallery = root.KLCatalog && root.KLCatalog.Gallery;
+    TryOn = root.KLCatalog && root.KLCatalog.TryOn;
     if (!Core || typeof Core.validateProducts !== 'function'
         || !Actions || typeof Actions.createFavorites !== 'function') {
       renderDataError({ errors: [{ reason: 'dependency-missing' }] });
@@ -1860,7 +2099,9 @@
     setupFilterRail();
     setupDialogInfrastructure();
     setupGallery();
+    setupTryOn(storage);
     setupFavorites();
+    reconcileDialogs(state, { source: state.openProduct && !state.tryOn ? 'deep-link' : '' });
     connectNavigationLifecycle();
     return getSnapshot();
   }

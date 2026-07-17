@@ -411,6 +411,18 @@ function createFakeCatalogBrowser(options) {
 
   const header = add('header');
   header.setBoundingClientRect({ height: options.headerHeight == null ? 71 : options.headerHeight });
+  const tryOnEntries = [];
+  if (options.tryOnDialog) {
+    ['menu', 'mnav'].forEach((kind) => {
+      const navigation = add('nav', '', header);
+      navigation.className = kind;
+      const link = add('a', '', navigation);
+      link.setAttribute('href', 'catalogo.html?prova=1');
+      link.setAttribute('data-catalog-tryon-entry', '');
+      link.textContent = 'Prova Virtual';
+      tryOnEntries.push(link);
+    });
+  }
   const app = add('main', 'catalog-app');
   const filterPanel = add('section', 'catalog-filters', app);
   const category = add('select', 'catalog-category', filterPanel);
@@ -464,6 +476,7 @@ function createFakeCatalogBrowser(options) {
 
   let galleryDialog = null;
   let galleryImage = null;
+  let galleryTryOn = null;
   let favoritesDialog = null;
   let favoritesContent = null;
   let favoritesOpen = null;
@@ -472,10 +485,55 @@ function createFakeCatalogBrowser(options) {
     favoritesOpen = add('button', 'catalog-open-favorites', filterPanel);
     galleryDialog = add('dialog', 'catalog-gallery');
     galleryImage = add('img', 'gallery-image', galleryDialog);
+    galleryTryOn = add('a', 'gallery-try-on', galleryDialog);
     favoritesDialog = add('dialog', 'catalog-favorites');
     favoritesClose = add('button', '', favoritesDialog);
     favoritesClose.setAttribute('data-close-favorites', '');
     favoritesContent = add('div', 'favorites-content', favoritesDialog);
+  }
+
+  let tryOnDialog = null;
+  const tryOnElements = {};
+  if (options.tryOnDialog) {
+    tryOnDialog = add('dialog', 'catalog-tryon');
+    const elementTags = {
+      title: 'h2', closeButton: 'button', sizes: 'fieldset', unknownSize: 'button',
+      clearSize: 'button', categories: 'fieldset', search: 'input', dresses: 'div',
+      noResults: 'p', more: 'button', clearSelection: 'button', file: 'input',
+      preview: 'figure', previewImage: 'img', submit: 'button', form: 'form',
+      loading: 'section', result: 'section', resultImage: 'img', remaining: 'p',
+      again: 'button', error: 'section', errorMessage: 'p', errorAgain: 'button',
+      whatsapp: 'a', errorWhatsapp: 'a',
+    };
+    const elementIds = {
+      title: 'tryon-title', closeButton: 'tryon-close', sizes: 'tryon-sizes',
+      unknownSize: 'tryon-unknown-size', clearSize: 'tryon-clear-size',
+      categories: 'tryon-categories', search: 'tryon-search', dresses: 'tryon-dresses',
+      noResults: 'tryon-no-results', more: 'tryon-more',
+      clearSelection: 'tryon-clear-selection', file: 'tryon-file',
+      preview: 'tryon-preview', previewImage: 'tryon-preview-image',
+      submit: 'tryon-submit', form: 'tryon-form', loading: 'tryon-loading',
+      result: 'tryon-result', resultImage: 'tryon-result-image',
+      remaining: 'tryon-remaining', again: 'tryon-again', error: 'tryon-error',
+      errorMessage: 'tryon-error-message', errorAgain: 'tryon-error-again',
+      whatsapp: 'tryon-whatsapp', errorWhatsapp: 'tryon-error-whatsapp',
+    };
+    Object.keys(elementIds).forEach((key) => {
+      tryOnElements[key] = add(elementTags[key], elementIds[key], tryOnDialog);
+    });
+    tryOnElements.file.files = [];
+    tryOnElements.sizeButtons = ['PP', 'P', 'M', 'G', 'GG'].map((size) => {
+      const button = add('button', '', tryOnElements.sizes);
+      button.setAttribute('data-size', size);
+      return button;
+    });
+    tryOnElements.categoryButtons = [
+      'all', 'vestidos-noiva', 'vestidos-madrinha', 'vestidos-debutante',
+    ].map((categoryValue) => {
+      const button = add('button', '', tryOnElements.categories);
+      button.setAttribute('data-category', categoryValue);
+      return button;
+    });
   }
 
   const location = {
@@ -538,6 +596,29 @@ function createFakeCatalogBrowser(options) {
     performance: { mark: name => marks.push(String(name)) },
     URLSearchParams,
   };
+  const workerFetchCalls = [];
+  const objectUrlCalls = [];
+  if (options.tryOnApis) {
+    sandbox.fetch = (...args) => {
+      workerFetchCalls.push(args);
+      return Promise.reject(new Error('fake browser must not call the Worker during setup'));
+    };
+    sandbox.FileReader = class FileReader {
+      readAsDataURL(file) {
+        this.result = `data:${file && file.type || 'image/jpeg'};base64,FAKE`;
+        if (typeof this.onload === 'function') this.onload();
+      }
+    };
+    sandbox.AbortController = globalThis.AbortController;
+    sandbox.URL = {
+      createObjectURL(file) {
+        const value = `blob:fake-${objectUrlCalls.length + 1}`;
+        objectUrlCalls.push({ type: 'create', file, value });
+        return value;
+      },
+      revokeObjectURL(value) { objectUrlCalls.push({ type: 'revoke', value }); },
+    };
+  }
   sandbox.innerWidth = Number(options.innerWidth || 1200);
   document.documentElement.clientWidth = Number(options.clientWidth || 1180);
   sandbox.getComputedStyle = node => ({ paddingRight: node.style.paddingRight || '0px' });
@@ -604,15 +685,21 @@ function createFakeCatalogBrowser(options) {
       grid,
       galleryDialog,
       galleryImage,
+      galleryTryOn,
       header,
       loadMore,
       results,
       sentinel,
       status,
+      tryOnDialog,
+      tryOnElements,
+      tryOnEntries,
       units,
     }),
     observers,
     storage,
+    workerFetchCalls,
+    objectUrlCalls,
     triggerDOMContentLoaded() {
       document.readyState = 'interactive';
       document.dispatchEvent({ type: 'DOMContentLoaded' });

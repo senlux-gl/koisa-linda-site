@@ -14,6 +14,7 @@ const {
 } = require('./helpers/fake-browser.cjs');
 const Core = require('../kl-catalog-core.js');
 const Actions = require('../kl-catalog-actions.js');
+const TryOnModule = require('../kl-catalog-tryon.js');
 const App = require('../kl-catalog-app.js');
 
 const APP_SOURCE = fs.readFileSync(
@@ -124,6 +125,9 @@ function mountBrowser({
   prefersReducedMotion,
   dialogs,
   gallery,
+  tryOn,
+  tryOnDialog,
+  tryOnApis,
   historyState,
 }) {
   const browser = createFakeCatalogBrowser({
@@ -133,6 +137,8 @@ function mountBrowser({
     intersectionObserver,
     prefersReducedMotion,
     dialogs,
+    tryOnDialog,
+    tryOnApis,
     historyState,
   });
   enhanceBrowser(browser, { sessionSeed, scrollY });
@@ -140,10 +146,94 @@ function mountBrowser({
     Core: core || Core,
     Actions: actions || Actions,
     Gallery: gallery || undefined,
+    TryOn: tryOn || undefined,
   };
   browser.window.KL_DATA = raw;
   vm.runInNewContext(APP_SOURCE, browser.window, { filename: 'kl-catalog-app.js' });
   return { browser, app: browser.window.KLCatalog.App };
+}
+
+function createTryOnDouble(options) {
+  options = options || {};
+  const calls = [];
+  let callbacks = null;
+  let controller = null;
+  let requestVersion = 0;
+  let selectedCode = null;
+  let hasPhoto = false;
+  let phase = 'form';
+  let lateMutationCount = 0;
+  let workerRuns = 0;
+
+  const TryOn = {
+    shouldInterceptLink: TryOnModule.shouldInterceptLink,
+    createWorkerClient(workerOptions) {
+      calls.push({ type: 'createWorkerClient', options: workerOptions });
+      return {
+        run() {
+          workerRuns += 1;
+          return Promise.resolve({ kind: 'network' });
+        },
+      };
+    },
+    create(nextCallbacks) {
+      callbacks = nextCallbacks;
+      assert.equal(Array.isArray(nextCallbacks.products), true);
+      controller = {
+        isReady: () => options.ready !== false,
+        open(code) {
+          calls.push({ type: 'open', code: code || null });
+          requestVersion += 1;
+          selectedCode = code || null;
+          hasPhoto = false;
+          phase = 'form';
+          if (options.openResult === false) return false;
+          if (!nextCallbacks.dialog.open) nextCallbacks.dialog.showModal();
+          if (nextCallbacks.elements.title && typeof nextCallbacks.elements.title.focus === 'function') {
+            nextCallbacks.elements.title.focus({ preventScroll: true });
+          }
+          return true;
+        },
+        update(code) {
+          calls.push({ type: 'update', code: code || null });
+          selectedCode = code || null;
+          return true;
+        },
+        close() {
+          calls.push({ type: 'close', code: selectedCode });
+          requestVersion += 1;
+          selectedCode = null;
+          hasPhoto = false;
+          phase = 'form';
+          if (nextCallbacks.dialog.open) nextCallbacks.dialog.close();
+          return true;
+        },
+        destroy: () => true,
+        getSnapshot: () => ({ selectedCode, hasPhoto, phase }),
+      };
+      return controller;
+    },
+  };
+
+  return {
+    TryOn,
+    calls,
+    callbacks: () => callbacks,
+    controller: () => controller,
+    workerRuns: () => workerRuns,
+    choosePhoto() { hasPhoto = true; },
+    beginLateResponse() {
+      const version = requestVersion;
+      phase = 'loading';
+      return () => {
+        if (version !== requestVersion || !callbacks.dialog.open) return false;
+        phase = 'result';
+        lateMutationCount += 1;
+        return true;
+      };
+    },
+    lateMutationCount: () => lateMutationCount,
+  };
 }
 
 function createGalleryDouble(options) {
@@ -165,6 +255,19 @@ function createGalleryDouble(options) {
     },
     create(nextCallbacks) {
       callbacks = nextCallbacks;
+      function syncTryOnHref(code) {
+        const product = nextCallbacks.products.find(item => item.k === code);
+        const link = nextCallbacks.dialog.querySelector('#gallery-try-on');
+        if (!link || !product) return;
+        const href = nextCallbacks.actions.tryOnHref(product);
+        if (href) {
+          link.setAttribute('href', href);
+          link.href = href;
+        } else {
+          link.removeAttribute('href');
+          link.href = '';
+        }
+      }
       controller = {
         isReady: () => options.ready !== false,
         open(code) {
@@ -175,6 +278,7 @@ function createGalleryDouble(options) {
           }
           if (options.throwOnOpen) throw new Error('gallery open failed');
           if (options.openResult === false) return false;
+          syncTryOnHref(activeCode);
           if (!nextCallbacks.dialog.open) nextCallbacks.dialog.showModal();
           nextCallbacks.dialog.focus({ preventScroll: true });
           return true;
@@ -182,6 +286,7 @@ function createGalleryDouble(options) {
         update(code) {
           calls.push({ type: 'update', code });
           activeCode = String(code || '');
+          syncTryOnHref(activeCode);
           return true;
         },
         close() {
@@ -202,6 +307,27 @@ function createGalleryDouble(options) {
     callbacks: () => callbacks,
     controller: () => controller,
   };
+}
+
+function dispatchPrimaryClick(node, overrides) {
+  let prevented = false;
+  const event = Object.assign({
+    type: 'click',
+    target: node,
+    currentTarget: node,
+    button: 0,
+    defaultPrevented: false,
+    metaKey: false,
+    ctrlKey: false,
+    shiftKey: false,
+    altKey: false,
+    preventDefault() {
+      prevented = true;
+      this.defaultPrevented = true;
+    },
+  }, overrides || {});
+  node.dispatchEvent(event);
+  return { event, prevented: () => prevented };
 }
 
 function createLocalLayerHistory(url, initialState) {
@@ -847,6 +973,252 @@ test('URL da prova não inicializa galeria e popstate inativo não rouba foco', 
   assert.equal(inactive.document.activeElement === inactive.nodes.search, true);
 });
 
+test('menu abre Prova Virtual sem peça, preserva filtros e volta ao mesmo link sem Worker real', () => {
+  const tryOn = createTryOnDouble();
+  const search = '?cat=vestidos-noiva&un=barra&co=off-white&tam=M';
+  const { browser } = mountBrowser({
+    raw: fixtures,
+    search,
+    dialogs: true,
+    tryOn: tryOn.TryOn,
+    tryOnDialog: true,
+    tryOnApis: true,
+    scrollY: 420,
+  });
+  browser.triggerDOMContentLoaded();
+
+  const mobileLink = browser.nodes.tryOnEntries[1];
+  const modified = dispatchPrimaryClick(mobileLink, { ctrlKey: true });
+  assert.equal(modified.prevented(), false);
+  assert.equal(browser.historyOperations.length, 0);
+  assert.equal(browser.nodes.tryOnDialog.open, false);
+
+  const menuLink = browser.nodes.tryOnEntries[0];
+  menuLink.focus();
+  const click = dispatchPrimaryClick(menuLink);
+  assert.equal(click.prevented(), true);
+  assert.equal(browser.historyOperations.length, 1);
+  assert.equal(browser.historyOperations[0].type, 'push');
+  assert.match(browser.window.location.search, /prova=1/);
+  assert.doesNotMatch(browser.window.location.search, /(?:^|[?&])p=/);
+  assert.match(browser.window.location.search, /cat=vestidos-noiva/);
+  assert.match(browser.window.location.search, /un=barra/);
+  assert.equal(browser.nodes.tryOnDialog.open, true);
+  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), true);
+  assert.deepEqual(browser.window.history.state.klCatalog, { layer: 'tryOn', origin: 'menu' });
+  assert.equal(tryOn.calls.filter(call => call.type === 'open').length, 1);
+  assert.equal(tryOn.calls.find(call => call.type === 'open').code, null);
+  assert.equal(tryOn.callbacks().products.length, fixtures.length, 'TryOn recebe a base completa');
+  assert.equal(tryOn.callbacks().elements.sizeButtons.length, 5);
+  assert.equal(tryOn.callbacks().elements.categoryButtons.length, 4);
+  assert.equal(browser.workerFetchCalls.length, 0);
+  assert.equal(tryOn.workerRuns(), 0);
+
+  const historyBeforeSelection = browser.historyOperations.length;
+  tryOn.callbacks().onSelectionChange('NV-002');
+  assert.equal(browser.historyOperations.length, historyBeforeSelection + 1);
+  assert.equal(browser.historyOperations.at(-1).type, 'replace');
+  assert.match(browser.window.location.search, /prova=1/);
+  assert.match(browser.window.location.search, /p=NV-002/);
+  assert.match(browser.window.location.search, /cat=vestidos-noiva/);
+  assert.equal(tryOn.calls.filter(call => call.type === 'update').length, 0);
+
+  tryOn.callbacks().onSelectionChange(null);
+  assert.equal(browser.historyOperations.at(-1).type, 'replace');
+  assert.match(browser.window.location.search, /prova=1/);
+  assert.doesNotMatch(browser.window.location.search, /(?:^|[?&])p=/);
+  assert.match(browser.window.location.search, /co=off-white/);
+  assert.match(browser.window.location.search, /tam=M/);
+
+  assert.equal(tryOn.callbacks().onRequestClose(), 'back');
+  assert.equal(browser.nodes.tryOnDialog.open, true, 'close possuído aguarda popstate');
+  const writesBeforePop = browser.historyOperations.length;
+  browser.dispatchWindow('popstate', { state: browser.window.history.state });
+  assert.equal(browser.historyOperations.length, writesBeforePop, 'popstate não escreve history');
+  assert.equal(browser.nodes.tryOnDialog.open, false);
+  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), false);
+  assert.deepEqual(browser.scrollCalls, [[0, 420]]);
+  assert.equal(browser.document.activeElement, menuLink);
+});
+
+test('galeria transita para Prova Virtual com uma entrada, um lock e volta à mesma peça', () => {
+  const gallery = createGalleryDouble();
+  const tryOn = createTryOnDouble();
+  const { browser } = mountBrowser({
+    raw: fixtures,
+    dialogs: true,
+    gallery: gallery.Gallery,
+    tryOn: tryOn.TryOn,
+    tryOnDialog: true,
+    tryOnApis: true,
+    scrollY: 275,
+  });
+  browser.triggerDOMContentLoaded();
+  const origin = browser.nodes.grid.children[0].children[0];
+  dispatchPrimaryClick(browser.nodes.grid, { target: origin, currentTarget: browser.nodes.grid });
+  const productCode = origin.parentNode.dataset.code;
+  assert.equal(browser.nodes.galleryDialog.open, true);
+  assert.equal(browser.nodes.galleryTryOn.getAttribute('href'), Actions.tryOnHref(
+    fixtures.find(product => product.k === productCode),
+  ));
+
+  const beforeTryOn = browser.historySnapshot();
+  const click = dispatchPrimaryClick(browser.nodes.galleryTryOn);
+  assert.equal(click.prevented(), true);
+  assert.equal(browser.historySnapshot().entries.length, beforeTryOn.entries.length + 1);
+  assert.equal(browser.historyOperations.at(-1).type, 'push');
+  assert.deepEqual(browser.window.history.state.klCatalog, { layer: 'tryOn', origin: 'gallery' });
+  assert.equal(browser.nodes.galleryDialog.open, false);
+  assert.equal(browser.nodes.tryOnDialog.open, true);
+  assert.equal(browser.document.body.style.position, 'fixed');
+  assert.deepEqual(browser.scrollCalls, [], 'troca de camada não libera scroll lock');
+  assert.equal(tryOn.controller().getSnapshot().selectedCode, productCode);
+  assert.equal(
+    browser.trackingCalls.filter(call => call.name === 'KL_Try_On_Click').length,
+    1,
+  );
+  const tracking = browser.trackingCalls.find(call => call.name === 'KL_Try_On_Click');
+  assert.equal(tracking.context.productCode, productCode);
+  assert.equal(JSON.stringify(tracking.context).includes('image'), false);
+
+  assert.equal(tryOn.callbacks().onRequestClose(), 'back');
+  const writesBeforePop = browser.historyOperations.length;
+  browser.dispatchWindow('popstate', { state: browser.window.history.state });
+  assert.equal(browser.historyOperations.length, writesBeforePop);
+  assert.equal(browser.nodes.tryOnDialog.open, false);
+  assert.equal(browser.nodes.galleryDialog.open, true);
+  assert.equal(browser.document.body.style.position, 'fixed');
+  assert.deepEqual(browser.scrollCalls, []);
+  assert.equal(browser.document.activeElement, browser.nodes.galleryTryOn);
+  assert.equal(gallery.calls.filter(call => call.type === 'open').at(-1).code, productCode);
+  assert.equal(
+    browser.trackingCalls.filter(call => call.name === 'KL_Try_On_Click').length,
+    1,
+    'reconciliação não duplica tracking',
+  );
+
+  assert.equal(gallery.callbacks().onRequestClose(), 'back');
+  browser.dispatchWindow('popstate', { state: browser.window.history.state });
+  assert.equal(browser.nodes.galleryDialog.open, false);
+  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), false);
+  assert.equal(browser.document.activeElement.parentNode.dataset.code, productCode);
+  assert.deepEqual(browser.scrollCalls, [[0, 275]]);
+});
+
+test('deep-links da Prova Virtual usam base completa, normalizam inelegível e fecham por replace', () => {
+  const validTryOn = createTryOnDouble();
+  const valid = mountBrowser({
+    raw: fixtures,
+    search: '?cat=ternos&un=barra&prova=1&p=NV-002',
+    dialogs: true,
+    tryOn: validTryOn.TryOn,
+    tryOnDialog: true,
+    tryOnApis: true,
+    historyState: { router: { key: 'kept' }, klCatalog: { layer: 'tryOn', origin: 'menu' } },
+  }).browser;
+  valid.triggerDOMContentLoaded();
+  assert.equal(valid.nodes.tryOnDialog.open, true);
+  assert.equal(validTryOn.controller().getSnapshot().selectedCode, 'NV-002');
+  assert.equal(validTryOn.callbacks().products.length, fixtures.length);
+
+  assert.equal(validTryOn.callbacks().onRequestClose(), 'replace');
+  assert.equal(valid.historySnapshot().entries.length, 1);
+  assert.equal(valid.historyOperations.at(-1).type, 'replace');
+  assert.match(valid.window.location.search, /cat=ternos/);
+  assert.match(valid.window.location.search, /un=barra/);
+  assert.doesNotMatch(valid.window.location.search, /prova=/);
+  assert.doesNotMatch(valid.window.location.search, /(?:^|[?&])p=/);
+  assert.deepEqual(valid.window.history.state, { router: { key: 'kept' } });
+  assert.equal(valid.nodes.tryOnDialog.open, false);
+
+  const invalidTryOn = createTryOnDouble();
+  const invalid = mountBrowser({
+    raw: fixtures,
+    search: '?cat=ternos&un=barra&prova=1&p=TR-001',
+    dialogs: true,
+    tryOn: invalidTryOn.TryOn,
+    tryOnDialog: true,
+    tryOnApis: true,
+  }).browser;
+  invalid.triggerDOMContentLoaded();
+  assert.equal(invalid.nodes.tryOnDialog.open, true);
+  assert.equal(invalidTryOn.controller().getSnapshot().selectedCode, null);
+  assert.match(invalid.window.location.search, /prova=1/);
+  assert.match(invalid.window.location.search, /cat=ternos/);
+  assert.doesNotMatch(invalid.window.location.search, /(?:^|[?&])p=/);
+  assert.equal(invalid.historyOperations.filter(operation => operation.type === 'replace').length, 1);
+});
+
+test('pagehide limpa foto antes do unlock e pageshow BFCache reabre sem aceitar resposta antiga', () => {
+  const tryOn = createTryOnDouble();
+  const { browser } = mountBrowser({
+    raw: fixtures,
+    search: '?prova=1&p=NV-001',
+    dialogs: true,
+    tryOn: tryOn.TryOn,
+    tryOnDialog: true,
+    tryOnApis: true,
+    scrollY: 610,
+  });
+  browser.triggerDOMContentLoaded();
+  tryOn.choosePhoto();
+  const resolveLate = tryOn.beginLateResponse();
+  assert.equal(tryOn.controller().getSnapshot().hasPhoto, true);
+
+  browser.dispatchWindow('pagehide', { persisted: true });
+  assert.equal(browser.nodes.tryOnDialog.open, false);
+  assert.equal(tryOn.controller().getSnapshot().hasPhoto, false);
+  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), false);
+  assert.deepEqual(browser.scrollCalls, []);
+
+  browser.dispatchWindow('pageshow', { persisted: true });
+  assert.equal(browser.nodes.tryOnDialog.open, true);
+  assert.equal(tryOn.controller().getSnapshot().selectedCode, 'NV-001');
+  assert.equal(resolveLate(), false);
+  assert.equal(tryOn.lateMutationCount(), 0);
+  assert.equal(tryOn.controller().getSnapshot().phase, 'form');
+  assert.equal(browser.workerFetchCalls.length, 0);
+});
+
+test('restauração de posição remove estado modal e ignora snapshot durante Prova Virtual', () => {
+  const tryOn = createTryOnDouble();
+  const seeded = {
+    'kl:catalog-position:/catalogo.html': JSON.stringify({ y: 880, focusCode: 'NV-001' }),
+  };
+  const { browser } = mountBrowser({
+    raw: fixtures,
+    search: '?prova=1',
+    dialogs: true,
+    tryOn: tryOn.TryOn,
+    tryOnDialog: true,
+    tryOnApis: true,
+    sessionSeed: seeded,
+    scrollY: 330,
+  });
+  browser.triggerDOMContentLoaded();
+  assert.deepEqual(browser.scrollCalls, [], 'snapshot de grid não é consumido sob modal');
+  browser.dispatchWindow('pagehide', { persisted: false });
+  const keys = Object.keys(browser.sessionStorage.snapshot());
+  assert.equal(keys.some(key => /prova=|[?&]p=/.test(key)), false);
+});
+
+test('integração da Prova Virtual fica inerte quando APIs privadas do navegador faltam', () => {
+  const tryOn = createTryOnDouble();
+  const { browser } = mountBrowser({
+    raw: fixtures,
+    dialogs: true,
+    tryOn: tryOn.TryOn,
+    tryOnDialog: true,
+    tryOnApis: false,
+  });
+  browser.triggerDOMContentLoaded();
+  const click = dispatchPrimaryClick(browser.nodes.tryOnEntries[0]);
+  assert.equal(click.prevented(), false);
+  assert.equal(tryOn.calls.length, 0);
+  assert.equal(browser.nodes.tryOnDialog.open, false);
+  assert.equal(browser.historyOperations.length, 0);
+});
+
 test('favoritos usam shell sem depender da galeria e todas as saídas restauram foco', () => {
   ['button', 'cancel', 'backdrop'].forEach((exit) => {
     const { browser } = mountBrowser({ raw: fixtures, dialogs: true, scrollY: 240 });
@@ -938,6 +1310,27 @@ test('popstate para galeria troca favoritos sem desbloquear página, focar opene
     klCatalog: { layer: 'gallery', origin: 'grid' },
   });
   assert.equal(browser.document.activeElement === browser.nodes.galleryDialog, true);
+});
+
+test('popstate sem camada fecha favoritos, limpa shell e não foca opener nem escreve history', () => {
+  const { browser } = mountBrowser({
+    raw: fixtures,
+    dialogs: true,
+    scrollY: 365,
+  });
+  browser.triggerDOMContentLoaded();
+  browser.nodes.favoritesOpen.click();
+  browser.nodes.favoritesClose.focus({ preventScroll: true });
+  const operationsBeforePop = browser.historyOperations.length;
+
+  browser.dispatchWindow('popstate', { state: null });
+
+  assert.equal(browser.nodes.favoritesDialog.open, false);
+  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), false);
+  assert.equal(browser.document.body.style.position, '');
+  assert.deepEqual(browser.scrollCalls, [[0, 365]]);
+  assert.equal(browser.document.activeElement === browser.nodes.favoritesOpen, false);
+  assert.equal(browser.historyOperations.length, operationsBeforePop);
 });
 
 test('falha ao abrir galeria faz rollback do dialog, shell e entrada local', () => {
