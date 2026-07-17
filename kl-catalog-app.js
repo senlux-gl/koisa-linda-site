@@ -176,6 +176,8 @@
       },
       requestClose: function (layer, cleanUrl) {
         assertLayer(layer);
+        if (layer !== currentLayer) return 'ignore';
+        if (pendingBackIndex !== null) return 'back';
         var currentMarker = { layer: currentLayer, origin: currentOrigin };
         var owned = layer === currentLayer && ownedIndex >= 0
           && sameMarker(ownedEntries[ownedIndex], currentMarker);
@@ -243,8 +245,8 @@
         }
         if (active === name) return false;
         if (active === null) {
-          options.body.classList.add('kl-dialog-open');
           options.scrollLock.lock();
+          options.body.classList.add('kl-dialog-open');
         }
         active = name;
         return true;
@@ -252,9 +254,9 @@
       clear: function (clearOptions) {
         if (active === null) return false;
         var restoreScroll = !clearOptions || clearOptions.restoreScroll !== false;
-        active = null;
-        options.body.classList.remove('kl-dialog-open');
         options.scrollLock.unlock({ restoreScroll: restoreScroll });
+        options.body.classList.remove('kl-dialog-open');
+        active = null;
         return true;
       },
       current: function () {

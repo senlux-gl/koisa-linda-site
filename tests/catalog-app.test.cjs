@@ -311,6 +311,8 @@ test('camadas de grid, galeria e prova criam entradas reversíveis sem duplicar 
   const afterBack = history.snapshot();
   assert.equal(afterBack.index, 1);
   assert.equal(afterBack.operations.at(-1).type, 'back');
+  assert.equal(controller.requestClose('tryOn', '/catalogo.html?p=NV-001'), 'back');
+  assert.equal(history.snapshot().operations.length, afterBack.operations.length);
 
   const beforePop = afterBack.operations.length;
   controller.onPopState(history.state);
@@ -335,6 +337,19 @@ test('deep-link sem ownership fecha por replace e preserva state alheio', () => 
     url: '/catalogo.html',
     state: { router: { key: 'kept' } },
   });
+});
+
+test('close atrasado de outra camada é ignorado sem mutar history', () => {
+  const history = createLocalLayerHistory('/catalogo.html');
+  const controller = App.createLayerHistoryController(history, { initialLayer: null });
+  controller.openLayer('gallery', '/catalogo.html?p=NV-001', 'grid');
+  controller.openLayer('tryOn', '/catalogo.html?prova=1&p=NV-001', 'gallery');
+  const before = history.snapshot();
+
+  assert.equal(controller.requestClose('gallery', '/catalogo.html'), 'ignore');
+  assert.deepEqual(history.snapshot(), before);
+  assert.deepEqual(history.state.klCatalog, { layer: 'tryOn', origin: 'gallery' });
+  assert.equal(controller.currentLayer(), 'tryOn');
 });
 
 test('controller recriado trata marcador restaurado como deep-link não possuído', () => {
@@ -448,6 +463,43 @@ test('dialog shell permite limpar sem restaurar scroll e não usa DOM global', (
     () => App.createDialogShell({ body: dependencies.body }),
     error => error instanceof TypeError && /dialog shell dependencies are incomplete/.test(error.message),
   );
+});
+
+test('dialog shell não ativa classe quando scroll lock falha e permite retry', () => {
+  const dependencies = createLocalDialogDependencies();
+  dependencies.scrollLock.lock = () => { throw new Error('lock failed'); };
+  const shell = App.createDialogShell(dependencies);
+
+  assert.throws(() => shell.activate('gallery'), /lock failed/);
+  assert.equal(shell.current(), null);
+  assert.equal(dependencies.body.classList.contains('kl-dialog-open'), false);
+
+  dependencies.scrollLock.lock = () => dependencies.calls.push({ type: 'lock-retry' });
+  assert.equal(shell.activate('gallery'), true);
+  assert.equal(shell.current(), 'gallery');
+  assert.equal(dependencies.body.classList.contains('kl-dialog-open'), true);
+});
+
+test('dialog shell mantém camada ativa quando unlock falha e permite retry', () => {
+  const dependencies = createLocalDialogDependencies();
+  const shell = App.createDialogShell(dependencies);
+  shell.activate('gallery');
+  let unlockAttempts = 0;
+  dependencies.scrollLock.unlock = (options) => {
+    unlockAttempts += 1;
+    dependencies.calls.push({ type: 'unlock-attempt', options });
+    if (unlockAttempts === 1) throw new Error('unlock failed');
+  };
+
+  assert.throws(() => shell.clear(), /unlock failed/);
+  assert.equal(shell.current(), 'gallery');
+  assert.equal(dependencies.body.classList.contains('kl-dialog-open'), true);
+
+  assert.equal(shell.clear(), true);
+  assert.equal(unlockAttempts, 2);
+  assert.equal(shell.current(), null);
+  assert.equal(dependencies.body.classList.contains('kl-dialog-open'), false);
+  assert.deepEqual(dependencies.calls.at(-1).options, { restoreScroll: true });
 });
 
 test('grid usa push, troca usa replace e popstate nunca escreve', () => {
