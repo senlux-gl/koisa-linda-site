@@ -80,7 +80,11 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 }
 /* HERO CINEMATOGRÁFICO (full-bleed) */
 .hero.hero-cine{position:relative;display:flex;align-items:flex-end;min-height:clamp(620px,calc(100svh - 71px),920px);overflow:hidden;background:var(--dark);isolation:isolate;text-align:center}
-.hc-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 22%;z-index:-2;transform:scale(1.001)}
+.hc-slides{position:absolute;inset:0;z-index:-2}
+.hc-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 22%;transform:scale(1.001);opacity:0;transition:opacity 1.8s ease}
+.hc-img.on{opacity:1}
+.hc-cats span{opacity:.62;transition:opacity .9s ease,color .9s ease}
+.hc-cats span.on{opacity:1;color:#fff;text-shadow:0 0 14px rgba(244,229,196,.65),0 1px 12px rgba(30,21,18,.85)}
 .hc-scrim{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(30,21,18,.36) 0%,rgba(30,21,18,.05) 34%,rgba(30,21,18,.12) 58%,rgba(30,21,18,.84) 100%)}
 .hero-cine .hero-copy{width:100%;max-width:920px;margin:0 auto;padding:0 32px 8vh;display:flex;flex-direction:column;align-items:center;color:#fff}
 .hero-cine .eyebrow{color:var(--baunilha);text-shadow:0 1px 12px rgba(30,21,18,.85),0 0 3px rgba(30,21,18,.6)}
@@ -239,10 +243,15 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 </style>
 <script defer src="kl-tracking.js?v=20260715catalog1"></script><link rel="stylesheet" href="kl-site-enhance.css?v=20260716tryon1"></head><body><noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1720591949105146&ev=PageView&noscript=1"/></noscript><header><div class="nav"><a class="logo" href="index.html"><img src="img/logo-kl-main.png" alt="KL"><div class="wm">KOISA LINDA<small>DESDE 1994</small></div></a><nav class="menu"><a href="index.html" class="cur">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="">Catálogo</a><a href="catalogo.html?prova=1" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav><a class="ig-btn" href="https://www.instagram.com/koisalinda_oficial/" target="_blank" rel="noopener" aria-label="Ver o Instagram da Koisa Linda"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.4"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1.1" fill="currentColor" stroke="none"/></svg><span>Instagram</span></a><button class="mtog" aria-label="Abrir menu" aria-expanded="false"><span class="bars"><span></span><span></span><span></span></span><b class="mtog-lbl">Menu</b></button></div><nav class="mnav"><a href="index.html" class="cur">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="">Catálogo</a><a href="catalogo.html?prova=1" class="">Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav></header>
 <section class="hero hero-cine" aria-labelledby="hero-title">
-  <img class="hc-img" src="img/experiencia/hero.webp" alt="Vestido da Koisa Linda em jardim" fetchpriority="high">
+  <div class="hc-slides">
+    <img class="hc-img on" src="img/experiencia/hero.webp" alt="Vestido de noiva da Koisa Linda em jardim" fetchpriority="high">
+    <img class="hc-img" data-src="img/experiencia/clientes/gemeas-wide.webp" alt="Julia e Giovana, debutantes reais Koisa Linda">
+    <img class="hc-img" data-src="img/experiencia/hero-mad.webp" alt="Vestido de madrinha esmeralda Koisa Linda">
+    <img class="hc-img" data-src="img/experiencia/hero-conv.webp" alt="Vestido de convidada dourado Koisa Linda">
+  </div>
   <div class="hc-scrim"></div>
   <div class="hero-copy">
-    <div class="eyebrow">Noivas · Debutantes · Madrinhas · Convidadas · Ternos</div>
+    <div class="eyebrow hc-cats"><span class="on">Noivas</span> · <span>Debutantes</span> · <span>Madrinhas</span> · <span>Convidadas</span> · <span data-fixa>Ternos</span></div>
     <h1 id="hero-title">Seu momento começa na prova.</h1>
     <p>Aluguel e sob medida com ateliê próprio, desde 1994. A festa inteira sai daqui.</p>
     <div class="cta">
@@ -387,26 +396,81 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
   </div>
   <div class="band-sec"><a href="unidades.html">Ver endereços e horários</a></div>
 </div>
-<footer><img class="fimg" src="img/logo-kl-footer.png" alt="KL"><div class="fbrand">KOISA LINDA</div><div class="fphrase">Unindo famílias. Realizando sonhos.</div><div class="funits"><span>São Francisco</span><span>Barra da Tijuca</span></div><div class="fsoc"><a href="https://www.instagram.com/koisalinda_oficial/" target="_blank">Instagram</a><a href="https://www.facebook.com/koisalindaoficial/" target="_blank">Facebook</a><a href="https://www.tiktok.com/@koisalindaoficial" target="_blank">TikTok</a><a href="https://br.pinterest.com/koisalinda_oficial/" target="_blank">Pinterest</a></div><small>Costuramos sonhos desde 1994.<br>CNPJ 02.504.054/0001-10 · © 2026 Koisa Linda</small></footer><script id="kl-motion-js">
+<footer><img class="fimg" src="img/logo-kl-footer.png" alt="KL"><div class="fbrand">KOISA LINDA</div><div class="fphrase">Unindo famílias. Realizando sonhos.</div><div class="funits"><span>São Francisco</span><span>Barra da Tijuca</span></div><div class="fsoc"><a href="https://www.instagram.com/koisalinda_oficial/" target="_blank">Instagram</a><a href="https://www.facebook.com/koisalindaoficial/" target="_blank">Facebook</a><a href="https://www.tiktok.com/@koisalindaoficial" target="_blank">TikTok</a><a href="https://br.pinterest.com/koisalinda_oficial/" target="_blank">Pinterest</a></div><small>Costuramos sonhos desde 1994.<br>CNPJ 02.504.054/0001-10 · © 2026 Koisa Linda</small></footer><script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script><script id="kl-motion-js">
 (function(){
- if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
- var sel='.eyebrow,.sec-title,.rule,.split,.col,.svc,.unit,.pkg,.cli,.band h2,.band p';
- var els=[].slice.call(document.querySelectorAll(sel)).filter(function(el){return !el.closest('.hero-editorial');});
- els.forEach(function(el){el.setAttribute('data-kl-rev','');});
- if(!('IntersectionObserver' in window)){els.forEach(function(el){el.classList.add('kl-in');});return;}
- var io=new IntersectionObserver(function(ents){
-  ents.forEach(function(e){
-   if(!e.isIntersecting)return;
-   var el=e.target,p=el.parentNode,idx=0;
-   if(p){var sibs=[].slice.call(p.children).filter(function(c){return c.hasAttribute('data-kl-rev');});idx=sibs.indexOf(el);}
-   el.style.transitionDelay=Math.min(idx<0?0:idx,8)*70+'ms';
-   el.classList.add('kl-in');io.unobserve(el);
-  });
- },{threshold:0.12,rootMargin:'0px 0px -7% 0px'});
- els.forEach(function(el){io.observe(el);});
+ var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ /* header shrink (sempre) */
  var h=document.querySelector('header');
- if(h){var s=document.createElement('div');s.setAttribute('aria-hidden','true');s.style.cssText='position:absolute;top:0;left:0;width:1px;height:90px;pointer-events:none';document.body.insertBefore(s,document.body.firstChild);
-  new IntersectionObserver(function(es){h.classList.toggle('kl-shrink',!es[0].isIntersecting);},{threshold:0}).observe(s);}
+ if(h){var sp=document.createElement('div');sp.setAttribute('aria-hidden','true');sp.style.cssText='position:absolute;top:0;left:0;width:1px;height:90px;pointer-events:none';document.body.insertBefore(sp,document.body.firstChild);
+  new IntersectionObserver(function(es){h.classList.toggle('kl-shrink',!es[0].isIntersecting);},{threshold:0}).observe(sp);}
+ if(reduce)return;
+
+ window.addEventListener('load',function(){
+  /* HERO: slideshow de categorias */
+  var slides=[].slice.call(document.querySelectorAll('.hc-slides .hc-img'));
+  var cats=[].slice.call(document.querySelectorAll('.hc-cats span:not([data-fixa])'));
+  slides.forEach(function(im){if(im.dataset.src){im.src=im.dataset.src;delete im.dataset.src;}});
+  if(slides.length>1){var cur=0;
+   setInterval(function(){
+    var nx=(cur+1)%slides.length;
+    slides[cur].classList.remove('on');slides[nx].classList.add('on');
+    if(cats[cur])cats[cur].classList.remove('on');
+    if(cats[nx])cats[nx].classList.add('on');
+    cur=nx;
+   },6000);}
+
+  var desk=window.matchMedia('(min-width:861px) and (pointer:fine)').matches;
+
+  if(window.gsap&&window.ScrollTrigger){
+   gsap.registerPlugin(ScrollTrigger);
+   /* smooth scroll premium (desktop) */
+   if(window.Lenis&&desk){
+    var lenis=new Lenis({lerp:.11,smoothWheel:true});
+    lenis.on('scroll',ScrollTrigger.update);
+    gsap.ticker.add(function(t){lenis.raf(t*1000);});
+    gsap.ticker.lagSmoothing(0);
+   }
+   var dur=desk?1:.75,dist=desk?36:22;
+   function rev(sel,vars){gsap.utils.toArray(sel).forEach(function(el){
+    gsap.from(el,Object.assign({y:dist,opacity:0,duration:dur,ease:'power3.out',
+     scrollTrigger:{trigger:el,start:'top 88%'}},vars||{}));});}
+   /* titulos e texto */
+   rev('.section .eyebrow');
+   rev('.sec-title',{y:dist+8,duration:dur+.15});
+   rev('.intent-head p');rev('.section.alt.center p');rev('.mini-svcs');
+   gsap.utils.toArray('.rule').forEach(function(el){gsap.from(el,{scaleX:0,duration:.9,ease:'power2.out',scrollTrigger:{trigger:el,start:'top 92%'}});});
+   /* grupos com stagger */
+   function grp(wrapSel,itemSel,extra){gsap.utils.toArray(wrapSel).forEach(function(w){
+    var items=w.querySelectorAll(itemSel);if(!items.length)return;
+    gsap.from(items,Object.assign({y:dist+10,opacity:0,duration:dur,ease:'power3.out',stagger:.12,
+     scrollTrigger:{trigger:w,start:'top 84%'}},extra||{}));});}
+   grp('.cols','.col');
+   grp('.clientes','.cli',{scale:.965,y:26});
+   grp('.pkgs','.pkg');
+   grp('.lojas-duo','.loja-card');
+   grp('.pricecard','.pc-row,.pk-row',{y:18,stagger:.09});
+   rev('.split .tryon-duo',{x:desk?-30:0,y:desk?0:dist});
+   rev('.split .tx',{x:desk?30:0,y:desk?0:dist});
+   rev('.band h2');rev('.band p');rev('.band-cta');
+   /* parallax sutil (desktop) */
+   if(desk){
+    gsap.utils.toArray('.loja-card img').forEach(function(im){
+     gsap.set(im,{height:'112%',yPercent:-6});
+     gsap.to(im,{yPercent:0,ease:'none',scrollTrigger:{trigger:im.closest('.loja-card'),start:'top bottom',end:'bottom top',scrub:true}});});
+   }
+  }else{
+   /* fallback: reveals leves via IntersectionObserver (sistema anterior) */
+   if(!desk)return;
+   var sel='.eyebrow,.sec-title,.rule,.split,.col,.svc,.unit,.pkg,.cli,.band h2,.band p';
+   var els=[].slice.call(document.querySelectorAll(sel)).filter(function(el){return !el.closest('.hero-cine');});
+   els.forEach(function(el){el.setAttribute('data-kl-rev','');});
+   if(!('IntersectionObserver' in window)){els.forEach(function(el){el.classList.add('kl-in');});return;}
+   var io=new IntersectionObserver(function(ents){ents.forEach(function(e){
+    if(!e.isIntersecting)return;e.target.classList.add('kl-in');io.unobserve(e.target);});},
+    {threshold:0.12,rootMargin:'0px 0px -7% 0px'});
+   els.forEach(function(el){io.observe(el);});
+  }
+ });
 })();
 </script>
 <script>(function(){var b=document.querySelector(".mtog");if(!b)return;b.addEventListener("click",function(){var o=document.body.classList.toggle("mopen");b.setAttribute("aria-expanded",o?"true":"false")});document.querySelectorAll(".mnav a").forEach(function(a){a.addEventListener("click",function(){document.body.classList.remove("mopen")})})})();</script><script src="kl-site-enhance.js?v=20260716catalog2"></script></body></html>
