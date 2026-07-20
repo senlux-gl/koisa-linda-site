@@ -6,6 +6,7 @@
   'use strict';
 
   var VERSION = '20260710-deep-v1';
+  var GA4_ID = 'G-D6HYW29TS4';
   var PIXEL_READY_TIMEOUT = 8000;
   var SCROLL_DEPTHS = [25, 50, 75, 90];
   var sentScroll = {};
@@ -173,6 +174,7 @@
       if (recentEvents[recentKey] && t - recentEvents[recentKey] < 500) return;
       recentEvents[recentKey] = t;
     } catch (e) {}
+    try { if (typeof window.gtag === 'function') window.gtag('event', name, params); } catch (e) {}
     if (typeof window.fbq === 'function') {
       window.fbq('trackCustom', name, params);
       if (window.__KL_TRACKING_DEBUG__) {
@@ -381,7 +383,20 @@
       });
     }).observe(count, { childList: true, characterData: true, subtree: true });
   }
+  function bootstrapGA4() {
+    if (window.__klGA4Ready) return;
+    window.__klGA4Ready = true;
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+    var g = document.createElement('script');
+    g.async = true;
+    g.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA4_ID;
+    (document.head || document.documentElement).appendChild(g);
+    window.gtag('js', new Date());
+    window.gtag('config', GA4_ID);
+  }
   function init() {
+    bootstrapGA4();
     getPersistedAttribution();
     flushQueueWhenReady();
     document.addEventListener('click', onProductOpenClick, true);
