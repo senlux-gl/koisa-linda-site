@@ -49,5 +49,5 @@
       location.replace(href);
     }());
   </script>
-<script>(function(){var h=location.hash;if(!h||h.length<2)return;function go(){var el=document.querySelector(h);if(el)el.scrollIntoView();}addEventListener("load",function(){setTimeout(go,150);});})();</script></body>
+<script>(function(){var h=location.hash;if(!h||h.length<2)return;function go(){var el=document.querySelector(h);if(!el)return;el.scrollIntoView();try{if(window.ScrollTrigger){ScrollTrigger.getAll().forEach(function(st){if(st.animation&&window.scrollY>=st.start)st.animation.progress(1);});}}catch(e){}}addEventListener("load",function(){setTimeout(go,150);});})();</script></body>
 </html>
