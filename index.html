@@ -301,56 +301,61 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 
 <section class="section center" id="aluguel">
   <div class="eyebrow">Aluguel</div>
-  <div class="sec-title" style="margin-top:8px">Vestidos &amp; Ternos</div>
-  <p style="color:#6f6258;max-width:560px;margin:12px auto 0;font-family:var(--body);font-size:17px">Nossa tabela de aluguel na unidade Barra da Tijuca.</p>
-  <style>
-  .pricecard{max-width:760px;margin:38px auto 0;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:34px 30px;box-shadow:0 8px 30px rgba(90,36,43,.05)}
-  .pricecard h3{font-family:var(--serif);font-style:italic;font-size:30px;color:var(--ink);margin:0;line-height:1;text-align:center}
-  .pricecard .pc-sub{font-family:var(--sans);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:6px 0 26px;text-align:center}
-  .pc-row{margin-bottom:20px}.pc-row:last-child{margin-bottom:0}
-  .pc-label{font-family:var(--sans);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
-  .pc-pills{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-  .pc-pills span{font-family:var(--serif);font-size:26px;color:var(--ruby);background:#fbf3e3;border:1px solid var(--line);border-radius:8px;padding:14px 8px;text-align:center;white-space:nowrap}
-  .pc-pills.imp span{background:var(--ruby);color:var(--baunilha);border-color:var(--ruby)}
-  .pkgs.ternos{grid-template-columns:repeat(2,1fr);max-width:760px}
-  @media(max-width:860px){.pkgs.ternos{grid-template-columns:1fr;max-width:420px}}
-  @media(max-width:560px){.pricecard{padding:28px 18px}.pc-pills{gap:8px}.pc-pills span{font-size:19px;padding:12px 4px}}
-  @media(max-width:400px){.pc-pills span{font-size:17px}}
-  .pk-row{display:flex;align-items:baseline;gap:14px;padding:13px 2px;border-bottom:1px solid #f0e8da;text-align:left}
-  .pk-row:last-of-type{border-bottom:none}
-  .pk-n{font-family:var(--serif);font-size:20px;color:var(--ink);flex-shrink:0;min-width:96px}
-  .pk-i{font-family:var(--body);font-size:15.5px;color:#6f6258;flex:1}
-  .pk-p{font-family:var(--serif);font-size:22px;color:var(--ruby);white-space:nowrap}
-  @media(max-width:560px){.pk-row{flex-wrap:wrap;gap:4px 10px}.pk-i{flex-basis:100%;order:3}}
+  <div class="sec-title" style="margin-top:8px">Vestidos, ternos e acessórios</div>
+  <p style="color:#6f6258;max-width:580px;margin:12px auto 0;font-family:var(--body);font-size:17px">Tabela de aluguel da unidade Barra da Tijuca. Ajustes no ateliê inclusos.</p>
+<style>
+  .altab{max-width:820px;margin:34px auto 0;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:30px 26px;box-shadow:0 10px 34px rgba(90,36,43,.06)}
+  .al-grp{margin-bottom:24px}
+  .al-grp:last-of-type{margin-bottom:0}
+  .al-gl{font-family:var(--sans);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:2px;text-align:left}
+  .al-row{display:flex;align-items:center;gap:16px;padding:15px 6px;border-bottom:1px solid #f5efe4;text-align:left;min-height:48px}
+  .al-row:last-child{border-bottom:none}
+  .al-nm{font-family:var(--serif);font-size:20px;color:var(--ink);flex:0 0 auto;min-width:126px}
+  .al-ds{font-family:var(--body);font-size:15.5px;color:#6f6258;flex:1}
+  .al-pr{font-family:var(--serif);font-size:22px;color:var(--ruby);white-space:nowrap;flex:0 0 auto}
+  .al-go{display:flex;gap:8px;flex:0 0 auto}
+  .al-go a{font-family:var(--sans);font-size:12px;letter-spacing:1.4px;text-transform:uppercase;text-decoration:none;padding:12px 15px;min-height:44px;display:inline-flex;align-items:center;border-radius:99px;white-space:nowrap}
+  .al-cat{border:1px solid var(--ruby);color:var(--ruby)}
+  .al-cat:hover{background:var(--ruby);color:var(--baunilha)}
+  .al-wa{background:#25D366;color:#0b3d20;font-weight:600}
+  .al-wa:hover{background:#1eb356}
+  .al-foot{margin-top:26px;padding-top:20px;border-top:1px solid var(--line);display:flex;gap:11px;justify-content:center;flex-wrap:wrap}
+  .al-note{text-align:center;font-size:15px;color:var(--muted);margin-top:15px;font-family:var(--body)}
+  @media(max-width:820px){
+    .al-row{flex-wrap:wrap;gap:6px 12px;padding:16px 4px}
+    .al-nm{min-width:0;flex:1 1 auto}
+    .al-pr{margin-left:auto}
+    .al-ds{flex-basis:100%;order:3}
+    .al-go{flex-basis:100%;order:4;margin-top:8px}
+    .al-go a{flex:1;justify-content:center}
+  }
+  @media(max-width:560px){.altab{padding:26px 16px}.al-nm{font-size:19px}.al-pr{font-size:21px}}
   </style>
-  <div class="pricecard">
-    <h3>Vestidos de festa</h3>
-    <div class="pc-sub">Aluguel</div>
-    <div class="pc-row"><div class="pc-label">Coleção</div><div class="pc-pills"><span>R$ 590</span><span>R$ 690</span><span>R$ 790</span></div></div>
-    <div class="pc-row"><div class="pc-label">Importados &amp; pedrarias</div><div class="pc-pills imp"><span>R$ 990</span><span>R$ 1.090</span><span>R$ 1.190</span></div></div>
-  </div>
-  <div class="pkgs ternos">
-    <div class="pkg">
-      <span class="tier">Terno completo</span>
-      <div class="name">Koisa Linda</div>
-      <div class="price">R$ 490<small>o aluguel</small></div>
-      <a class="btn-out" style="margin-top:auto" href="https://wa.me/5521966475383?text=Ol%C3%A1!%20Quero%20alugar%20o%20terno%20Koisa%20Linda%20na%20Barra" target="_blank">Consultar</a>
+  <div class="altab">
+    <div class="al-grp">
+    <div class="al-gl">Vestidos de festa</div>
+    <div class="al-row"><span class="al-nm">Coleção</span><span class="al-ds">madrinha, convidada e formatura</span><span class="al-pr">R$ 590–790</span><span class="al-go"><a class="al-cat" href="catalogo.html?cat=vestidos-madrinha&amp;un=barra">Ver modelos</a><a class="al-wa" href="https://wa.me/5521966475383?text=Ol%C3%A1%21%20Vim%20pelo%20site%20e%20quero%20ver%20os%20vestidos%20de%20festa%20da%20cole%C3%A7%C3%A3o." target="_blank" rel="noopener">WhatsApp</a></span></div>
+    <div class="al-row"><span class="al-nm">Importados</span><span class="al-ds">bordados e pedrarias</span><span class="al-pr">R$ 990–1.190</span><span class="al-go"><a class="al-cat" href="catalogo.html?cat=vestidos-madrinha&amp;un=barra">Ver modelos</a><a class="al-wa" href="https://wa.me/5521966475383?text=Ol%C3%A1%21%20Vim%20pelo%20site%20e%20quero%20ver%20os%20vestidos%20importados." target="_blank" rel="noopener">WhatsApp</a></span></div>
     </div>
-    <div class="pkg">
-      <span class="tier">Terno completo</span>
-      <div class="name">Janota</div>
-      <div class="price">R$ 890<small>o aluguel</small></div>
-      <a class="btn-out" style="margin-top:auto" href="https://wa.me/5521966475383?text=Ol%C3%A1!%20Quero%20alugar%20o%20terno%20Janota%20na%20Barra" target="_blank">Consultar</a>
+    <div class="al-grp">
+    <div class="al-gl">Ternos</div>
+    <div class="al-row"><span class="al-nm">Koisa Linda</span><span class="al-ds">terno completo</span><span class="al-pr">R$ 490</span><span class="al-go"><a class="al-cat" href="catalogo.html?cat=ternos&amp;un=barra">Ver modelos</a><a class="al-wa" href="https://wa.me/5521966475383?text=Ol%C3%A1%21%20Quero%20alugar%20o%20terno%20Koisa%20Linda%20na%20Barra" target="_blank" rel="noopener">WhatsApp</a></span></div>
+    <div class="al-row"><span class="al-nm">Janota</span><span class="al-ds">terno completo</span><span class="al-pr">R$ 890</span><span class="al-go"><a class="al-cat" href="catalogo.html?cat=ternos&amp;un=barra">Ver modelos</a><a class="al-wa" href="https://wa.me/5521966475383?text=Ol%C3%A1%21%20Quero%20alugar%20o%20terno%20Janota%20na%20Barra" target="_blank" rel="noopener">WhatsApp</a></span></div>
     </div>
+    <div class="al-grp">
+    <div class="al-gl">Noiva e debutante</div>
+    <div class="al-row"><span class="al-nm">Noiva</span><span class="al-ds">aluguel ou sob medida no ateliê</span><span class="al-pr">sob consulta</span><span class="al-go"><a class="al-cat" href="catalogo.html?cat=vestidos-noiva&amp;un=barra">Ver modelos</a><a class="al-wa" href="https://wa.me/5521966475383?text=Ol%C3%A1%21%20Vim%20pelo%20site%20e%20quero%20saber%20sobre%20vestido%20de%20noiva." target="_blank" rel="noopener">WhatsApp</a></span></div>
+    <div class="al-row"><span class="al-nm">Debutante</span><span class="al-ds">valsa e recepção</span><span class="al-pr">sob consulta</span><span class="al-go"><a class="al-cat" href="catalogo.html?cat=vestidos-debutante&amp;un=barra">Ver modelos</a><a class="al-wa" href="https://wa.me/5521966475383?text=Ol%C3%A1%21%20Vim%20pelo%20site%20e%20quero%20saber%20sobre%20vestido%20de%20debutante." target="_blank" rel="noopener">WhatsApp</a></span></div>
+    </div>
+    <div class="al-grp" id="pacotes">
+    <div class="al-gl">Acessórios · para alugar com o vestido</div>
+    <div class="al-row"><span class="al-nm">Prata</span><span class="al-ds">bolsa glitter · sandália · brincos</span><span class="al-pr">R$ 150</span><span class="al-go"><a class="al-wa" href="https://wa.me/5521966475383?text=Ol%C3%A1%21%20Vim%20pelo%20site%20e%20quero%20saber%20sobre%20o%20pacote%20de%20acess%C3%B3rios%20Prata." target="_blank" rel="noopener">WhatsApp</a></span></div>
+    <div class="al-row"><span class="al-nm">Ouro</span><span class="al-ds">bolsa de tecido · sandália · colar</span><span class="al-pr">R$ 200</span><span class="al-go"><a class="al-wa" href="https://wa.me/5521966475383?text=Ol%C3%A1%21%20Vim%20pelo%20site%20e%20quero%20saber%20sobre%20o%20pacote%20de%20acess%C3%B3rios%20Ouro." target="_blank" rel="noopener">WhatsApp</a></span></div>
+    <div class="al-row"><span class="al-nm">Diamante</span><span class="al-ds">bolsa cravejada · sandália · brincos · colar</span><span class="al-pr">R$ 250</span><span class="al-go"><a class="al-wa" href="https://wa.me/5521966475383?text=Ol%C3%A1%21%20Vim%20pelo%20site%20e%20quero%20saber%20sobre%20o%20pacote%20de%20acess%C3%B3rios%20Diamante." target="_blank" rel="noopener">WhatsApp</a></span></div>
+    </div>
+    <div class="al-foot"><a class="btn" href="catalogo.html">Ver catálogo completo</a><a class="btn-out" href="unidades.html">Falar com uma unidade</a></div>
+    <div class="al-note">Valores por peça, sem taxa escondida.</div>
   </div>
-  <div class="pricecard" id="pacotes" style="margin-top:22px">
-    <h3>Pacotes de acessórios</h3>
-    <div class="pc-sub">Bolsa, sandália e joias para alugar com o vestido · unidade Barra</div>
-    <div class="pk-row"><span class="pk-n">Prata</span><span class="pk-i">bolsa glitter · sandália · brincos</span><span class="pk-p">R$ 150</span></div>
-    <div class="pk-row"><span class="pk-n">Ouro</span><span class="pk-i">bolsa de tecido · sandália · colar</span><span class="pk-p">R$ 200</span></div>
-    <div class="pk-row"><span class="pk-n">Diamante</span><span class="pk-i">bolsa cravejada · sandália · brincos · colar</span><span class="pk-p">R$ 250</span></div>
-  </div>
-  <div class="pkg-note">Vestidos de noiva e debutante · valores sob consulta</div>
 </section>
 
 <section class="section alt center">
