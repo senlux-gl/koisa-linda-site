@@ -438,6 +438,11 @@
 
 .tryon-photo-guide img{
   aspect-ratio:4/5;
+  /* teto para a imagem de exemplo nunca empurrar o botao de upload p/ fora da tela
+     (ver bug 20/07: lazy dentro de dialog nao carregava e valia height=1250) */
+  max-height:min(30vh,300px);
+  object-fit:contain;
+  object-position:center;
 }
 
 .tryon-photo-guide figcaption,
