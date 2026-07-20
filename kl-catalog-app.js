@@ -735,6 +735,61 @@
     runtime.hasMore = false;
   }
 
+  // O catálogo online ainda não cobre todas as categorias das duas lojas — as
+  // peças existem na loja, só não foram fotografadas/cadastradas ainda. Sem isto
+  // a cliente filtra a unidade dela, vê "nenhuma peça" e vai embora achando que
+  // a loja não trabalha com aquilo.
+  var PENDING_UNIT_WA = { sf: '5521970858787', barra: '5521966475383' };
+  var PENDING_UNIT_NAME = { sf: 'São Francisco (Niterói)', barra: 'Barra da Tijuca' };
+
+  function pendingCategoryLabel() {
+    if (!state.unit || !state.category) return null;
+    if (state.query || state.colors.length || state.sizes.length) return null;
+    var label = '';
+    for (var i = 0; i < products.length; i++) {
+      var product = products[i];
+      if (product.c !== state.category) continue;
+      if (product.un === state.unit) return null;
+      if (!label) label = product.l || '';
+    }
+    return label || null;
+  }
+
+  function renderComingSoon(categoryLabel) {
+    clearNode(dom.status);
+    clearNode(dom.grid);
+    dom.loadMore.hidden = true;
+
+    var unitName = PENDING_UNIT_NAME[state.unit] || 'nossa loja';
+    var lower = categoryLabel.toLowerCase();
+
+    var wrapper = element('div', 'catalog-state catalog-state-no-results');
+    wrapper.appendChild(element('h2', '', categoryLabel + ' em ' + unitName + ': em breve aqui no site.'));
+    wrapper.appendChild(element('p', '',
+      'Esta unidade trabalha com ' + lower + ' — estas peças ainda estão sendo fotografadas para o catálogo online. '
+      + 'Fale com a equipe da loja e ela mostra o que está disponível hoje.'));
+
+    var actions = element('div', 'catalog-state-actions');
+    var talk = markManual(element('a', '', 'Falar com ' + unitName));
+    talk.href = 'https://wa.me/' + (PENDING_UNIT_WA[state.unit] || PENDING_UNIT_WA.sf)
+      + '?text=' + encodeURIComponent('Olá! Vim pelo site e quero ver ' + lower + ' na unidade ' + unitName + '.');
+    talk.target = '_blank';
+    talk.rel = 'noopener';
+    actions.appendChild(talk);
+
+    var units = markManual(element('a', '', 'Ver unidades'));
+    units.href = 'unidades.html';
+    actions.appendChild(units);
+    wrapper.appendChild(actions);
+    dom.grid.appendChild(wrapper);
+
+    syncResultSummary('Em breve no site');
+    setPhase('no-results');
+    runtime.resultCount = 0;
+    runtime.visibleCount = 0;
+    runtime.hasMore = false;
+  }
+
   function aggregateDiagnostic(report) {
     var reasons = Object.create(null);
     var errors = report && Array.isArray(report.errors) ? report.errors : [];
@@ -1002,13 +1057,18 @@
     renderActiveFilters();
 
     if (!currentDerived.products.length) {
-      renderState(
-        'no-results',
-        'Nenhuma peça com estes refinamentos.',
-        'Escolha outra categoria ou remova um filtro para continuar.',
-        false,
-      );
-      syncResultSummary('0 peças');
+      var pending = pendingCategoryLabel();
+      if (pending) {
+        renderComingSoon(pending);
+      } else {
+        renderState(
+          'no-results',
+          'Nenhuma peça com estes refinamentos.',
+          'Escolha outra categoria ou remova um filtro para continuar.',
+          false,
+        );
+        syncResultSummary('0 peças');
+      }
       runtime.page = paging.page;
       return;
     }
