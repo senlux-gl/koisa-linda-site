@@ -1,0 +1,10 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<title>Redirecionando — Koisa Linda</title>
+<link rel="canonical" href="https://koisalinda.com.br/index.html">
+<meta http-equiv="refresh" content="0; url=/index.html">
+<meta name="robots" content="noindex,follow">
+<script>location.replace("/index.html");</script>
+</head><body>
+<p>Esta p&aacute;gina mudou de endere&ccedil;o. Voc&ecirc; est&aacute; sendo levado para
+<a href="/index.html">koisalinda.com.br/index.html</a>.</p>
+</body></html>
