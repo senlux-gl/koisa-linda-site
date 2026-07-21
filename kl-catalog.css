@@ -1118,16 +1118,24 @@
   }
   .gallery-layout{
     grid-template-columns:1fr;
-    grid-template-rows:minmax(54dvh,1fr) auto;
+    grid-template-rows:auto auto;
   }
+  /* o figure ABRAÇA a foto em vez de a foto preencher o figure: com altura
+     forçada (54dvh) + object-fit:contain sobrava o fundo #0d0908 nas laterais
+     em tela baixa, e a peça aparecia entre duas tarjas pretas */
   .gallery-media{
-    min-height:54dvh;
-    width:auto;
+    min-height:0;
     height:auto;
+    width:fit-content;
+    max-width:100%;
+    margin-inline:auto;
   }
   .gallery-media img{
-    width:100%;
-    height:100%;
+    width:auto;
+    height:auto;
+    max-width:100%;
+    max-height:56dvh;
+    display:block;
   }
   .gallery-panel{
     max-height:40dvh;
