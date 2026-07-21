@@ -1,4 +1,59 @@
+# Koisa Linda — koisalinda.com.br
+# Bots de BUSCA e CITAÇÃO: liberados (é o que faz a loja aparecer nas respostas de IA)
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# Bots de TREINO: liberados por decisão de negócio.
+# Catálogo de vestidos não é segredo comercial, e a familiaridade do modelo
+# com a marca é gratuita. Bloquear estes NÃO afeta a citação em busca.
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# Padrão
+
 User-agent: *
 Allow: /
+Disallow: /*?utm_
 
 Sitemap: https://koisalinda.com.br/sitemap.xml
