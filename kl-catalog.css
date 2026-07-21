@@ -1108,10 +1108,13 @@
   }
   .gallery-layout{
     grid-template-columns:1fr;
-    grid-template-rows:minmax(0,1fr) auto;
+    grid-template-rows:minmax(54dvh,1fr) auto;
+  }
+  .gallery-media{
+    min-height:54dvh;
   }
   .gallery-panel{
-    max-height:46dvh;
+    max-height:40dvh;
   }
 }
 
