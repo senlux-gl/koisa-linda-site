@@ -304,7 +304,7 @@ test('validateProducts aceita fixtures válidas', () => {
   });
 });
 
-test('validateProducts bloqueia unidade inválida, campo k ausente e código duplicado', () => {
+test('validateProducts descarta somente peças inválidas e preserva o restante do catálogo', () => {
   const malformed = [
     fixtures[0],
     Object.assign({}, fixtures[1], { un: 'invalida' }),
@@ -313,11 +313,30 @@ test('validateProducts bloqueia unidade inválida, campo k ausente e código dup
   ];
   const report = Core.validateProducts(malformed);
 
-  assert.equal(report.ok, false);
-  assert.deepEqual(report.products, []);
+  assert.equal(report.ok, true);
+  assert.deepEqual(report.products, [fixtures[0]]);
   assert.ok(report.errors.some((error) => error.reason === 'invalid-unit'));
   assert.ok(report.errors.some((error) => error.reason === 'missing-field' && error.field === 'k'));
   assert.ok(report.errors.some((error) => error.reason === 'duplicate-code'));
+});
+
+test('peça inválida não reserva o código e não derruba peça válida posterior', () => {
+  const invalidFirst = Object.assign({}, fixtures[0], { un: 'invalida' });
+  const validSecond = Object.assign({}, fixtures[0]);
+  const report = Core.validateProducts([invalidFirst, validSecond]);
+
+  assert.equal(report.ok, true);
+  assert.deepEqual(report.products, [validSecond]);
+  assert.equal(report.errors.some((error) => error.reason === 'duplicate-code'), false);
+  assert.ok(report.errors.some((error) => error.index === 0 && error.reason === 'invalid-unit'));
+});
+
+test('base com todas as peças inválidas continua falhando de forma explícita', () => {
+  const report = Core.validateProducts([{ ...fixtures[0], un: 'invalida' }]);
+
+  assert.equal(report.ok, false);
+  assert.deepEqual(report.products, []);
+  assert.ok(report.errors.length > 0);
 });
 
 test('validateProducts rejeita base não-array e item não-objeto', () => {

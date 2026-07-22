@@ -2204,6 +2204,14 @@
       return getSnapshot();
     }
 
+    if (Array.isArray(report.errors) && report.errors.length) {
+      var diagnostic = aggregateDiagnostic(report);
+      runtime.validationErrors = diagnostic.errorCount;
+      if (root.console && typeof root.console.warn === 'function') {
+        root.console.warn('[KLCatalog] peças inválidas descartadas', diagnostic);
+      }
+    }
+
     products = report.products.slice();
     state = cloneState(Core.readState(root.location && root.location.search || '', products));
     var storage = null;
