@@ -28,24 +28,35 @@
 
   function validateProducts(raw) {
     var errors = [];
+    var products = [];
     var seen = new Set();
     if (!Array.isArray(raw)) return { ok: false, products: [], errors: [{ reason: 'not-array' }] };
     raw.forEach(function (product, index) {
+      var productErrors = [];
       if (!product || typeof product !== 'object') {
         errors.push({ index: index, reason: 'not-object' });
         return;
       }
       ['c', 'l', 'k', 'un', 't', 'u'].forEach(function (field) {
         if (typeof product[field] !== 'string' || !product[field].trim()) {
-          errors.push({ index: index, reason: 'missing-field', field: field });
+          productErrors.push({ index: index, reason: 'missing-field', field: field });
         }
       });
-      if (unitOf(product) === null) errors.push({ index: index, reason: 'invalid-unit' });
+      if (unitOf(product) === null) productErrors.push({ index: index, reason: 'invalid-unit' });
       var code = normalizeCode(product.k);
-      if (code && seen.has(code)) errors.push({ index: index, reason: 'duplicate-code', code: code });
+      if (code && seen.has(code)) productErrors.push({ index: index, reason: 'duplicate-code', code: code });
+      if (productErrors.length) {
+        errors.push.apply(errors, productErrors);
+        return;
+      }
       if (code) seen.add(code);
+      products.push(product);
     });
-    return { ok: errors.length === 0, products: errors.length ? [] : raw.slice(), errors: errors };
+    return {
+      ok: raw.length === 0 || products.length > 0,
+      products: products,
+      errors: errors,
+    };
   }
 
   function uniqueSorted(values) {

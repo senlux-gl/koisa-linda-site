@@ -1670,6 +1670,24 @@ test('init inválido valida antes de state, storage e favoritos e rende recupera
   assert.equal(browser.window.location.reloadCount, 1);
 });
 
+test('init misto descarta peça inválida, mantém catálogo pronto e expõe o alerta', () => {
+  const validProducts = makeProducts(13);
+  const invalidProduct = { ...validProducts[0], k: 'QUEBRADA', un: 'invalida' };
+  const { browser, app } = mountBrowser({ raw: [invalidProduct, ...validProducts] });
+
+  browser.triggerDOMContentLoaded();
+
+  const snapshot = app.getSnapshot();
+  assert.equal(snapshot.phase, 'ready');
+  assert.equal(snapshot.productCount, 13);
+  assert.equal(snapshot.validationErrors, 1);
+  assert.equal(browser.nodes.grid.children.length, 12);
+  assert.equal(
+    browser.findAll(browser.nodes.grid, node => node.dataset && node.dataset.code === 'QUEBRADA').length,
+    0,
+  );
+});
+
 test('init válido renderiza 12 thumbs e permanece idempotente', () => {
   const order = [];
   const products = makeProducts(25);
