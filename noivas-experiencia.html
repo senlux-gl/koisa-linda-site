@@ -473,6 +473,16 @@
   /* final: revelação */
   gsap.fromTo('.final-img', { scale: 1.15 }, { scale: 1.02, ease: 'none',
     scrollTrigger: { trigger: '#final', start: 'top bottom', end: 'bottom top', scrub: true } });
+
+  /* rede de segurança: completa só os reveals (não-scrub) que já passaram — âncora/voltar/reload.
+     NÃO toca nas tweens de scrub/pin (parallax, story, galeria) pra não quebrar o cinematográfico */
+  function klSweep(){try{ScrollTrigger.getAll().forEach(function(st){
+    if(!st.animation||(st.vars&&st.vars.scrub))return;
+    var t=st.trigger?st.trigger.getBoundingClientRect().top:1e9;
+    if(t<0||window.scrollY>=st.start)st.animation.progress(1);});}catch(e){}}
+  ScrollTrigger.addEventListener('refresh',klSweep);
+  setTimeout(function(){ScrollTrigger.refresh();klSweep();},350);
+  window.addEventListener('pageshow',function(e){if(e.persisted){ScrollTrigger.refresh();klSweep();}});
 })();
 </script>
 <script>(function(){var h=location.hash;if(!h||h.length<2)return;function go(){var el=document.querySelector(h);if(!el)return;el.scrollIntoView();try{if(window.ScrollTrigger){ScrollTrigger.getAll().forEach(function(st){if(st.animation&&window.scrollY>=st.start)st.animation.progress(1);});}}catch(e){}}addEventListener("load",function(){setTimeout(go,150);});})();</script></body>
