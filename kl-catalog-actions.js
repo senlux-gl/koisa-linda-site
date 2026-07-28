@@ -41,9 +41,38 @@
       : null;
   }
 
+  function unitLabel(unit) {
+    return unit === 'barra' ? 'Barra da Tijuca'
+      : unit === 'sf' ? 'São Francisco'
+        : 'unidade Koisa Linda';
+  }
+
+  function categoryLabel(product) {
+    var raw = String(product && (product.l || product.c) || '').trim();
+    if (raw) return raw;
+    var category = String(product && product.c || '').trim();
+    return category === 'vestidos-noiva' ? 'Noivas'
+      : category === 'vestidos-debutante' ? 'Debutantes'
+        : category === 'vestidos-madrinha' ? 'Madrinhas & Festa'
+          : category === 'ternos' ? 'Ternos'
+            : 'Catálogo';
+  }
+
+  function categoryIntent(product) {
+    var category = String(product && product.c || '').trim();
+    return category === 'vestidos-noiva' ? 'modelo de noiva'
+      : category === 'vestidos-debutante' ? 'modelo de debutante'
+        : category === 'vestidos-madrinha' ? 'vestido de festa'
+          : category === 'ternos' ? 'terno'
+            : 'peça do catálogo';
+  }
+
   function productMessage(product) {
-    return 'Olá! Tenho interesse na peça ' + normalizeCode(product && product.k)
-      + '. Você consegue confirmar a disponibilidade e me ajudar a agendar uma prova?';
+    var unit = unitOf(product);
+    var code = normalizeCode(product && product.k);
+    return 'Olá! Vim pelo catálogo da Koisa Linda e gostei deste ' + categoryIntent(product)
+      + ' para provar na unidade ' + unitLabel(unit) + ': ' + code + '.\n'
+      + 'Quero confirmar disponibilidade e ver o melhor horário para prova.';
   }
 
   function whatsappHref(contact, message) {
@@ -164,11 +193,21 @@
   }
 
   function favoriteMessage(items) {
-    return 'Olá! Separei estas peças no catálogo da Koisa Linda:\n'
-      + items.map(function (product) {
+    var list = (Array.isArray(items) ? items : []).filter(Boolean);
+    var first = list[0] || null;
+    var unit = unitOf(first);
+    var categories = [];
+    list.forEach(function (product) {
+      var label = categoryLabel(product);
+      if (categories.indexOf(label) === -1) categories.push(label);
+    });
+    return 'Olá! Vim pelo catálogo da Koisa Linda e separei estes modelos que salvei no catálogo'
+      + (categories.length ? ' (' + categories.join(', ') + ')' : '')
+      + ' para provar na unidade ' + unitLabel(unit) + ':\n'
+      + list.map(function (product) {
         return '- ' + normalizeCode(product && product.k);
       }).join('\n')
-      + '\nVocê consegue confirmar a disponibilidade e me ajudar a agendar uma prova?';
+      + '\nQuero confirmar disponibilidade e ver o melhor horário para prova.';
   }
 
   function buildFavoriteBatches(products, contacts, maxLength) {
