@@ -245,11 +245,23 @@
       coordinator.show(products, activeIndex);
     }
 
+    var lastViewed = '';
     function update(productCode) {
       var index = indexFor(productCode);
       if (index < 0) return false;
       activeIndex = index;
       syncProduct(products[index]);
+      /* ViewContent padrão do Pixel: é o sinal de interesse em peça que o Meta usa pra achar
+       * público parecido. Antes só peca.html disparava, então quem via vestido no catálogo
+       * (a maioria do tráfego pago) não gerava sinal nenhum. O kl-tracking.js já engancha
+       * neste evento pra emitir KL_Product_View. Guarda por código pra não repetir na mesma peça. */
+      try {
+        var p = products[index];
+        if (p && p.k && p.k !== lastViewed && typeof window.fbq === 'function') {
+          lastViewed = p.k;
+          window.fbq('track', 'ViewContent', { content_name: p.k, content_category: p.c || '' });
+        }
+      } catch (e) {}
       return true;
     }
 

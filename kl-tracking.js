@@ -186,6 +186,18 @@
       window.__klTrackingQueue.push({ name: name, params: params, ts: now() });
     }
   }
+  /* Evento PADRÃO do Pixel (não KL_*). Os KL_* são diagnóstico e o Meta não otimiza por eles;
+   * as campanhas de conversão usam custom_event_type LEAD, então sem este disparo o leilão
+   * fica sem sinal nenhum de conversão. Dedupe por href+janela de 3s, igual ao KL_WhatsApp_Click,
+   * pra um clique nunca contar duas vezes. */
+  function standard(name, params, onceKey) {
+    if (typeof window.fbq !== 'function') return;
+    if (onceKey) {
+      if (sentOnce['std:' + onceKey]) return;
+      sentOnce['std:' + onceKey] = true;
+    }
+    try { window.fbq('track', name, params || {}); } catch (e) {}
+  }
   function catalog(eventName, context) {
     context = context || {};
     var allowed = {
@@ -281,11 +293,16 @@
         try { decoded = decodeURIComponent(href); } catch (e3) { decoded = href; }
         var code = codeFromText(decoded);
         var d = getProductByCode(code) || getProductFromElement(target);
+        var waOnce = 'wa:' + href + ':' + Math.floor(now() / 3000);
         track('KL_WhatsApp_Click', Object.assign(linkParams, productParams(d), {
           store: getStoreFromHref(href),
           product_code: code || (d && d.k) || '',
           has_prefill: /[?&]text=/.test(href) ? 'yes' : 'no'
-        }), { onceKey: 'wa:' + href + ':' + Math.floor(now() / 3000) });
+        }), { onceKey: waOnce });
+        standard('Lead', {
+          content_name: code || (d && d.k) || text || 'whatsapp',
+          content_category: code ? 'peca' : 'contato'
+        }, waOnce);
         return;
       }
       track('KL_CTA_Click', linkParams);
