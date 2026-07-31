@@ -137,6 +137,23 @@ h1,h2,h3,.hero h1,.band h2{text-wrap:balance}
 h2,h3{line-height:1.12}
 /* filete dourado: separador nobre do brand book, agora com o dourado certo */
 .rule{background:var(--gold)}
+
+/* ── O Pomar · no catálogo ─────────────────────────────────────────────
+   O catálogo é onde a tese vale mais: uma vitrine expõe o que já está
+   pronto, um pomar dá fruto. Aqui a peça é o começo, não o fim. */
+.kl-verso{background:#F7EFDF;padding:74px 32px;text-align:center}
+.kl-verso .v{font-family:var(--serif);font-style:italic;font-weight:400;
+  color:var(--ruby);font-size:clamp(24px,3.2vw,34px);line-height:1.26;
+  max-width:24ch;margin:0 auto;text-wrap:balance}
+.kl-verso .r{width:54px;height:1px;background:var(--gold);margin:22px auto 0}
+.kl-verso .c{font-family:var(--sans);font-size:10.5px;letter-spacing:3.4px;
+  text-transform:uppercase;color:var(--muted);margin-top:16px}
+.kl-verso .n{font-family:var(--body);font-size:16.5px;color:#6b5c57;
+  max-width:50ch;margin:18px auto 0;line-height:1.6}
+.catalog-intro-copy .kl-atelie{font-family:var(--body);font-size:16px;
+  color:#6b5c57;margin-top:10px;max-width:60ch;line-height:1.6}
+.catalog-intro-copy .kl-atelie em{font-style:italic;color:var(--ruby)}
+@media(max-width:860px){.kl-verso{padding:56px 22px}}
 </style>
 <link rel="stylesheet" href="kl-catalog.css?v=20260720cat4">
 <link rel="stylesheet" href="kl-catalog-tryon.css?v=20260720semfoto">
@@ -154,7 +171,7 @@ h2,h3{line-height:1.12}
     <div class="catalog-intro-copy">
       <div class="eyebrow">Catálogo Koisa Linda · duas unidades</div>
       <h1 id="catalog-title">Encontre a peça que faz parte da sua história.</h1>
-      <p>Explore vestidos, ternos e acessórios. Salve seus favoritos e fale com a unidade certa para confirmar disponibilidade.</p>
+      <p>Explore vestidos, ternos e acessórios. Salve seus favoritos e fale com a unidade certa para confirmar disponibilidade.</p><p class="kl-atelie">Cada peça daqui passa pelo <em>ateliê</em> antes de sair. O que você escolhe na tela é o começo: manga, decote, comprimento e caimento se ajustam no corpo, na prova.</p>
       <form class="catalog-search" role="search" novalidate>
         <label for="catalog-search">Buscar no catálogo</label>
         <input id="catalog-search" name="q" type="search" autocomplete="off" placeholder="Código, categoria, cor ou tamanho">
@@ -397,7 +414,7 @@ h2,h3{line-height:1.12}
   </div>
 </dialog>
 
-<footer><img class="fimg" src="img/logo-kl-footer.png" alt="KL"><div class="fbrand">KOISA LINDA</div><div class="fphrase">Unindo famílias. Realizando sonhos.</div><div class="funits"><span>São Francisco</span><span>Barra da Tijuca</span></div><div class="fsoc"><a href="https://www.instagram.com/koisalindakl/" target="_blank">Instagram</a><a href="https://www.facebook.com/koisalindaoficial/" target="_blank">Facebook</a><a href="https://www.tiktok.com/@koisalindaoficial" target="_blank">TikTok</a><a href="https://br.pinterest.com/koisalinda_oficial/" target="_blank">Pinterest</a></div><div class="fverse">“Os teus renovos são um pomar de romãs, com frutos excelentes.”<cite>Cânticos 4:13</cite></div><small>Costuramos sonhos desde 1994.<br>CNPJ 02.504.054/0001-10 · © 2026 Koisa Linda</small></footer><script id="kl-motion-js">
+<section class="kl-verso"><p class="v">Como um lírio entre os espinhos é a minha amada entre as jovens.</p><div class="r"></div><p class="c">Cânticos 2:2</p><p class="n">Uma vitrine expõe o que já está pronto. Um pomar dá fruto, e dá com tempo: a escolha começa aqui, o caimento se resolve na prova.</p></section><footer><img class="fimg" src="img/logo-kl-footer.png" alt="KL"><div class="fbrand">KOISA LINDA</div><div class="fphrase">Unindo famílias. Realizando sonhos.</div><div class="funits"><span>São Francisco</span><span>Barra da Tijuca</span></div><div class="fsoc"><a href="https://www.instagram.com/koisalindakl/" target="_blank">Instagram</a><a href="https://www.facebook.com/koisalindaoficial/" target="_blank">Facebook</a><a href="https://www.tiktok.com/@koisalindaoficial" target="_blank">TikTok</a><a href="https://br.pinterest.com/koisalinda_oficial/" target="_blank">Pinterest</a></div><div class="fverse">“Os teus renovos são um pomar de romãs, com frutos excelentes.”<cite>Cânticos 4:13</cite></div><small>Costuramos sonhos desde 1994.<br>CNPJ 02.504.054/0001-10 · © 2026 Koisa Linda</small></footer><script id="kl-motion-js">
 (function(){
  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
  var sel='.eyebrow,.sec-title,.rule,.split,.col,.svc,.unit,.pkg,.cli,.band h2,.band p';
