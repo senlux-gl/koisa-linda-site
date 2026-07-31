@@ -1,0 +1,2438 @@
+[
+ {
+  "k": "040301",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "cetim",
+  "estilo": "classico",
+  "detalhes": [
+   "drapeado",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040302",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "bordado",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040303",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "zibeline",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040304",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040305",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "pedraria",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "drapeado",
+   "brilho"
+  ]
+ },
+ {
+  "k": "040306",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "sem-manga",
+  "tecido": "bordado",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040307",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "alca-larga",
+  "tecido": "bordado",
+  "estilo": "romantico",
+  "detalhes": [
+   "drapeado",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040308",
+  "corte": "semi-sereia",
+  "decote": "coracao",
+  "manga": "sem-manga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040309",
+  "corte": "sereia",
+  "decote": "coracao",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "drapeado"
+  ]
+ },
+ {
+  "k": "040310",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "cetim",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040311",
+  "corte": "corte-a",
+  "decote": "quadrado",
+  "manga": "alca-fina",
+  "tecido": "cetim",
+  "estilo": "classico",
+  "detalhes": [
+   "drapeado",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040312",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "boho",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040313",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "alca-larga",
+  "tecido": "crepe",
+  "estilo": "classico",
+  "detalhes": [
+   "drapeado",
+   "brilho",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040314",
+  "corte": "sereia",
+  "decote": "coracao",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040315",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040316",
+  "corte": "reto",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "moderno",
+  "detalhes": []
+ },
+ {
+  "k": "040317",
+  "corte": "corte-a",
+  "decote": "canoa",
+  "manga": "manga-longa",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040319",
+  "corte": "sereia",
+  "decote": "coracao",
+  "manga": "sem-manga",
+  "tecido": "renda",
+  "estilo": "moderno",
+  "detalhes": [
+   "transparencia",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040320",
+  "corte": "semi-sereia",
+  "decote": "coracao",
+  "manga": "sem-manga",
+  "tecido": "crepe",
+  "estilo": "minimalista",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040321",
+  "corte": "semi-sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "boho",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040322",
+  "corte": "sereia",
+  "decote": "ombro-a-ombro",
+  "manga": "alca-larga",
+  "tecido": "crepe",
+  "estilo": "minimalista",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040323",
+  "corte": "corte-a",
+  "decote": "redondo",
+  "manga": "alca-larga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "transparencia",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040324",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040325",
+  "corte": "sereia",
+  "decote": "coracao",
+  "manga": "sem-manga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040326",
+  "corte": "corte-a",
+  "decote": "halter",
+  "manga": "sem-manga",
+  "tecido": "liso",
+  "estilo": "romantico",
+  "detalhes": []
+ },
+ {
+  "k": "040327",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040328",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040329",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "bordado",
+  "estilo": "moderno",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040330",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040331",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": []
+ },
+ {
+  "k": "040332",
+  "corte": "reto",
+  "decote": "canoa",
+  "manga": "alca-larga",
+  "tecido": "cetim",
+  "estilo": "moderno",
+  "detalhes": [
+   "fenda"
+  ]
+ },
+ {
+  "k": "040333",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "bordado",
+  "estilo": "moderno",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040334",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "zibeline",
+  "estilo": "minimalista",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040335",
+  "corte": "reto",
+  "decote": "v",
+  "manga": "alca-fina",
+  "tecido": "crepe",
+  "estilo": "minimalista",
+  "detalhes": [
+   "fenda",
+   "drapeado"
+  ]
+ },
+ {
+  "k": "040336",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "cetim",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040337",
+  "corte": "reto",
+  "decote": "ombro-a-ombro",
+  "manga": "alca-fina",
+  "tecido": "crepe",
+  "estilo": "moderno",
+  "detalhes": []
+ },
+ {
+  "k": "040338",
+  "corte": "corte-a",
+  "decote": "canoa",
+  "manga": "manga-3-4",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040339",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "bordado",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040340",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "flores-3d"
+  ]
+ },
+ {
+  "k": "040341",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "liso",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "drapeado"
+  ]
+ },
+ {
+  "k": "040342",
+  "corte": "mullet",
+  "decote": "coracao",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": []
+ },
+ {
+  "k": "040343",
+  "corte": "semi-sereia",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "bordado",
+  "estilo": "moderno",
+  "detalhes": [
+   "cauda",
+   "flores-3d"
+  ]
+ },
+ {
+  "k": "040344",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "bordado",
+  "estilo": "classico",
+  "detalhes": []
+ },
+ {
+  "k": "040345",
+  "corte": "semi-sereia",
+  "decote": "quadrado",
+  "manga": "alca-larga",
+  "tecido": "cetim",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040346",
+  "corte": "sereia",
+  "decote": "coracao",
+  "manga": "alca-fina",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040347",
+  "corte": "semi-sereia",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "cetim",
+  "estilo": "classico",
+  "detalhes": [
+   "drapeado"
+  ]
+ },
+ {
+  "k": "040348",
+  "corte": "princesa",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040349",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "brilho"
+  ]
+ },
+ {
+  "k": "040350",
+  "corte": "corte-a",
+  "decote": "canoa",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040351",
+  "corte": "sereia",
+  "decote": "coracao",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "brilho"
+  ]
+ },
+ {
+  "k": "040352",
+  "corte": "semi-sereia",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "drapeado",
+   "flores-3d"
+  ]
+ },
+ {
+  "k": "040353",
+  "corte": "corte-a",
+  "decote": "canoa",
+  "manga": "manga-longa",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040354",
+  "corte": "princesa",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "zibeline",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda",
+   "drapeado"
+  ]
+ },
+ {
+  "k": "040355",
+  "corte": "semi-sereia",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "renda",
+  "estilo": "boho",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040356",
+  "corte": "corte-a",
+  "decote": "ombro-a-ombro",
+  "manga": "sem-manga",
+  "tecido": "crepe",
+  "estilo": "moderno",
+  "detalhes": [
+   "fenda",
+   "drapeado"
+  ]
+ },
+ {
+  "k": "040357",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "flores-3d"
+  ]
+ },
+ {
+  "k": "040358",
+  "corte": "sereia",
+  "decote": "ombro-a-ombro",
+  "manga": "sem-manga",
+  "tecido": "zibeline",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040359",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040360",
+  "corte": "semi-sereia",
+  "decote": "ombro-a-ombro",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040361",
+  "corte": "corte-a",
+  "decote": "canoa",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040362",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040363",
+  "corte": "semi-sereia",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "renda",
+  "estilo": "boho",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040364",
+  "corte": "corte-a",
+  "decote": "ombro-a-ombro",
+  "manga": "sem-manga",
+  "tecido": "crepe",
+  "estilo": "minimalista",
+  "detalhes": [
+   "drapeado"
+  ]
+ },
+ {
+  "k": "040365",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "flores-3d"
+  ]
+ },
+ {
+  "k": "040366",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040367",
+  "corte": "corte-a",
+  "decote": "quadrado",
+  "manga": "alca-fina",
+  "tecido": "cetim",
+  "estilo": "moderno",
+  "detalhes": [
+   "cauda",
+   "brilho"
+  ]
+ },
+ {
+  "k": "040368",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040369",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "flores-3d"
+  ]
+ },
+ {
+  "k": "040370",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia",
+   "flores-3d"
+  ]
+ },
+ {
+  "k": "040371",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040372",
+  "corte": "sereia",
+  "decote": "ombro-a-ombro",
+  "manga": "sem-manga",
+  "tecido": "crepe",
+  "estilo": "minimalista",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040373",
+  "corte": "reto",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "crepe",
+  "estilo": "moderno",
+  "detalhes": [
+   "cauda",
+   "drapeado"
+  ]
+ },
+ {
+  "k": "040374",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040375",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040376",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "tule",
+  "estilo": "boho",
+  "detalhes": [
+   "transparencia",
+   "brilho",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040377",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "capa",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040378",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040379",
+  "corte": "corte-a",
+  "decote": "ombro-a-ombro",
+  "manga": "capa",
+  "tecido": "bordado",
+  "estilo": "classico",
+  "detalhes": []
+ },
+ {
+  "k": "040380",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": []
+ },
+ {
+  "k": "040381",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "manga-3-4",
+  "tecido": "tule",
+  "estilo": "boho",
+  "detalhes": [
+   "transparencia",
+   "drapeado"
+  ]
+ },
+ {
+  "k": "040382",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "zibeline",
+  "estilo": "classico",
+  "detalhes": [
+   "brilho"
+  ]
+ },
+ {
+  "k": "040383",
+  "corte": "princesa",
+  "decote": "canoa",
+  "manga": "manga-longa",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "transparencia",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040384",
+  "corte": "princesa",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia",
+   "brilho"
+  ]
+ },
+ {
+  "k": "040385",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "tule",
+  "estilo": "boho",
+  "detalhes": [
+   "transparencia",
+   "drapeado",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040386",
+  "corte": "princesa",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040387",
+  "corte": "princesa",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "transparencia",
+   "brilho",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040388",
+  "corte": "corte-a",
+  "decote": "ombro-a-ombro",
+  "manga": "capa",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "flores-3d",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040389",
+  "corte": "corte-a",
+  "decote": "quadrado",
+  "manga": "alca-fina",
+  "tecido": "zibeline",
+  "estilo": "minimalista",
+  "detalhes": []
+ },
+ {
+  "k": "040390",
+  "corte": "corte-a",
+  "decote": "quadrado",
+  "manga": "alca-larga",
+  "tecido": "zibeline",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040391",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "crepe",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040392",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "zibeline",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040393",
+  "corte": "reto",
+  "decote": "ombro-a-ombro",
+  "manga": "sem-manga",
+  "tecido": "cetim",
+  "estilo": "moderno",
+  "detalhes": [
+   "drapeado"
+  ]
+ },
+ {
+  "k": "040396",
+  "corte": "corte-a",
+  "decote": "halter",
+  "manga": "sem-manga",
+  "tecido": "crepe",
+  "estilo": "minimalista",
+  "detalhes": [
+   "drapeado"
+  ]
+ },
+ {
+  "k": "040397",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040398",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040399",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "sem-manga",
+  "tecido": "zibeline",
+  "estilo": "minimalista",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040400",
+  "corte": "corte-a",
+  "decote": "quadrado",
+  "manga": "alca-larga",
+  "tecido": "zibeline",
+  "estilo": "minimalista",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040401",
+  "corte": "corte-a",
+  "decote": "halter",
+  "manga": "sem-manga",
+  "tecido": "crepe",
+  "estilo": "minimalista",
+  "detalhes": [
+   "costas-nuas",
+   "drapeado"
+  ]
+ },
+ {
+  "k": "040402",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040403",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-fina",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "flores-3d"
+  ]
+ },
+ {
+  "k": "040404",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "cetim",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda",
+   "drapeado"
+  ]
+ },
+ {
+  "k": "040405",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "manga-3-4",
+  "tecido": "renda",
+  "estilo": "boho",
+  "detalhes": [
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040406",
+  "corte": "corte-a",
+  "decote": "redondo",
+  "manga": "manga-longa",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "transparencia",
+   "brilho"
+  ]
+ },
+ {
+  "k": "040407",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "tule",
+  "estilo": "boho",
+  "detalhes": [
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040408",
+  "corte": "princesa",
+  "decote": "redondo",
+  "manga": "manga-longa",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "transparencia",
+   "brilho"
+  ]
+ },
+ {
+  "k": "040411",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "manga-bufante",
+  "tecido": "zibeline",
+  "estilo": "moderno",
+  "detalhes": [
+   "flores-3d",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040412",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "brilho"
+  ]
+ },
+ {
+  "k": "040413",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040414",
+  "corte": "princesa",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "brilho"
+  ]
+ },
+ {
+  "k": "040415",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "brilho",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040416",
+  "corte": "princesa",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "transparencia",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040417",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "alca-larga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040418",
+  "corte": "princesa",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "transparencia",
+   "brilho",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040419",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "manga-bufante",
+  "tecido": "zibeline",
+  "estilo": "moderno",
+  "detalhes": [
+   "flores-3d",
+   "drapeado",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040420",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "bordado",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040421",
+  "corte": "corte-a",
+  "decote": "ombro-a-ombro",
+  "manga": "alca-larga",
+  "tecido": "cetim",
+  "estilo": "classico",
+  "detalhes": []
+ },
+ {
+  "k": "040422",
+  "corte": "sereia",
+  "decote": "ombro-a-ombro",
+  "manga": "alca-larga",
+  "tecido": "zibeline",
+  "estilo": "minimalista",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040423",
+  "corte": "corte-a",
+  "decote": "ombro-a-ombro",
+  "manga": "alca-larga",
+  "tecido": "zibeline",
+  "estilo": "minimalista",
+  "detalhes": []
+ },
+ {
+  "k": "040424",
+  "corte": "reto",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "crepe",
+  "estilo": "classico",
+  "detalhes": [
+   "drapeado",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040425",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "bordado",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040426",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "sem-manga",
+  "tecido": "zibeline",
+  "estilo": "minimalista",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040427",
+  "corte": "semi-sereia",
+  "decote": "coracao",
+  "manga": "sem-manga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "drapeado",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040428",
+  "corte": "semi-sereia",
+  "decote": "coracao",
+  "manga": "sem-manga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "drapeado",
+   "flores-3d",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040429",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "renda",
+  "estilo": "classico",
+  "detalhes": []
+ },
+ {
+  "k": "040430",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "sem-manga",
+  "tecido": "cetim",
+  "estilo": "classico",
+  "detalhes": [
+   "drapeado",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040431",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "zibeline",
+  "estilo": "moderno",
+  "detalhes": [
+   "fenda",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040432",
+  "corte": "semi-sereia",
+  "decote": "coracao",
+  "manga": "alca-fina",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040433",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040434",
+  "corte": "sereia",
+  "decote": "coracao",
+  "manga": "sem-manga",
+  "tecido": "renda",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda",
+   "brilho"
+  ]
+ },
+ {
+  "k": "040435",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040436",
+  "corte": "semi-sereia",
+  "decote": "coracao",
+  "manga": "sem-manga",
+  "tecido": "cetim",
+  "estilo": "classico",
+  "detalhes": [
+   "drapeado",
+   "flores-3d",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040437",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "crepe",
+  "estilo": "minimalista",
+  "detalhes": [
+   "transparencia",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040438",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "alca-fina",
+  "tecido": "cetim",
+  "estilo": "romantico",
+  "detalhes": [
+   "drapeado",
+   "brilho",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040440",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "alca-fina",
+  "tecido": "cetim",
+  "estilo": "classico",
+  "detalhes": [
+   "drapeado",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040441",
+  "corte": "corte-a",
+  "decote": "ombro-a-ombro",
+  "manga": "sem-manga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "brilho",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040442",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "crepe",
+  "estilo": "minimalista",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040444",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "sem-manga",
+  "tecido": "cetim",
+  "estilo": "classico",
+  "detalhes": [
+   "drapeado",
+   "laco",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040445",
+  "corte": "mullet",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "bordado",
+  "estilo": "moderno",
+  "detalhes": [
+   "cauda",
+   "brilho"
+  ]
+ },
+ {
+  "k": "040446",
+  "corte": "reto",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "cetim",
+  "estilo": "minimalista",
+  "detalhes": [
+   "drapeado",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040447",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040448",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "drapeado",
+   "cauda"
+  ]
+ },
+ {
+  "k": "040449",
+  "corte": "sereia",
+  "decote": "coracao",
+  "manga": "alca-fina",
+  "tecido": "renda",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda",
+   "brilho"
+  ]
+ },
+ {
+  "k": "040450",
+  "corte": "corte-a",
+  "decote": "redondo",
+  "manga": "manga-bufante",
+  "tecido": "zibeline",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040451",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "renda",
+  "estilo": "classico",
+  "detalhes": [
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040453",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "cetim",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040454",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "crepe",
+  "estilo": "minimalista",
+  "detalhes": [
+   "laco"
+  ]
+ },
+ {
+  "k": "040455",
+  "corte": "reto",
+  "decote": "ombro-a-ombro",
+  "manga": "alca-fina",
+  "tecido": "crepe",
+  "estilo": "moderno",
+  "detalhes": [
+   "fenda"
+  ]
+ },
+ {
+  "k": "040456",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "alca-fina",
+  "tecido": "crepe",
+  "estilo": "romantico",
+  "detalhes": []
+ },
+ {
+  "k": "040457",
+  "corte": "reto",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "bordado",
+  "estilo": "moderno",
+  "detalhes": [
+   "flores-3d"
+  ]
+ },
+ {
+  "k": "040458",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "pedraria",
+  "estilo": "romantico",
+  "detalhes": [
+   "brilho"
+  ]
+ },
+ {
+  "k": "040459",
+  "corte": "corte-a",
+  "decote": "redondo",
+  "manga": "sem-manga",
+  "tecido": "crepe",
+  "estilo": "romantico",
+  "detalhes": [
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040463",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "crepe",
+  "estilo": "classico",
+  "detalhes": [
+   "drapeado"
+  ]
+ },
+ {
+  "k": "040464",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040465",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040466",
+  "corte": "corte-a",
+  "decote": "ombro-a-ombro",
+  "manga": "sem-manga",
+  "tecido": "zibeline",
+  "estilo": "classico",
+  "detalhes": [
+   "drapeado"
+  ]
+ },
+ {
+  "k": "040467",
+  "corte": "corte-a",
+  "decote": "redondo",
+  "manga": "alca-larga",
+  "tecido": "cetim",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda",
+   "brilho"
+  ]
+ },
+ {
+  "k": "040468",
+  "corte": "corte-a",
+  "decote": "redondo",
+  "manga": "sem-manga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": []
+ },
+ {
+  "k": "040469",
+  "corte": "princesa",
+  "decote": "redondo",
+  "manga": "sem-manga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "flores-3d"
+  ]
+ },
+ {
+  "k": "040470",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "flores-3d"
+  ]
+ },
+ {
+  "k": "040471",
+  "corte": "corte-a",
+  "decote": "canoa",
+  "manga": "sem-manga",
+  "tecido": "liso",
+  "estilo": "minimalista",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040472",
+  "corte": "princesa",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": []
+ },
+ {
+  "k": "040473",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "boho",
+  "detalhes": [
+   "flores-3d"
+  ]
+ },
+ {
+  "k": "040474",
+  "corte": "corte-a",
+  "decote": "redondo",
+  "manga": "sem-manga",
+  "tecido": "crepe",
+  "estilo": "minimalista",
+  "detalhes": []
+ },
+ {
+  "k": "040475",
+  "corte": "corte-a",
+  "decote": "redondo",
+  "manga": "sem-manga",
+  "tecido": "crepe",
+  "estilo": "minimalista",
+  "detalhes": []
+ },
+ {
+  "k": "040476",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "cetim",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "040477",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "transparencia"
+  ]
+ },
+ {
+  "k": "040478",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "alca-larga",
+  "tecido": "zibeline",
+  "estilo": "minimalista",
+  "detalhes": []
+ },
+ {
+  "k": "040479",
+  "corte": "princesa",
+  "decote": "redondo",
+  "manga": "capa",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "transparencia",
+   "cauda"
+  ]
+ },
+ {
+  "k": "NV-001",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "bordado",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "NV-002",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "manga-bufante",
+  "tecido": "zibeline",
+  "estilo": "romantico",
+  "detalhes": [
+   "laco",
+   "flores-3d"
+  ]
+ },
+ {
+  "k": "NV-003",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "zibeline",
+  "estilo": "minimalista",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "NV-004",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "fenda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "NV-005",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "cetim",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda",
+   "drapeado"
+  ]
+ },
+ {
+  "k": "NV-006",
+  "corte": "sereia",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "pedraria",
+  "estilo": "moderno",
+  "detalhes": [
+   "cauda",
+   "brilho"
+  ]
+ },
+ {
+  "k": "NV-007",
+  "corte": "corte-a",
+  "decote": "halter",
+  "manga": "sem-manga",
+  "tecido": "bordado",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda",
+   "costas-nuas"
+  ]
+ },
+ {
+  "k": "NV-008",
+  "corte": "corte-a",
+  "decote": "quadrado",
+  "manga": "manga-longa",
+  "tecido": "renda",
+  "estilo": "boho",
+  "detalhes": [
+   "transparencia"
+  ]
+ },
+ {
+  "k": "NV-009",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "transparencia",
+   "cauda"
+  ]
+ },
+ {
+  "k": "NV-010",
+  "corte": "imperio",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "tule",
+  "estilo": "boho",
+  "detalhes": [
+   "drapeado",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "NV-011",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "transparencia",
+   "cauda"
+  ]
+ },
+ {
+  "k": "NV-012",
+  "corte": "semi-sereia",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "transparencia",
+   "cauda"
+  ]
+ },
+ {
+  "k": "NV-013",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "transparencia",
+   "cauda"
+  ]
+ },
+ {
+  "k": "NV-014",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "flores-3d"
+  ]
+ },
+ {
+  "k": "NV-G-001",
+  "corte": "princesa",
+  "decote": "coracao",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "flores-3d"
+  ]
+ },
+ {
+  "k": "NV-G-002",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "bordado",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "NV-G-003",
+  "corte": "reto",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "bordado",
+  "estilo": "moderno",
+  "detalhes": []
+ },
+ {
+  "k": "NV-G-004",
+  "corte": "corte-a",
+  "decote": "quadrado",
+  "manga": "alca-larga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": []
+ },
+ {
+  "k": "NV-G-005",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "alca-larga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "brilho",
+   "drapeado"
+  ]
+ },
+ {
+  "k": "NV-G-006",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "flores-3d",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "NV-G-007",
+  "corte": "semi-sereia",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "crepe",
+  "estilo": "minimalista",
+  "detalhes": []
+ },
+ {
+  "k": "NV-G-008",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "transparencia",
+   "cauda"
+  ]
+ },
+ {
+  "k": "NV-G-009",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "zibeline",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "NV-G-010",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": []
+ },
+ {
+  "k": "NV-GG-001",
+  "corte": "corte-a",
+  "decote": "canoa",
+  "manga": "alca-fina",
+  "tecido": "liso",
+  "estilo": "minimalista",
+  "detalhes": [
+   "drapeado"
+  ]
+ },
+ {
+  "k": "NV-GG-002",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "NV-GG-003",
+  "corte": "corte-a",
+  "decote": "ombro-a-ombro",
+  "manga": "alca-larga",
+  "tecido": "crepe",
+  "estilo": "minimalista",
+  "detalhes": [
+   "drapeado"
+  ]
+ },
+ {
+  "k": "NV-GG-004",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "manga-bufante",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "transparencia"
+  ]
+ },
+ {
+  "k": "NV-GG-005",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "sem-manga",
+  "tecido": "zibeline",
+  "estilo": "classico",
+  "detalhes": [
+   "laco",
+   "drapeado"
+  ]
+ },
+ {
+  "k": "NV-GG-006",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "sem-manga",
+  "tecido": "cetim",
+  "estilo": "classico",
+  "detalhes": [
+   "brilho",
+   "drapeado"
+  ]
+ },
+ {
+  "k": "NV-GG-007",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": []
+ },
+ {
+  "k": "NV-GG-008",
+  "corte": "corte-a",
+  "decote": "ombro-a-ombro",
+  "manga": "alca-larga",
+  "tecido": "cetim",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda",
+   "drapeado",
+   "brilho"
+  ]
+ },
+ {
+  "k": "NV-GG-009",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia"
+  ]
+ },
+ {
+  "k": "NV-GG-010",
+  "corte": "corte-a",
+  "decote": "redondo",
+  "manga": "manga-longa",
+  "tecido": "tule",
+  "estilo": "moderno",
+  "detalhes": [
+   "transparencia",
+   "brilho"
+  ]
+ },
+ {
+  "k": "NV-GG-011",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "crepe",
+  "estilo": "minimalista",
+  "detalhes": [
+   "transparencia"
+  ]
+ },
+ {
+  "k": "NV-GG-012",
+  "corte": "sereia",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "crepe",
+  "estilo": "moderno",
+  "detalhes": [
+   "fenda"
+  ]
+ },
+ {
+  "k": "NV-GG-013",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "sem-manga",
+  "tecido": "liso",
+  "estilo": "romantico",
+  "detalhes": [
+   "laco",
+   "drapeado"
+  ]
+ },
+ {
+  "k": "NV-M-001",
+  "corte": "semi-sereia",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "crepe",
+  "estilo": "minimalista",
+  "detalhes": [
+   "cauda",
+   "drapeado"
+  ]
+ },
+ {
+  "k": "NV-M-002",
+  "corte": "corte-a",
+  "decote": "v",
+  "manga": "manga-longa",
+  "tecido": "tule",
+  "estilo": "boho",
+  "detalhes": [
+   "transparencia",
+   "drapeado"
+  ]
+ },
+ {
+  "k": "NV-M-003",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "zibeline",
+  "estilo": "classico",
+  "detalhes": [
+   "cauda",
+   "drapeado"
+  ]
+ },
+ {
+  "k": "NV-M-004",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-larga",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda"
+  ]
+ },
+ {
+  "k": "NV-M-005",
+  "corte": "reto",
+  "decote": "canoa",
+  "manga": "sem-manga",
+  "tecido": "crepe",
+  "estilo": "moderno",
+  "detalhes": [
+   "transparencia",
+   "flores-3d"
+  ]
+ },
+ {
+  "k": "NV-M-006",
+  "corte": "reto",
+  "decote": "halter",
+  "manga": "sem-manga",
+  "tecido": "crepe",
+  "estilo": "minimalista",
+  "detalhes": [
+   "costas-nuas",
+   "drapeado"
+  ]
+ },
+ {
+  "k": "NV-M-007",
+  "corte": "reto",
+  "decote": "tomara-que-caia",
+  "manga": "capa",
+  "tecido": "liso",
+  "estilo": "moderno",
+  "detalhes": [
+   "transparencia"
+  ]
+ },
+ {
+  "k": "NV-M-008",
+  "corte": "sereia",
+  "decote": "v",
+  "manga": "alca-fina",
+  "tecido": "renda",
+  "estilo": "romantico",
+  "detalhes": [
+   "cauda",
+   "transparencia",
+   "brilho"
+  ]
+ },
+ {
+  "k": "NV-P-001",
+  "corte": "corte-a",
+  "decote": "tomara-que-caia",
+  "manga": "sem-manga",
+  "tecido": "zibeline",
+  "estilo": "minimalista",
+  "detalhes": []
+ },
+ {
+  "k": "NV-P-002",
+  "corte": "corte-a",
+  "decote": "coracao",
+  "manga": "sem-manga",
+  "tecido": "tule",
+  "estilo": "romantico",
+  "detalhes": [
+   "drapeado"
+  ]
+ }
+]

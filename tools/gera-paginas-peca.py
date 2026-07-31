@@ -35,6 +35,32 @@ COR_LEGIVEL = {
     "rosa-claro":"rosa claro","verde-agua":"verde água","vinho":"vinho","nude":"nude",
 }
 
+ATTR_PATH = "kl-catalog-atributos.json"
+
+# o vocabulário que a noiva digita, na ordem em que ela digita
+ROTULO = {
+ "corte": {"princesa":"princesa","corte-a":"corte A","sereia":"sereia",
+           "semi-sereia":"semi-sereia","reto":"reto","imperio":"império","mullet":"mullet"},
+ "decote": {"v":"decote V","tomara-que-caia":"tomara que caia","coracao":"decote coração",
+            "ombro-a-ombro":"ombro a ombro","redondo":"decote redondo","canoa":"decote canoa",
+            "quadrado":"decote quadrado","halter":"decote halter"},
+ "manga": {"manga-longa":"manga longa","manga-3-4":"manga 3/4","manga-bufante":"manga bufante",
+           "capa":"capa","alca-fina":"alça fina","alca-larga":"alça larga","sem-manga":""},
+ "tecido": {"renda":"de renda","tule":"de tule","cetim":"de cetim","crepe":"de crepe",
+            "zibeline":"de zibeline","bordado":"bordado","pedraria":"com pedraria","liso":""},
+ "estilo": {"minimalista":"minimalista","classico":"clássico","romantico":"romântico",
+            "boho":"boho","moderno":"moderno"},
+}
+DETALHE = {"cauda":"com cauda","fenda":"com fenda","transparencia":"com transparência",
+           "drapeado":"drapeado","laco":"com laço","flores-3d":"com flores 3D",
+           "costas-nuas":"de costas nuas","brilho":"com brilho"}
+
+def atributos():
+    f = RAIZ/ATTR_PATH
+    if not f.exists(): return {}
+    import json as _j
+    return {a["k"]: a for a in _j.loads(f.read_text())}
+
 def carrega():
     t = (RAIZ/"kl-catalog-data.js").read_text()
     m = re.search(r"\[\s*\{.*\}\s*\]", t, re.S)
@@ -42,7 +68,23 @@ def carrega():
         raise SystemExit("não achei o array de produtos em kl-catalog-data.js")
     return json.loads(m.group(0))
 
-def pagina(p):
+def frase(a):
+    """Monta o nome da peça com as palavras da busca real."""
+    if not a: return "", ""
+    partes = [ROTULO["corte"].get(a.get("corte"),"")]
+    d = ROTULO["decote"].get(a.get("decote"),"")
+    m = ROTULO["manga"].get(a.get("manga"),"")
+    tec = ROTULO["tecido"].get(a.get("tecido"),"")
+    if tec: partes.append(tec)
+    if m: partes.append(m)
+    if d: partes.append(d)
+    curto = " ".join(x for x in partes[:3] if x)
+    det = [DETALHE[x] for x in (a.get("detalhes") or []) if x in DETALHE][:2]
+    longo = " ".join(x for x in partes if x) + (" " + " ".join(det) if det else "")
+    est = ROTULO["estilo"].get(a.get("estilo"),"")
+    return curto, (longo + (f", estilo {est}" if est else ""))
+
+def pagina(p, a=None):
     cod = p["k"]
     cat, volta, ocasiao = CATEGORIA.get(p.get("c",""), ("Peça","catalogo.html","sua festa"))
     cor = COR_LEGIVEL.get(p.get("co",""), (p.get("co") or "").replace("-", " "))
@@ -50,11 +92,19 @@ def pagina(p):
     tam = p.get("t") or "Único"
 
     titulo_cor = f" {cor}" if cor else ""
-    h1 = f"{cat}{titulo_cor} · {cod}"
-    title = f"{cat}{titulo_cor} {cod} | Koisa Linda Niterói e Barra da Tijuca"
-    desc = (f"{cat}{titulo_cor} código {cod} do acervo da Koisa Linda. "
-            f"Aluguel e venda com ajuste no ateliê, em Niterói (São Francisco) "
-            f"e na Barra da Tijuca. Agende sua prova.")
+    curto, longo = frase(a)
+    if curto:
+        h1 = f"{cat} {curto}"
+        title = f"{cat} {curto} em Niterói e Barra da Tijuca | Koisa Linda"
+        desc = (f"{cat} {longo}. Código {cod} do acervo da Koisa Linda: aluguel e venda "
+                f"com ajuste no ateliê próprio, em Niterói (São Francisco) e na Barra da "
+                f"Tijuca. Agende sua prova.")
+    else:
+        h1 = f"{cat}{titulo_cor} · {cod}"
+        title = f"{cat}{titulo_cor} {cod} | Koisa Linda Niterói e Barra da Tijuca"
+        desc = (f"{cat}{titulo_cor} código {cod} do acervo da Koisa Linda. "
+                f"Aluguel e venda com ajuste no ateliê, em Niterói (São Francisco) "
+                f"e na Barra da Tijuca. Agende sua prova.")
 
     schema = {
         "@context":"https://schema.org","@type":"Product",
@@ -133,6 +183,9 @@ footer small{{display:block;font-size:13px;opacity:.72;margin-top:16px}}
         <dt>Código</dt><dd>{cod}</dd>
         {f'<dt>Cor</dt><dd>{html.escape(cor)}</dd>' if cor else ''}
         <dt>Tamanho</dt><dd>{html.escape(tam)}</dd>
+        {f'<dt>Corte</dt><dd>{html.escape(ROTULO["corte"].get(a.get("corte"),""))}</dd>' if a else ''}
+        {f'<dt>Decote</dt><dd>{html.escape(ROTULO["decote"].get(a.get("decote"),""))}</dd>' if a and ROTULO["decote"].get(a.get("decote")) else ''}
+        {f'<dt>Tecido</dt><dd>{html.escape(ROTULO["tecido"].get(a.get("tecido"),"").replace("de ",""))}</dd>' if a and ROTULO["tecido"].get(a.get("tecido")) else ''}
         <dt>Ocasião</dt><dd>Para {html.escape(ocasiao)}</dd>
         <dt>Onde provar</dt><dd>São Francisco (Niterói) e Barra da Tijuca</dd>
       </dl>
@@ -153,6 +206,7 @@ footer small{{display:block;font-size:13px;opacity:.72;margin-top:16px}}
 
 def main():
     produtos = carrega()
+    attrs = atributos()
     destino = RAIZ/"p"
     print(f"  {len(produtos)} peças no catálogo")
     if APPLY:
@@ -164,7 +218,7 @@ def main():
             continue
         vistos.add(cod)
         if APPLY:
-            (destino/f"{cod}.html").write_text(pagina(p))
+            (destino/f"{cod}.html").write_text(pagina(p, attrs.get(cod)))
         escritas += 1
     print(f"  {escritas} páginas {'geradas em /p/' if APPLY else 'seriam geradas'}")
 
