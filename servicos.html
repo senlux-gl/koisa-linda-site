@@ -202,7 +202,23 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
   .ocas .q{font-family:var(--serif);font-size:21px;color:var(--ruby);flex:0 0 auto;min-width:210px;line-height:1.2}
   .ocas .r{font-family:var(--body);font-size:16.5px;color:#5f534b;flex:1;line-height:1.6}
   @media(max-width:760px){.ocas .oc{flex-wrap:wrap;gap:4px}.ocas .q{min-width:0;flex-basis:100%}.ocas .r{flex-basis:100%}}
-  </style>
+  
+/* ── O Pomar · refino editorial ────────────────────────────────────────
+   Playfair itálico é a voz da marca. Estes ajustes são o que separa
+   "site com serifa" de "página de revista": sem linha órfã, entrelinha
+   folgada o bastante para os descendentes do itálico, e medida de leitura
+   que não deixa o parágrafo virar tijolo. */
+h1,h2,h3,.hero h1,.band h2{text-wrap:balance}
+.hero h1,.hero-cine h1{line-height:1.06;letter-spacing:-.5px;max-width:16ch;margin-inline:auto}
+.hero p,.hero-cine .hero-sub{max-width:52ch;margin-inline:auto}
+.band h2{max-width:18ch;margin-inline:auto}
+.band p{max-width:46ch;margin-inline:auto}
+/* o itálico do Playfair tem descendentes longos (g, j, p, q): apertar a
+   entrelinha corta a perna da letra */
+h2,h3{line-height:1.12}
+/* filete dourado: separador nobre do brand book, agora com o dourado certo */
+.rule{background:var(--gold)}
+</style>
   <div class="ocas">
     <div class="oc"><span class="q">Noiva</span><span class="r">Identidade, presen&ccedil;a, conforto e confian&ccedil;a para o casamento. A decis&atilde;o &eacute; sua &mdash; a fam&iacute;lia acompanha sem tirar o seu protagonismo.</span></div>
     <div class="oc"><span class="q">Debutante</span><span class="r">Protagonismo e express&atilde;o pessoal, sem infantilizar. A jovem escolhe; a m&atilde;e participa com tranquilidade.</span></div>
