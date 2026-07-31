@@ -218,6 +218,19 @@ h1,h2,h3,.hero h1,.band h2{text-wrap:balance}
 h2,h3{line-height:1.12}
 /* filete dourado: separador nobre do brand book, agora com o dourado certo */
 .rule{background:var(--gold)}
+
+/* ── O Pomar · o verso da página ───────────────────────────────────────
+   Respiro editorial entre seções. Um por página, nunca dois. */
+.kl-verso{background:#F7EFDF;padding:74px 32px;text-align:center}
+.kl-verso .v{font-family:var(--serif);font-style:italic;font-weight:400;
+  color:var(--ruby);font-size:clamp(24px,3.2vw,34px);line-height:1.26;
+  max-width:22ch;margin:0 auto;text-wrap:balance}
+.kl-verso .r{width:54px;height:1px;background:var(--gold);margin:22px auto 0}
+.kl-verso .c{font-family:var(--sans);font-size:10.5px;letter-spacing:3.4px;
+  text-transform:uppercase;color:var(--muted);margin-top:16px}
+.kl-verso .n{font-family:var(--body);font-size:16.5px;color:#6b5c57;
+  max-width:48ch;margin:18px auto 0;line-height:1.6}
+@media(max-width:860px){.kl-verso{padding:56px 22px}}
 </style>
   <div class="ocas">
     <div class="oc"><span class="q">Noiva</span><span class="r">Identidade, presen&ccedil;a, conforto e confian&ccedil;a para o casamento. A decis&atilde;o &eacute; sua &mdash; a fam&iacute;lia acompanha sem tirar o seu protagonismo.</span></div>
@@ -232,7 +245,7 @@ h2,h3{line-height:1.12}
 <div class="band"><h2>Pronta para come&ccedil;ar?</h2><p>Conhe&ccedil;a os modelos no cat&aacute;logo ou venha tomar um caf&eacute; com a gente.</p>
   <a class="btn-pri" href="catalogo.html">Ver cat&aacute;logo</a> <a class="btn-out" href="unidades.html">Falar com uma unidade</a></div>
 
-<footer><img class="fimg" src="img/logo-kl-footer.png" alt="KL"><div class="fbrand">KOISA LINDA</div><div class="fphrase">Unindo famílias. Realizando sonhos.</div><div class="funits"><span>São Francisco</span><span>Barra da Tijuca</span></div><div class="fsoc"><a href="https://www.instagram.com/koisalindakl/" target="_blank">Instagram</a><a href="https://www.facebook.com/koisalindaoficial/" target="_blank">Facebook</a><a href="https://www.tiktok.com/@koisalindaoficial" target="_blank">TikTok</a><a href="https://br.pinterest.com/koisalinda_oficial/" target="_blank">Pinterest</a></div><div class="fverse">“Os teus renovos são um pomar de romãs, com frutos excelentes.”<cite>Cânticos 4:13</cite></div><small>Costuramos sonhos desde 1994.<br>CNPJ 02.504.054/0001-10 · © 2026 Koisa Linda</small></footer><script id="kl-motion-js">
+<section class="kl-verso"><p class="v">Um vestido não se fabrica. Amadurece.</p><div class="r"></div><p class="c">A casa, desde 1994</p><p class="n">Da primeira prova ao grande dia.</p></section><footer><img class="fimg" src="img/logo-kl-footer.png" alt="KL"><div class="fbrand">KOISA LINDA</div><div class="fphrase">Unindo famílias. Realizando sonhos.</div><div class="funits"><span>São Francisco</span><span>Barra da Tijuca</span></div><div class="fsoc"><a href="https://www.instagram.com/koisalindakl/" target="_blank">Instagram</a><a href="https://www.facebook.com/koisalindaoficial/" target="_blank">Facebook</a><a href="https://www.tiktok.com/@koisalindaoficial" target="_blank">TikTok</a><a href="https://br.pinterest.com/koisalinda_oficial/" target="_blank">Pinterest</a></div><div class="fverse">“Os teus renovos são um pomar de romãs, com frutos excelentes.”<cite>Cânticos 4:13</cite></div><small>Costuramos sonhos desde 1994.<br>CNPJ 02.504.054/0001-10 · © 2026 Koisa Linda</small></footer><script id="kl-motion-js">
 (function(){
  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
  var sel='.eyebrow,.sec-title,.rule,.split,.col,.svc,.unit,.pkg,.cli,.band h2,.band p';
