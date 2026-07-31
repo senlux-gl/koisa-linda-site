@@ -14,23 +14,28 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <link rel="icon" href="img/favicon.ico" sizes="any">
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Arapey:ital@0;1&family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,500&family=Questrial&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+
 <style>
   :root{
     --creme:#FAF5EC;
     --baunilha:#F4E5C4;
     --ruby:#722F37;
+    --ruby-deep:#4A1A21;
     --ink:#1E1114;
     --ink-soft:#3A2228;
+    --gold:#C89F3C;
+    --serif:'Playfair Display',Georgia,serif;
+    --body:'Arapey',Georgia,serif;
+    --sans:'Questrial',system-ui,sans-serif;
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html{scroll-behavior:auto}
   body{
     background:var(--creme);
     color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-family:var(--body);
     -webkit-font-smoothing:antialiased;
     overflow-x:hidden;
   }
@@ -63,7 +68,7 @@
   .hero{position:relative;height:100vh;overflow:hidden;background:var(--ink)}
   .hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 22%;transform:scale(1.18);will-change:transform}
   .hero-scrim{position:absolute;inset:0;background:
-    linear-gradient(180deg,rgba(30,17,20,.42) 0%,rgba(30,17,20,0) 32%,rgba(30,17,20,0) 55%,rgba(30,17,20,.78) 100%)}
+    linear-gradient(180deg,rgba(90,36,43,.42) 0%,rgba(58,20,26,0) 32%,rgba(58,20,26,0) 55%,rgba(58,20,26,.78) 100%)}
   .hero-copy{position:absolute;left:0;right:0;bottom:13vh;text-align:center;color:var(--creme);padding:0 6vw}
   .hero-kicker{font-size:.72rem;letter-spacing:.42em;text-transform:uppercase;opacity:.85;margin-bottom:1.2rem}
   .hero h1{font-size:clamp(2.3rem,6.2vw,5rem);line-height:1.08;font-weight:500}
@@ -89,7 +94,7 @@
   .scene:first-child{opacity:1}
   .scene-img-wrap{position:absolute;inset:0;overflow:hidden}
   .scene-img{width:100%;height:100%;object-fit:cover;object-position:50% 18%;transform:scale(1.12);will-change:transform}
-  .scene-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(30,17,20,.25),rgba(30,17,20,0) 40%,rgba(30,17,20,.72) 92%)}
+  .scene-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(90,36,43,.25),rgba(58,20,26,0) 40%,rgba(58,20,26,.72) 92%)}
   .scene-cap{position:absolute;left:6vw;bottom:8vh;max-width:34rem}
   .scene-cap .n{font-size:.68rem;letter-spacing:.4em;text-transform:uppercase;opacity:.75;display:block;margin-bottom:.9rem}
   .scene-cap h3{font-size:clamp(1.6rem,3.6vw,2.7rem);line-height:1.15;font-weight:500}
@@ -131,7 +136,7 @@
   .fp img{width:100%;height:118%;object-fit:cover;object-position:50% 12%;will-change:transform}
   .fp figcaption{position:absolute;left:0;right:0;bottom:0;padding:2.2rem 1rem 1.1rem;color:var(--creme);
     font-size:.7rem;letter-spacing:.28em;text-transform:uppercase;
-    background:linear-gradient(transparent,rgba(30,17,20,.65))}
+    background:linear-gradient(transparent,rgba(90,36,43,.65))}
 
   /* ---------- histórias reais (clientes) ---------- */
   .reais{background:var(--creme);padding:16vh 6vw;text-align:center}
@@ -153,7 +158,7 @@
   /* ---------- final ---------- */
   .final{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--ink);color:var(--creme);text-align:center}
   .final-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 20%;opacity:.5;transform:scale(1.15);will-change:transform}
-  .final-scrim{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(30,17,20,.25),rgba(30,17,20,.85))}
+  .final-scrim{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(58,20,26,.25),rgba(58,20,26,.85))}
   .final-copy{position:relative;z-index:2;padding:16vh 6vw}
   .final-copy .kicker{font-size:.7rem;letter-spacing:.42em;text-transform:uppercase;opacity:.8;margin-bottom:1.6rem}
   .final-copy h2{font-size:clamp(2.1rem,5vw,4rem);line-height:1.15;max-width:18ch;margin:0 auto 2.6rem}
@@ -187,6 +192,20 @@
     .hero-img,.scene-img,.final-img{transform:none}
     .hero-hint i{animation:none}
   }
+
+/* ── O Pomar · mundo vinho ─────────────────────────────────────────────
+   Brand Book 2.0 p.19: página de noiva é background emocional do Ruby.
+   Só as seções de respiro mudam; as cenas com foto seguem como estavam. */
+.manifesto,.gal,.reais{background:var(--ruby-deep);color:var(--baunilha)}
+.manifesto h2,.gal h2,.reais h2,
+.manifesto h3,.gal h3,.reais h3{color:var(--baunilha)}
+.manifesto p,.gal p,.reais p{color:rgba(244,229,196,.82)}
+.manifesto .eyebrow,.gal .eyebrow,.reais .eyebrow,
+.manifesto .kicker,.gal .kicker,.reais .kicker{color:var(--gold)}
+.manifesto a,.gal a,.reais a{color:var(--baunilha)}
+.manifesto .line{color:var(--baunilha)}
+.manifesto .note,.gal .sub,.reais .sub{color:rgba(244,229,196,.78)}
+.reais .ig-link{color:var(--gold);border-color:var(--gold)}
 </style>
 <script defer src="kl-tracking.js?v=20260720ga4"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://koisalinda.com.br/#organization","name":"Koisa Linda","alternateName":["Grupo Koisa Linda","Koisa Linda Noivas"],"url":"https://koisalinda.com.br/","logo":"https://koisalinda.com.br/img/logo-kl-main.png","image":"https://koisalinda.com.br/img/hero.webp","description":"Ateliê de moda festa feminina no Rio de Janeiro desde 1994. Aluguel, venda e criação sob medida de vestidos de noiva, debutante, madrinha, convidada e formanda, além de ternos. Ajuste sob medida em ateliê próprio.","foundingDate":"1994","founder":{"@type":"Person","name":"Jussara Pessanha","jobTitle":"Estilista e co-fundadora"},"areaServed":[{"@type":"City","name":"Niterói"},{"@type":"City","name":"Rio de Janeiro"},{"@type":"State","name":"Rio de Janeiro"}],"sameAs":["https://www.instagram.com/koisalindakl/","https://www.facebook.com/koisalindaoficial/","https://www.tiktok.com/@koisalindaoficial"],"subOrganization":[{"@id":"https://koisalinda.com.br/#loja-sao-francisco"},{"@id":"https://koisalinda.com.br/#loja-barra-da-tijuca"}]},{"@type":"WebSite","@id":"https://koisalinda.com.br/#website","url":"https://koisalinda.com.br/","name":"Koisa Linda","inLanguage":"pt-BR","publisher":{"@id":"https://koisalinda.com.br/#organization"}},{"@type":"ClothingStore","@id":"https://koisalinda.com.br/#loja-sao-francisco","name":"Koisa Linda — São Francisco (Niterói)","parentOrganization":{"@id":"https://koisalinda.com.br/#organization"},"url":"https://koisalinda.com.br/unidades.html","image":"https://koisalinda.com.br/img/hero.webp","telephone":"+552197085-8787","address":{"@type":"PostalAddress","streetAddress":"Av. Presidente Roosevelt, 37 — São Francisco","addressLocality":"Niterói","addressRegion":"RJ","postalCode":"24360-066","addressCountry":"BR"},"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"09:00","closes":"18:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"09:00","closes":"14:00"}],"currenciesAccepted":"BRL","sameAs":["https://www.instagram.com/koisalindakl/","https://www.facebook.com/koisalindaoficial/","https://www.tiktok.com/@koisalindaoficial"],"makesOffer":[{"@type":"Offer","itemOffered":{"@type":"Service","name":"Aluguel de vestido de noiva"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Aluguel de vestido de debutante"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Aluguel de vestido de madrinha e festa"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Venda de vestido de festa"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Criação de vestido sob medida em ateliê próprio"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Ajuste e personalização de vestido"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Aluguel e venda de terno"}}]},{"@type":"ClothingStore","@id":"https://koisalinda.com.br/#loja-barra-da-tijuca","name":"Koisa Linda — Barra da Tijuca (Shopping Downtown)","parentOrganization":{"@id":"https://koisalinda.com.br/#organization"},"url":"https://koisalinda.com.br/como-chegar.html","image":"https://koisalinda.com.br/img/hero.webp","telephone":"+552196647-5383","address":{"@type":"PostalAddress","streetAddress":"Av. das Américas, 500 — Shopping Downtown, Bloco 8, Loja 130","addressLocality":"Rio de Janeiro","addressRegion":"RJ","postalCode":"22640-100","addressCountry":"BR"},"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],"opens":"09:00","closes":"19:00"}],"currenciesAccepted":"BRL","sameAs":["https://www.instagram.com/koisalindakl/","https://www.facebook.com/koisalindaoficial/","https://www.tiktok.com/@koisalindaoficial"],"makesOffer":[{"@type":"Offer","itemOffered":{"@type":"Service","name":"Aluguel de vestido de noiva"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Aluguel de vestido de debutante"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Aluguel de vestido de madrinha e festa"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Venda de vestido de festa"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Criação de vestido sob medida em ateliê próprio"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Ajuste e personalização de vestido"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Aluguel e venda de terno"}}]}]}</script></head>
