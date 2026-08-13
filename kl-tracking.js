@@ -303,6 +303,27 @@
           content_name: code || (d && d.k) || text || 'whatsapp',
           content_category: code ? 'peca' : 'contato'
         }, waOnce);
+        /* Intenção declarada no prefill do WhatsApp. É INTENÇÃO de agendar (clique no
+         * botão), não agendamento confirmado — esse vive na conversa com a Lara/CRM. */
+        var waText = String(decoded || '').toLowerCase();
+        var waIntent = /agendar (uma )?prova/.test(waText) ? 'prova'
+          : (/agendar (uma )?visita|visita/.test(waText) ? 'visita'
+            : (/encontrar a loja|downtown/.test(waText) ? 'como_chegar' : 'geral'));
+        if (waIntent === 'prova' || waIntent === 'visita') {
+          track('KL_Schedule_Intent', {
+            store: getStoreFromHref(href),
+            intent: waIntent
+          }, { onceKey: 'sched:' + waOnce });
+        }
+        /* Conversão nativa do Google Ads roteada por loja — cada campanha de unidade
+         * otimiza pela conversão da própria praça. Inerte enquanto kl-ga.js não tiver IDs. */
+        try {
+          var klAds = window.KL_ADS;
+          var waLabel = klAds && klAds.label ? klAds.label[getStoreFromHref(href)] : '';
+          if (klAds && klAds.id && waLabel && typeof window.gtag === 'function') {
+            window.gtag('event', 'conversion', { send_to: klAds.id + '/' + waLabel });
+          }
+        } catch (e4) {}
         return;
       }
       track('KL_CTA_Click', linkParams);
