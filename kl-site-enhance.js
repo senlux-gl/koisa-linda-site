@@ -41,6 +41,37 @@
     return 'https://wa.me/' + contact + '?text=' + encodeURIComponent(message);
   }
 
+  var UNIT_NAMES = Object.freeze({
+    barra: 'Barra da Tijuca (Shopping Downtown)',
+    sf: 'São Francisco (Niterói)',
+  });
+  var UNIT_SHORT = Object.freeze({ barra: 'Barra', sf: 'Niterói' });
+
+  function whatsappHrefUnit(contact, page, unit) {
+    var message = 'Olá! Vim pelo site da Koisa Linda e quero ajuda com ' + pageLabel(page) +
+      ' na unidade ' + UNIT_NAMES[unit] + '.';
+    return 'https://wa.me/' + contact + '?text=' + encodeURIComponent(message);
+  }
+
+  // Numa pagina de vertical a OCASIAO esta clara e a LOJA nao. Quem escolhe a loja e a
+  // cliente (decisao 17/08/2026): antes daqui saia uma unidade fixa por campanha e uma
+  // noiva de Niteroi caia no WhatsApp da Barra. A ocasiao continua no prefill.
+  function resolveStickyTargets(context, contacts) {
+    context = context || {};
+    contacts = contacts || CONTACTS;
+    var page = String(context.page || 'index').toLowerCase();
+    if (CAMPAIGN_UNITS[page]) {
+      return ['sf', 'barra'].map(function (unit) {
+        return {
+          href: whatsappHrefUnit(contacts[unit], page, unit),
+          label: UNIT_SHORT[unit],
+          unit: unit,
+        };
+      });
+    }
+    return [resolveStickyCta(context, contacts)];
+  }
+
   function resolveStickyCta(context, contacts) {
     context = context || {};
     contacts = contacts || CONTACTS;
@@ -135,6 +166,9 @@
     if (storageGet(root, 'klStickyClosed') === '1') return;
     var document = root.document;
     var context = initialContext(root);
+    // unidades.html JA e o seletor de unidade: ali o sticky viraria um botao
+    // "Escolher unidade" apontando para a propria pagina, cobrindo os CTAs dos cards.
+    if (context.page === 'unidades') return;
     var box = document.createElement('div');
     box.className = 'kl-sticky-cta';
     var label = document.createElement('span');
@@ -144,8 +178,7 @@
     catalog.className = 'kl-sticky-cat';
     catalog.href = catalogLink(context.page);
     catalog.textContent = 'Ver catálogo';
-    var destination = document.createElement('a');
-    destination.className = 'kl-sticky-wa';
+    var destinations = [];
     var close = document.createElement('button');
     close.className = 'kl-sticky-x';
     close.type = 'button';
@@ -154,23 +187,39 @@
 
     function updateDestination(patch) {
       context = Object.assign({}, context, patch || {});
-      var resolved = resolveStickyCta(context, CONTACTS);
-      destination.href = resolved.href;
-      destination.textContent = resolved.label;
-      if (/^https:\/\/wa\.me\//.test(resolved.href)) {
-        destination.target = '_blank';
-        destination.rel = 'noopener';
-      } else {
-        destination.removeAttribute('target');
-        destination.removeAttribute('rel');
+      var resolved = resolveStickyTargets(context, CONTACTS);
+      // com duas lojas o "Ver catalogo" nao cabe na barra em 375px; e o rotulo
+      // volta a aparecer no celular, senao ficam dois nomes de cidade sem contexto
+      catalog.style.display = resolved.length > 1 ? 'none' : '';
+      box.classList.toggle('kl-sticky-multi', resolved.length > 1);
+      while (destinations.length > resolved.length) {
+        var extra = destinations.pop();
+        if (extra.parentNode) extra.parentNode.removeChild(extra);
       }
+      resolved.forEach(function (target, index) {
+        var anchor = destinations[index];
+        if (!anchor) {
+          anchor = document.createElement('a');
+          anchor.className = 'kl-sticky-wa';
+          destinations[index] = anchor;
+          box.insertBefore(anchor, close);
+        }
+        anchor.href = target.href;
+        anchor.textContent = target.label;
+        if (/^https:\/\/wa\.me\//.test(target.href)) {
+          anchor.target = '_blank';
+          anchor.rel = 'noopener';
+        } else {
+          anchor.removeAttribute('target');
+          anchor.removeAttribute('rel');
+        }
+      });
     }
 
-    updateDestination();
     box.appendChild(label);
     box.appendChild(catalog);
-    box.appendChild(destination);
     box.appendChild(close);
+    updateDestination();
     document.body.appendChild(box);
 
     var shown = false;
@@ -226,6 +275,7 @@
     CONTACTS: CONTACTS,
     initialContext: initialContext,
     resolveStickyCta: resolveStickyCta,
+    resolveStickyTargets: resolveStickyTargets,
     init: init,
   };
 }));
