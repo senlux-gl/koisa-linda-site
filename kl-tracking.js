@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var VERSION = '20260710-deep-v1';
+  var VERSION = '20260819-origem-v1';
   var GA4_ID = 'G-D6HYW29TS4';
   var PIXEL_READY_TIMEOUT = 8000;
   var SCROLL_DEPTHS = [25, 50, 75, 90];
@@ -433,10 +433,72 @@
     window.gtag('js', new Date());
     window.gtag('config', GA4_ID);
   }
+
+  /* ── Carimbo de origem no WhatsApp ──────────────────────────────────────────
+   * A conversa com a Lara é o único lugar onde a origem da cliente ainda existe:
+   * o CRM não guarda gclid nem utm. Então a origem viaja junto no texto do link,
+   * numa frase curta que a cliente lê antes de enviar. Sem isso, quem vem do
+   * Google e quem vem do Instagram chegam idênticos — e 21% dos leads da casa
+   * abrem a conversa só com "oi", sem ninguém saber de onde vieram.
+   * Não inventa mensagem: só acrescenta em link que JÁ tem text=. */
+  var ORIGEM_SUFIXO = {
+    google: 'Cheguei pelo Google.',
+    instagram: 'Cheguei pelo Instagram.'
+  };
+  function origemDaVisita() {
+    var o = '';
+    try {
+      /* A URL atual manda: se a cliente voltou por outro canal, é esse que a
+       * trouxe agora. O guardado só vale quando a URL não diz nada — mesma
+       * regra que o bloco de utm logo acima já usa. */
+      var sp = new URLSearchParams(location.search);
+      var src = (sp.get('utm_source') || '').toLowerCase();
+      if (sp.get('gclid') || /google|gbp/.test(src)) o = 'google';
+      else if (sp.get('fbclid') || /instagram|facebook|meta/.test(src) || src === 'ig') o = 'instagram';
+      else {
+        var ref = document.referrer ? new URL(document.referrer).hostname : '';
+        if (/(^|\.)google\./.test(ref)) o = 'google';
+        else if (/(^|\.)instagram\./.test(ref)) o = 'instagram';
+      }
+      if (o) sessionStorage.setItem('kl_origem', o);
+      else o = sessionStorage.getItem('kl_origem') || '';
+    } catch (e) {}
+    return o;
+  }
+  function carimbaHref(href, sufixo) {
+    if (!href || href.indexOf('text=') < 0) return href;
+    if (!/wa\.me|whatsapp\.com/i.test(href)) return href;
+    var atual;
+    try { atual = decodeURIComponent(href.split('text=')[1].split('&')[0].replace(/\+/g, ' ')); }
+    catch (e) { return href; }
+    if (atual.indexOf('Cheguei pelo') > -1) return href;
+    return href.replace(/text=[^&]*/, 'text=' + encodeURIComponent(atual.replace(/\s+$/, '') + ' ' + sufixo));
+  }
+  function carimbaUm(a) {
+    var sufixo = ORIGEM_SUFIXO[origemDaVisita()];
+    if (!sufixo || !a) return;
+    var antes = a.getAttribute('href');
+    var depois = carimbaHref(antes, sufixo);
+    if (depois && depois !== antes) a.setAttribute('href', depois);
+  }
+  function carimbaLinksWhatsApp() {
+    if (!ORIGEM_SUFIXO[origemDaVisita()]) return;
+    qsa('a[href*="wa.me"], a[href*="whatsapp.com"]').forEach(carimbaUm);
+  }
+  /* Rede de segurança: o catálogo monta os links por JS depois do load, e o
+   * capture roda antes da navegação — então pega o que o passe inicial não viu. */
+  function onClickCarimbo(ev) {
+    var t = ev.target;
+    var a = t && t.closest ? t.closest('a[href*="wa.me"], a[href*="whatsapp.com"]') : null;
+    if (a) carimbaUm(a);
+  }
+
   function init() {
     bootstrapGA4();
     getPersistedAttribution();
     flushQueueWhenReady();
+    carimbaLinksWhatsApp();
+    document.addEventListener('click', onClickCarimbo, true);
     document.addEventListener('click', onProductOpenClick, true);
     document.addEventListener('click', onClick, true);
     bindSearch();
