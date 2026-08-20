@@ -78,12 +78,15 @@
     var page = String(context.page || 'index').toLowerCase();
     var unit = null;
 
-    if (CAMPAIGN_UNITS[page]) {
-      unit = CAMPAIGN_UNITS[page];
-    } else if (page === 'catalogo') {
+    if (page === 'catalogo') {
+      /* catálogo mantém a guarda: com dado quebrado NÃO se presume loja. */
       if (context.status !== 'error' && context.status !== 'data-error') {
         unit = context.unit === 'barra' || context.unit === 'sf' ? context.unit : null;
       }
+    } else if (context.unit === 'barra' || context.unit === 'sf') {
+      unit = context.unit;
+    } else if (CAMPAIGN_UNITS[page]) {
+      unit = CAMPAIGN_UNITS[page];
     } else if (page === 'peca' || page === 'provar') {
       unit = unitOf(context.product);
     }
@@ -141,7 +144,10 @@
 
   function initialContext(root) {
     var page = pageKind(root.location);
-    var unit = page === 'catalogo' ? queryValue(root, 'un') : null;
+    /* ?un= vale em qualquer página, não só no catálogo: quem manda tráfego pago já
+       sabe a loja, e sem isso madrinhas.html joga a cliente da Barra no WhatsApp
+       de São Francisco (CAMPAIGN_UNITS.madrinhas = 'sf'). */
+    var unit = queryValue(root, 'un');
     return {
       page: page,
       unit: unit === 'barra' || unit === 'sf' ? unit : null,
