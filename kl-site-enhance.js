@@ -36,6 +36,10 @@
     return unit === 'barra' || unit === 'sf' ? href + '&un=' + unit : href;
   }
 
+  // Páginas de visita livre: existem no CAMPAIGN_UNITS (o WhatsApp continua sendo
+  // o destino), mas o convite é outro.
+  var VISITA_LIVRE = Object.freeze({ madrinhas: true, ternos: true });
+
   function unitOf(product) {
     return product && (product.un === 'barra' || product.un === 'sf') ? product.un : null;
   }
@@ -198,7 +202,10 @@
     box.className = 'kl-sticky-cta';
     var label = document.createElement('span');
     label.className = 'kl-sticky-text';
-    label.textContent = 'Agende sua prova';
+    // O rótulo segue a ocasião da página: em madrinha e terno, dizer "agende
+    // sua prova" contradiz a própria faixa logo acima, que diz que não precisa
+    // marcar. Visita livre convida a passar na loja, não a agendar.
+    label.textContent = VISITA_LIVRE[context.page] ? 'Venha quando quiser' : 'Agende sua prova';
     var catalog = document.createElement('a');
     catalog.className = 'kl-sticky-cat';
     catalog.href = catalogLink(context.page);
