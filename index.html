@@ -241,9 +241,9 @@ footer small{display:block;opacity:.55;font-family:var(--sans);font-size:10.5px;
 <section class="hero hero-cine" aria-labelledby="hero-title">
   <div class="hc-slides">
     <picture><source type="image/avif" srcset="img/hero-pomar-sm.avif 760w, img/hero-pomar-md.avif 1200w, img/hero-pomar.avif 1500w" sizes="100vw"><img class="hc-img on" src="img/hero-pomar-md.webp" alt="Vestido de noiva da Koisa Linda em jardim" fetchpriority="high" srcset="img/hero-pomar-sm.webp 760w, img/hero-pomar-md.webp 1200w, img/hero-pomar.webp 1500w" sizes="100vw"></picture>
-    <img class="hc-img" data-src="img/experiencia/clientes/gemeas-wide.webp" alt="Julia e Giovana, debutantes reais Koisa Linda" data-srcset="img/experiencia/clientes/gemeas-wide-sm.webp 760w, img/experiencia/clientes/gemeas-wide-md.webp 1200w, img/experiencia/clientes/gemeas-wide.webp 1500w" sizes="100vw">
-    <img class="hc-img" data-src="img/experiencia/hero-mad.webp" alt="Vestido de madrinha esmeralda Koisa Linda" data-srcset="img/experiencia/hero-mad-sm.webp 760w, img/experiencia/hero-mad-md.webp 1200w, img/experiencia/hero-mad.webp 1500w" sizes="100vw">
-    <img class="hc-img" data-src="img/experiencia/hero-conv.webp" alt="Vestido de convidada dourado Koisa Linda" data-srcset="img/experiencia/hero-conv-sm.webp 760w, img/experiencia/hero-conv-md.webp 1200w, img/experiencia/hero-conv.webp 1500w" sizes="100vw">
+    <picture><source type="image/avif" data-srcset="img/experiencia/clientes/gemeas-wide-sm.avif 760w, img/experiencia/clientes/gemeas-wide-md.avif 1200w, img/experiencia/clientes/gemeas-wide.avif 1500w" sizes="100vw"><img class="hc-img" data-src="img/experiencia/clientes/gemeas-wide.webp" alt="Julia e Giovana, debutantes reais Koisa Linda" data-srcset="img/experiencia/clientes/gemeas-wide-sm.webp 760w, img/experiencia/clientes/gemeas-wide-md.webp 1200w, img/experiencia/clientes/gemeas-wide.webp 1500w" sizes="100vw"></picture>
+    <picture><source type="image/avif" data-srcset="img/experiencia/hero-mad-sm.avif 760w, img/experiencia/hero-mad-md.avif 1200w, img/experiencia/hero-mad.avif 1500w" sizes="100vw"><img class="hc-img" data-src="img/experiencia/hero-mad.webp" alt="Vestido de madrinha esmeralda Koisa Linda" data-srcset="img/experiencia/hero-mad-sm.webp 760w, img/experiencia/hero-mad-md.webp 1200w, img/experiencia/hero-mad.webp 1500w" sizes="100vw"></picture>
+    <picture><source type="image/avif" data-srcset="img/experiencia/hero-conv-sm.avif 760w, img/experiencia/hero-conv-md.avif 1200w, img/experiencia/hero-conv.avif 1500w" sizes="100vw"><img class="hc-img" data-src="img/experiencia/hero-conv.webp" alt="Vestido de convidada dourado Koisa Linda" data-srcset="img/experiencia/hero-conv-sm.webp 760w, img/experiencia/hero-conv-md.webp 1200w, img/experiencia/hero-conv.webp 1500w" sizes="100vw"></picture>
   </div>
   <div class="hc-scrim"></div>
   <div class="hero-copy">
@@ -471,7 +471,7 @@ h2,h3{line-height:1.12}
   /* HERO: slideshow de categorias */
   var slides=[].slice.call(document.querySelectorAll('.hc-slides .hc-img'));
   var cats=[].slice.call(document.querySelectorAll('.hc-cats span:not([data-fixa])'));
-  slides.forEach(function(im){if(im.dataset.srcset){im.srcset=im.dataset.srcset;delete im.dataset.srcset;}if(im.dataset.src){im.src=im.dataset.src;delete im.dataset.src;}});
+  slides.forEach(function(im){var pic=im.parentElement;if(pic&&pic.tagName==='PICTURE'){[].forEach.call(pic.querySelectorAll('source[data-srcset]'),function(so){so.srcset=so.dataset.srcset;delete so.dataset.srcset;});}if(im.dataset.srcset){im.srcset=im.dataset.srcset;delete im.dataset.srcset;}if(im.dataset.src){im.src=im.dataset.src;delete im.dataset.src;}});
   if(slides.length>1){var cur=0;
    setInterval(function(){
     var nx=(cur+1)%slides.length;
