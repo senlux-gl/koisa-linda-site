@@ -52,3 +52,37 @@ test('contexto inicial resolve codigo e p no detalhe', () => {
   root.location.search = '?p=NV-002';
   assert.equal(Site.initialContext(root).product.k, 'NV-002');
 });
+
+test('sticky de noiva e debutante leva para a agenda, e o resto continua no WhatsApp', () => {
+  const alvos = (ctx) => Site.resolveStickyTargets(ctx, contacts);
+
+  // As duas ocasiões com hora marcada: o botão diz "Agende sua prova" e agora agenda.
+  assert.deepEqual(alvos({ page: 'noivas' }).map((t) => t.href), ['agendar.html?ocasiao=noiva']);
+  assert.deepEqual(alvos({ page: 'debutantes' }).map((t) => t.href), ['agendar.html?ocasiao=debutante']);
+  assert.equal(alvos({ page: 'noivas' })[0].label, 'Escolher horário');
+
+  // A loja que a cliente trouxe no ?un= viaja junto: ela cai direto no calendário.
+  assert.equal(alvos({ page: 'noivas', unit: 'sf' })[0].href, 'agendar.html?ocasiao=noiva&un=sf');
+  assert.equal(alvos({ page: 'debutantes', unit: 'barra' })[0].href, 'agendar.html?ocasiao=debutante&un=barra');
+  assert.equal(alvos({ page: 'noivas', unit: 'inventada' })[0].href, 'agendar.html?ocasiao=noiva');
+
+  // Visita livre não tem agenda — e madrinhas.html é o braço do teste de porta,
+  // que depende do prefill de WhatsApp. Estas duas NÃO podem mudar de destino.
+  ['madrinhas', 'ternos'].forEach((page) => {
+    const r = alvos({ page });
+    assert.equal(r.length, 2, `${page} deve manter as duas lojas`);
+    r.forEach((t) => assert.match(t.href, /^https:\/\/wa\.me\//, `${page} deve ir para o WhatsApp`));
+  });
+
+  // O resto do site segue como estava.
+  assert.equal(alvos({ page: 'index' })[0].href, 'unidades.html');
+  assert.match(alvos({ page: 'catalogo', unit: 'barra' })[0].href, /wa\.me\/101/);
+});
+
+test('o marcador que o teste de porta procura no arquivo continua existindo', () => {
+  // O job kl-teste-porta-site.service (VPS, seg 24/08 09h) baixa este arquivo em
+  // produção e procura esta string antes de ligar o braço da Barra. Se ela sumir,
+  // o teste liga só São Francisco — em silêncio.
+  const fonte = require('node:fs').readFileSync(require.resolve('../kl-site-enhance.js'), 'utf8');
+  assert.ok(fonte.includes('un= vale em qualquer'), 'marcador do teste de porta foi removido');
+});

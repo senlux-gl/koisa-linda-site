@@ -20,6 +20,22 @@
     ternos: 'barra',
   });
 
+  // As duas ocasiões com hora marcada têm uma página própria de escolha de horário
+  // (agendar.html, no ar em 21/08/2026). Nelas o sticky diz "Agende sua prova" e
+  // agora leva de fato para a agenda, em vez de abrir o WhatsApp — eram dois
+  // caminhos com o mesmo nome. Madrinha e terno seguem no WhatsApp de propósito:
+  // são visita livre, não têm agenda, e madrinhas.html é o braço do teste de porta.
+  var PAGINAS_COM_AGENDA = Object.freeze({
+    noivas: 'noiva',
+    debutantes: 'debutante',
+  });
+
+  function agendaHref(page, unit) {
+    var href = 'agendar.html?ocasiao=' + PAGINAS_COM_AGENDA[page];
+    // a loja que a cliente já trouxe no ?un= viaja junto e ela cai direto no calendário
+    return unit === 'barra' || unit === 'sf' ? href + '&un=' + unit : href;
+  }
+
   function unitOf(product) {
     return product && (product.un === 'barra' || product.un === 'sf') ? product.un : null;
   }
@@ -60,6 +76,9 @@
     context = context || {};
     contacts = contacts || CONTACTS;
     var page = String(context.page || 'index').toLowerCase();
+    if (PAGINAS_COM_AGENDA[page]) {
+      return [{ href: agendaHref(page, context.unit), label: 'Escolher horário' }];
+    }
     if (CAMPAIGN_UNITS[page]) {
       return ['sf', 'barra'].map(function (unit) {
         return {
