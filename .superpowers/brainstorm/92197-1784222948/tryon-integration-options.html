@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Koisa Linda | Integração da Prova Virtual</title>
+  <style>
+    :root {
+      --ruby: #82333c;
+      --ruby-dark: #64262e;
+      --cream: #fbf7ef;
+      --paper: #fffdf9;
+      --ink: #3d3430;
+      --muted: #8d7f76;
+      --line: #e6d9c9;
+      --sand: #f4eadb;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--cream); font-family: "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+
+    .intro { max-width: 1480px; margin: 0 auto; padding: 26px 28px 18px; display: flex; align-items: end; justify-content: space-between; gap: 30px; }
+    .brand { display: flex; align-items: center; gap: 13px; color: var(--ruby); }
+    .brand img { width: 45px; height: 45px; object-fit: contain; }
+    .brand strong { display: block; font: 600 21px/1 Georgia, serif; letter-spacing: 5px; }
+    .brand small { display: block; margin-top: 6px; font-size: 9px; letter-spacing: 4px; }
+    .copy { max-width: 720px; }
+    h1 { margin: 0 0 7px; color: var(--ruby-dark); font: 500 clamp(26px, 3vw, 40px)/1.05 Georgia, serif; }
+    .copy p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.5; }
+
+    .cards { max-width: 1480px; margin: 0 auto; padding: 8px 28px 105px; display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 18px; }
+    .card { position: relative; min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: var(--paper); box-shadow: 0 8px 26px rgba(81,50,43,.07); cursor: pointer; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 18px 50px rgba(81,50,43,.12); }
+    .card.selected { border: 2px solid var(--ruby); box-shadow: 0 18px 55px rgba(130,51,60,.18); }
+    .card.selected::after { content: "Escolhida"; position: absolute; top: 12px; right: 12px; z-index: 10; padding: 7px 11px; border-radius: 999px; color: #fff; background: var(--ruby); font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; }
+    .card-head { padding: 18px; border-bottom: 1px solid var(--line); }
+    .letter { display: inline-grid; width: 28px; height: 28px; margin-bottom: 10px; place-items: center; border-radius: 50%; color: #fff; background: var(--ruby); font-size: 12px; font-weight: 700; }
+    .card-head h2 { margin: 0 0 6px; color: var(--ruby-dark); font: 600 20px/1.15 Georgia, serif; }
+    .card-head p { min-height: 52px; margin: 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .recommended { color: var(--ruby); font-weight: 700; }
+
+    .browser { margin: 14px; overflow: hidden; border: 1px solid var(--line); border-radius: 11px; background: var(--cream); }
+    .dots { height: 22px; display: flex; align-items: center; gap: 5px; padding: 0 9px; background: #f2e7da; border-bottom: 1px solid var(--line); }
+    .dots i { width: 6px; height: 6px; border-radius: 50%; background: #d1bca9; }
+    .nav { height: 50px; display: flex; align-items: center; justify-content: space-between; padding: 0 13px; background: rgba(255,253,249,.97); border-bottom: 1px solid var(--line); }
+    .mini-logo { display: flex; align-items: center; gap: 6px; color: var(--ruby); font: 600 10px Georgia, serif; letter-spacing: 2px; }
+    .mini-logo::before { content: "KL"; font-size: 7px; font-style: italic; }
+    .links { color: var(--muted); font-size: 5.5px; letter-spacing: .8px; word-spacing: 5px; text-transform: uppercase; }
+    .links .active { color: var(--ruby); border-bottom: 1px solid var(--ruby); padding-bottom: 5px; }
+
+    .hero { padding: 17px 14px 12px; text-align: center; }
+    .eyebrow { color: var(--muted); font-size: 6px; letter-spacing: 1.5px; text-transform: uppercase; }
+    .hero h3 { margin: 6px 0 4px; color: var(--ruby-dark); font: 600 18px/1.05 Georgia, serif; }
+    .hero p { max-width: 320px; margin: 0 auto; color: var(--muted); font-size: 7px; line-height: 1.4; }
+
+    .tool { margin: 0 11px 12px; padding: 10px; border: 1px solid var(--line); border-radius: 11px; background: #fff; }
+    .step { margin-bottom: 8px; color: var(--ruby); font-size: 6px; letter-spacing: 1px; text-transform: uppercase; }
+    .pills { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 7px; }
+    .pill { min-height: 23px; display: flex; align-items: center; justify-content: center; padding: 0 7px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: #645850; font-size: 6px; }
+    .pill.on { color: #fff; background: var(--ruby); border-color: var(--ruby); }
+    .search { height: 27px; display: flex; align-items: center; padding: 0 8px; border: 1px solid var(--line); border-radius: 7px; color: var(--muted); font-size: 6px; }
+    .dresses { display: grid; grid-template-columns: repeat(4,1fr); gap: 4px; margin-top: 7px; }
+    .dresses img { width: 100%; aspect-ratio: 3/4; display: block; object-fit: cover; background: #eee5d9; }
+
+    .footer { padding: 10px 13px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); color: var(--muted); background: #f7eee3; font-size: 5.5px; }
+    .footer strong { color: var(--ruby); letter-spacing: 1px; }
+
+    .modal-stage { position: relative; min-height: 330px; overflow: hidden; background: #fff; }
+    .catalog-bg { display: grid; grid-template-columns: repeat(3,1fr); gap: 4px; padding: 8px; opacity: .38; }
+    .catalog-bg img { width: 100%; aspect-ratio: 3/4; object-fit: cover; }
+    .modal { position: absolute; inset: 18px 12px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,253,249,.98); box-shadow: 0 15px 35px rgba(57,38,35,.18); }
+    .modal h3 { margin: 0 0 6px; color: var(--ruby-dark); font: 600 16px Georgia, serif; }
+    .modal p { margin: 0 0 10px; color: var(--muted); font-size: 7px; line-height: 1.4; }
+
+    .redesign .hero { padding-top: 24px; text-align: left; }
+    .redesign .hero h3 { font-size: 22px; }
+    .redesign .hero p { margin: 0; }
+    .redesign .tool { border-radius: 4px; box-shadow: none; }
+
+    .trade { padding: 0 18px 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .trade div { padding: 9px; border-radius: 10px; background: var(--cream); }
+    .trade strong { display: block; color: var(--ruby); font-size: 11px; }
+    .trade span { color: var(--muted); font-size: 8px; line-height: 1.35; }
+
+    #indicator { position: fixed; left: 50%; bottom: 18px; z-index: 20; width: min(720px, calc(100% - 32px)); transform: translateX(-50%); padding: 12px 18px; border-radius: 999px; color: #fff; background: rgba(57,38,35,.95); box-shadow: 0 14px 38px rgba(39,24,22,.25); text-align: center; font-size: 13px; }
+    #indicator .selected-text { color: #f1d7b0; font-weight: 700; }
+
+    @media (max-width: 1040px) {
+      .intro { max-width: 720px; align-items: start; flex-direction: column; }
+      .cards { max-width: 720px; grid-template-columns: 1fr; }
+      .card-head p { min-height: 0; }
+    }
+    @media (max-width: 560px) {
+      .intro { padding: 20px 14px 10px; }
+      .cards { padding: 8px 12px 100px; }
+      .brand strong { font-size: 17px; letter-spacing: 3px; }
+      .links { max-width: 210px; line-height: 1.8; text-align: right; word-spacing: 2px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="intro">
+    <div class="brand">
+      <img src="https://koisalinda.com.br/img/logo-kl-main.png" alt="">
+      <div><strong>KOISA LINDA</strong><small>DESDE 1994</small></div>
+    </div>
+    <div class="copy">
+      <h1>Como trazer a Prova Virtual para dentro do site?</h1>
+      <p>O funcionamento atual será preservado. A decisão é quanto da página deve mudar para recuperar a identidade e a continuidade da navegação.</p>
+    </div>
+  </header>
+
+  <main class="cards">
+    <article class="card" data-choice="a-shell-integrado" onclick="toggleSelect(this)">
+      <div class="card-head">
+        <span class="letter">A</span>
+        <h2>Mesmo site, mesma ferramenta</h2>
+        <p><span class="recommended">Recomendada.</span> Entra o cabeçalho e o rodapé oficiais. A Prova Virtual continua funcionando como hoje.</p>
+      </div>
+      <div class="browser">
+        <div class="dots"><i></i><i></i><i></i></div>
+        <div class="nav"><span class="mini-logo">KOISA LINDA</span><span class="links">INÍCIO SOBRE CATÁLOGO <span class="active">PROVA VIRTUAL</span> UNIDADES SERVIÇOS</span></div>
+        <div class="hero"><div class="eyebrow">Prova Virtual · grátis</div><h3>Prove o vestido em você</h3><p>Escolha uma peça, envie sua foto e veja uma simulação.</p></div>
+        <div class="tool">
+          <div class="step">1 · Escolha o vestido</div>
+          <div class="pills"><span class="pill">PP</span><span class="pill">P</span><span class="pill on">M</span><span class="pill">G</span><span class="pill">GG</span></div>
+          <div class="pills"><span class="pill on">Todos 572</span><span class="pill">Noivas 215</span><span class="pill">Festa 285</span><span class="pill">Debutantes 72</span></div>
+          <div class="search">Buscar por código ou cor...</div>
+          <div class="dresses">
+            <img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-noiva/NV-001-ia.jpg" alt="">
+            <img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-noiva/NV-002-ia.jpg?v=2" alt="">
+            <img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-noiva/NV-003-ia.jpg" alt="">
+            <img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-noiva/NV-004-ia.jpg" alt="">
+          </div>
+        </div>
+        <div class="footer"><strong>KOISA LINDA</strong><span>Unindo famílias. Realizando sonhos.</span><span>São Francisco · Barra da Tijuca</span></div>
+      </div>
+      <div class="trade"><div><strong>Menor risco</strong><span>Não toca na IA nem no upload.</span></div><div><strong>Resolve a causa</strong><span>Menu, logo, rodapé e CTA corretos.</span></div></div>
+    </article>
+
+    <article class="card redesign" data-choice="b-redesign-completo" onclick="toggleSelect(this)">
+      <div class="card-head">
+        <span class="letter">B</span>
+        <h2>Redesenho completo</h2>
+        <p>Além do shell, reorganiza tamanhos, vestidos, foto e resultado para parecer uma nova página editorial.</p>
+      </div>
+      <div class="browser">
+        <div class="dots"><i></i><i></i><i></i></div>
+        <div class="nav"><span class="mini-logo">KOISA LINDA</span><span class="links">CATÁLOGO <span class="active">PROVA VIRTUAL</span> UNIDADES</span></div>
+        <div class="hero"><div class="eyebrow">Experiência Koisa Linda</div><h3>Imagine. Experimente. Encontre.</h3><p>Uma jornada visual redesenhada do início ao resultado.</p></div>
+        <div class="tool">
+          <div class="step">Escolha a peça</div>
+          <div class="dresses">
+            <img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-noiva/NV-001-ia.jpg" alt="">
+            <img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-noiva/NV-002-ia.jpg?v=2" alt="">
+            <img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-noiva/NV-003-ia.jpg" alt="">
+            <img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-noiva/NV-004-ia.jpg" alt="">
+          </div>
+          <div class="pill on" style="margin-top:10px">Continuar com esta peça</div>
+        </div>
+        <div class="footer"><strong>KOISA LINDA</strong><span>Unindo famílias. Realizando sonhos.</span></div>
+      </div>
+      <div class="trade"><div><strong>Impacto maior</strong><span>Mais refinado visualmente.</span></div><div><strong>Risco maior</strong><span>Mexe na jornada já funcional.</span></div></div>
+    </article>
+
+    <article class="card" data-choice="c-modal-no-catalogo" onclick="toggleSelect(this)">
+      <div class="card-head">
+        <span class="letter">C</span>
+        <h2>Dentro do catálogo</h2>
+        <p>A Prova Virtual deixa de ser uma página e abre em uma janela sobre as peças selecionadas.</p>
+      </div>
+      <div class="browser">
+        <div class="dots"><i></i><i></i><i></i></div>
+        <div class="nav"><span class="mini-logo">KOISA LINDA</span><span class="links">INÍCIO SOBRE <span class="active">CATÁLOGO</span> PROVA VIRTUAL</span></div>
+        <div class="modal-stage">
+          <div class="catalog-bg">
+            <img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-noiva/NV-001-ia.jpg" alt="">
+            <img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-noiva/NV-002-ia.jpg?v=2" alt="">
+            <img src="https://vguwohpsbodrxbrtrqkm.supabase.co/storage/v1/object/public/koisa-catalogo-barra/vestidos-noiva/NV-003-ia.jpg" alt="">
+          </div>
+          <div class="modal">
+            <h3>Provar esta peça</h3>
+            <p>Escolha o tamanho e envie sua foto sem sair do catálogo.</p>
+            <div class="pills"><span class="pill">P</span><span class="pill on">M</span><span class="pill">G</span><span class="pill">GG</span></div>
+            <div class="search">Enviar foto de corpo inteiro</div>
+            <div class="pill on" style="margin-top:10px">Gerar prova virtual</div>
+          </div>
+        </div>
+      </div>
+      <div class="trade"><div><strong>Mais contínuo</strong><span>Cliente não troca de página.</span></div><div><strong>Maior risco</strong><span>Reestrutura navegação e estados.</span></div></div>
+    </article>
+  </main>
+
+  <div id="indicator"><span id="indicator-text">Clique na opção que você prefere e depois volte ao chat.</span></div>
+</body>
+</html>
