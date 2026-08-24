@@ -1,0 +1,166 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="img/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Arapey:ital@0;1&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Questrial&display=swap" rel="stylesheet">
+<title>Minha conta | Koisa Linda</title>
+<style>
+/* Mesma gramática das outras páginas do site. Duas diferenças de propósito:
+   --paper é FFFDF8 e não #fff, porque a marca não usa branco puro; e não há
+   pixel de rastreio nesta página — é a área logada da cliente, e o que ela vê
+   aqui é dela. */
+:root{--ruby:#722F37;--ruby-dark:#5a242b;--baunilha:#F4E5C4;--cream:#FBF7EF;
+      --paper:#FFFDF8;--ink:#2c2326;--muted:#9a8d80;--line:#e9e0d2;--gold:#C89F3C;
+      --murta:#557361;--ok:#3f6b4f;--alerta:#9a6b1f;
+      --serif:'Playfair Display',Georgia,serif;--body:'Arapey',Georgia,serif;
+      --sans:'Questrial',sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--body);line-height:1.5}
+a{color:inherit;text-decoration:none}
+
+header{position:sticky;top:0;z-index:50;background:rgba(251,247,239,.95);
+       border-bottom:1px solid var(--line);backdrop-filter:blur(10px)}
+.barra{max-width:1000px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;
+       justify-content:space-between;gap:16px}
+.wm{font-family:var(--serif);font-size:19px;letter-spacing:6px;color:var(--ruby);line-height:1}
+.wm small{display:block;font-family:var(--sans);font-size:8.5px;letter-spacing:4px;color:var(--muted)}
+.sair{font-family:var(--sans);font-size:11px;letter-spacing:2px;text-transform:uppercase;
+      color:var(--muted);cursor:pointer;background:none;border:0;padding:10px}
+.sair:hover{color:var(--ruby)}
+
+main{max-width:1000px;margin:0 auto;padding:44px 24px 80px}
+.topo{text-align:center;margin-bottom:36px}
+.eyebrow{font-family:var(--sans);font-size:11px;letter-spacing:5px;text-transform:uppercase;color:var(--gold)}
+h1{font-family:var(--serif);font-weight:400;font-style:italic;font-size:clamp(32px,6vw,48px);
+   line-height:1.08;margin:14px 0 10px;color:var(--ruby);text-wrap:balance}
+.sub{color:#5f534b;max-width:44ch;margin:0 auto;font-size:17px}
+
+.cartao{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:30px}
+.entrada{max-width:440px;margin:0 auto}
+.rotulo{display:block;font-family:var(--sans);font-size:11px;letter-spacing:2.4px;
+        text-transform:uppercase;color:#5f534b;margin:0 0 10px}
+input{width:100%;font-family:var(--body);font-size:19px;padding:14px 16px;color:var(--ink);
+      background:var(--cream);border:1px solid var(--line);border-radius:10px}
+input:focus{outline:2px solid var(--ruby);outline-offset:1px;border-color:var(--ruby)}
+.codigo{letter-spacing:.5em;text-align:center;font-size:26px;font-family:var(--sans)}
+button.acao{width:100%;margin-top:18px;min-height:52px;font-family:var(--sans);font-size:13px;
+            letter-spacing:2.4px;text-transform:uppercase;color:var(--baunilha);
+            background:var(--ruby);border:0;border-radius:10px;cursor:pointer}
+button.acao:hover{background:var(--ruby-dark)}
+button.acao[disabled]{opacity:.5;cursor:default}
+.voltar{display:block;width:100%;margin-top:14px;background:none;border:0;cursor:pointer;
+        font-family:var(--sans);font-size:11.5px;letter-spacing:1.6px;color:var(--muted)}
+.recado{margin-top:16px;padding:12px 14px;border-radius:10px;font-size:15px;
+        background:#faf1de;border:1px solid #ecdcb6;color:#6b4d15}
+.recado.ruim{background:#fbecea;border-color:#f0cfcb;color:#8d2f2a}
+.ajuda{margin-top:14px;font-size:14.5px;color:var(--muted);text-align:center}
+
+.secao{margin-top:44px}
+.secao h2{font-family:var(--serif);font-style:italic;font-weight:400;font-size:26px;
+          color:var(--ruby);margin:0 0 4px}
+.secao .nota{font-family:var(--sans);font-size:11px;letter-spacing:2.2px;text-transform:uppercase;
+             color:var(--muted);margin:0 0 18px}
+
+.pedido{background:var(--paper);border:1px solid var(--line);border-radius:16px;
+        padding:24px;margin-bottom:16px}
+.pedido .linha1{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;margin-bottom:6px}
+.pedido .num{font-family:var(--serif);font-size:22px;color:var(--ruby)}
+.selo{font-family:var(--sans);font-size:10px;letter-spacing:2px;text-transform:uppercase;
+      padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:#5f534b}
+.selo.ok{color:var(--ok);border-color:#c4dbcb;background:#eaf2ec}
+.selo.alerta{color:var(--alerta);border-color:#ecdcb6;background:#faf1de}
+.dados{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;
+       margin:18px 0 0;padding-top:18px;border-top:1px solid var(--line)}
+.dados div span{display:block;font-family:var(--sans);font-size:10px;letter-spacing:2px;
+                text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.dados div strong{font-weight:400;font-size:18px}
+.pecas{margin:18px 0 0;padding:0;list-style:none;display:grid;gap:10px}
+.pecas li{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;font-size:16px}
+.pecas .det{color:var(--muted);font-size:14px}
+.vazio{text-align:center;color:var(--muted);padding:34px 20px;font-size:17px}
+
+footer{background:var(--ruby);color:#e9d9bd;text-align:center;padding:40px 24px;
+       font-family:var(--sans);font-size:12px;letter-spacing:1px}
+footer a{color:var(--baunilha)}
+.oculto{display:none}
+@media(max-width:560px){main{padding:30px 18px 60px}.cartao{padding:24px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="barra">
+    <a href="/" class="wm">KOISA LINDA<small>DESDE 1994</small></a>
+    <button class="sair oculto" id="sair" type="button">Sair</button>
+  </div>
+</header>
+
+<main>
+  <!-- ENTRADA ------------------------------------------------------------ -->
+  <section id="tela-entrada">
+    <div class="topo">
+      <p class="eyebrow">Sua conta</p>
+      <h1>Acompanhe o seu vestido</h1>
+      <p class="sub">O que você escolheu, quando retira e como está o ajuste no ateliê.</p>
+    </div>
+
+    <div class="cartao entrada">
+      <!-- passo 1: o telefone -->
+      <div id="passo-telefone">
+        <label class="rotulo" for="telefone">Seu WhatsApp</label>
+        <input id="telefone" type="tel" inputmode="tel" autocomplete="tel"
+               placeholder="(21) 99999-9999" aria-describedby="ajuda-telefone">
+        <button class="acao" id="pedir" type="button">Receber código</button>
+        <p class="ajuda" id="ajuda-telefone">
+          Use o mesmo número pelo qual você falou com a loja. O código chega no WhatsApp.
+        </p>
+      </div>
+
+      <!-- passo 2: o código -->
+      <div id="passo-codigo" class="oculto">
+        <label class="rotulo" for="codigo">Código que chegou no WhatsApp</label>
+        <input id="codigo" class="codigo" type="text" inputmode="numeric" maxlength="6"
+               autocomplete="one-time-code" placeholder="000000">
+        <button class="acao" id="confirmar" type="button">Entrar</button>
+        <button class="voltar" id="trocar" type="button">usar outro número</button>
+      </div>
+
+      <div id="recado" class="recado oculto" role="status"></div>
+    </div>
+  </section>
+
+  <!-- CONTA --------------------------------------------------------------- -->
+  <section id="tela-conta" class="oculto">
+    <div class="topo">
+      <p class="eyebrow">Sua conta</p>
+      <h1 id="saudacao">Bem-vinda</h1>
+      <p class="sub" id="resumo"></p>
+    </div>
+
+    <div class="secao">
+      <h2>Seus pedidos</h2>
+      <p class="nota">o que você escolheu na loja</p>
+      <div id="pedidos"></div>
+    </div>
+
+    <div class="secao" id="secao-provas">
+      <h2>Suas provas</h2>
+      <p class="nota">horários marcados</p>
+      <div id="provas"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <!-- Sem número aqui de propósito: cada unidade tem o seu, e unidades.html já
+       é a página que os mantém atualizados. Repetir número em mais um lugar é
+       criar mais um lugar para ficar desatualizado. -->
+  Dúvida no seu pedido? <a href="unidades.html">Fale com a sua loja</a>.
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
+<script src="kl-portal-config.js"></script>
+<script src="kl-portal.js?v=1"></script>
+</body></html>
