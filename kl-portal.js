@@ -233,8 +233,16 @@
       campo(d, 'Retirada', data(p.retirada))
       campo(d, 'Devolução', data(p.devolucao))
       campo(d, 'Total', dinheiro(p.valor_total))
-      campo(d, Number(p.saldo_aberto) > 0 ? 'Falta pagar' : 'Pago',
-            Number(p.saldo_aberto) > 0 ? dinheiro(p.saldo_aberto) : 'tudo certo')
+      // Decidir só pelo saldo dizia "Falta pagar" em pedido cancelado e em
+      // orçamento. A view já zera o cancelado; aqui o rótulo diz o que é.
+      if (p.situacao === 'cancelado' || p.situacao === 'perdido') {
+        campo(d, 'Situação', 'pedido cancelado — nada a pagar')
+      } else if (p.situacao === 'orcamento') {
+        campo(d, 'Orçamento', 'proposta em aberto, ainda não é pedido')
+      } else {
+        campo(d, Number(p.saldo_aberto) > 0 ? 'Falta pagar' : 'Pago',
+              Number(p.saldo_aberto) > 0 ? dinheiro(p.saldo_aberto) : 'tudo certo')
+      }
 
       var minhas = pecas.filter(function (x) { return x.pedido_id === p.id })
       if (minhas.length) {
