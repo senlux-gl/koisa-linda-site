@@ -406,7 +406,8 @@
       '<p>Fique de olho no WhatsApp <b>' + esc(loja.nome) + '</b>: é por lá que a equipe confirma.</p>' +
       '<div class="acoes" style="justify-content:center">' +
       '<a class="btn forte" href="catalogo.html?cat=' +
-      (estado.ocasiao === 'noiva' ? 'vestidos-noiva' : 'vestidos-debutante') + '">Ver o catálogo</a></div>' +
+      (estado.ocasiao === 'noiva' ? 'vestidos-noiva' : 'vestidos-debutante') + '">Ver o catálogo</a>' +
+      '<a class="btn" href="meu-pedido.html">Acompanhar meu atendimento</a></div>' +
       '</div>';
     estado.passo = 4;
     marcarTrilha();
