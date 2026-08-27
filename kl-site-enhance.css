@@ -10,6 +10,12 @@ body.kl-dialog-open .kl-sticky-cta{display:none!important}
    Breakpoint antigo (860px) deixava o menu visivel e ESTOURANDO na faixa 860-1065
    ("Prova Virtual" quebrava em 2 linhas, Instagram cortava).
    nowrap impede quebra de linha; header .sel = especificidade > CSS inline (vence sem ordem). */
+header .nav{min-height:70px}
+header .logo{gap:10px;flex:0 0 auto}
+header .logo img:not(.sym){display:none}
+header .logo .sym{height:38px!important;width:auto}
+header .logo .wm{font-size:17px!important;letter-spacing:5px!important;line-height:.98!important}
+header .logo .wm small{font-size:7.5px!important;letter-spacing:3.4px!important;margin-top:4px!important}
 header .menu a{white-space:nowrap}
 @media(max-width:1100px){
   header .menu{display:none}
