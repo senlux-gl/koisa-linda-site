@@ -236,6 +236,109 @@
     }
   }
 
+  var LARA_WEB_TOPICS = Object.freeze([
+    {
+      id: 'noiva',
+      label: 'Sou noiva',
+      answer: 'Para noiva, a prova é com hora marcada. A equipe separa os modelos antes de você chegar e o provador fica reservado para você.',
+      primary: { label: 'Ver horários', href: 'agendar.html?ocasiao=noiva&ab=auto&utm_content=lara_web_noiva' },
+      secondary: { label: 'Ver vestidos de noiva', href: 'catalogo.html?cat=vestidos-noiva&utm_content=lara_web_noiva' },
+    },
+    {
+      id: 'debutante',
+      label: 'Sou debutante',
+      answer: 'Para debutante, também é melhor vir com hora marcada. Assim a consultora prepara a prova para vestidos de valsa, recepção e fotos.',
+      primary: { label: 'Ver horários', href: 'agendar.html?ocasiao=debutante&ab=auto&utm_content=lara_web_debutante' },
+      secondary: { label: 'Ver debutantes', href: 'catalogo.html?cat=vestidos-debutante&utm_content=lara_web_debutante' },
+    },
+    {
+      id: 'festa',
+      label: 'Madrinha ou festa',
+      answer: 'Para madrinha, convidada, formanda e festa não precisa agendar. Você pode ver modelos no catálogo e passar na unidade dentro do horário de funcionamento.',
+      primary: { label: 'Ver vestidos de festa', href: 'catalogo.html?cat=vestidos-madrinha&utm_content=lara_web_festa' },
+      secondary: { label: 'Ver unidades', href: 'unidades.html?utm_content=lara_web_festa' },
+    },
+    {
+      id: 'terno',
+      label: 'Preciso de terno',
+      answer: 'Para terno também é visita livre. Veja os modelos e escolha a unidade mais prática para provar dentro do horário de atendimento.',
+      primary: { label: 'Ver ternos', href: 'catalogo.html?cat=ternos&utm_content=lara_web_terno' },
+      secondary: { label: 'Ver unidades', href: 'unidades.html?utm_content=lara_web_terno' },
+    },
+    {
+      id: 'unidades',
+      label: 'Endereço e horário',
+      answer: 'A Koisa Linda atende em São Francisco, Niterói, e na Barra da Tijuca, Shopping Downtown. Na página de unidades você vê endereço, horário e rotas.',
+      primary: { label: 'Ver unidades', href: 'unidades.html?utm_content=lara_web_unidades' },
+      secondary: { label: 'Agendar noiva/debutante', href: 'agendar.html?ab=auto&utm_content=lara_web_unidades' },
+    },
+    {
+      id: 'disponibilidade',
+      label: 'Disponibilidade de peça',
+      answer: 'Disponibilidade de peça precisa ser confirmada com a loja, porque o acervo muda com provas e reservas. Se você viu um modelo, salve ou envie o código para a unidade.',
+      primary: { label: 'Abrir catálogo', href: 'catalogo.html?utm_content=lara_web_disponibilidade' },
+      secondary: { label: 'Falar com unidade', href: 'unidades.html?utm_content=lara_web_disponibilidade' },
+    },
+  ]);
+
+  function trackLaraWeb(root, action, topic) {
+    try {
+      if (typeof root.fbq === 'function') root.fbq('trackCustom', 'KL_Lara_Web_' + action, { topic: topic || '', page_path: root.location.pathname });
+    } catch (error) {}
+    try {
+      if (typeof root.gtag === 'function') root.gtag('event', 'lara_web_' + String(action || '').toLowerCase(), { topic: topic || '', page_path: root.location.pathname });
+    } catch (error) {}
+  }
+
+  function mountLaraWeb(root) {
+    var document = root.document;
+    if (!document || document.querySelector('.kl-lara-web')) return;
+    var shell = document.createElement('div');
+    shell.className = 'kl-lara-web';
+    shell.innerHTML = '<button class="kl-lara-launch" type="button" aria-expanded="false"><span>Precisa de ajuda?</span><b>Fale com a Lara</b></button>'
+      + '<section class="kl-lara-panel" aria-label="Assistente Lara do site" hidden>'
+      + '<div class="kl-lara-head"><div><span>Lara · assistente do site</span><b>Te ajudo a achar o caminho certo.</b></div><button type="button" class="kl-lara-close" aria-label="Fechar Lara">×</button></div>'
+      + '<div class="kl-lara-body"><p class="kl-lara-msg">Escolha uma dúvida rápida. Eu te direciono para agenda, catálogo, unidade ou WhatsApp quando fizer sentido.</p><div class="kl-lara-options"></div><div class="kl-lara-answer" aria-live="polite"></div></div>'
+      + '</section>';
+    document.body.appendChild(shell);
+    var launch = shell.querySelector('.kl-lara-launch');
+    var panel = shell.querySelector('.kl-lara-panel');
+    var close = shell.querySelector('.kl-lara-close');
+    var options = shell.querySelector('.kl-lara-options');
+    var answer = shell.querySelector('.kl-lara-answer');
+    LARA_WEB_TOPICS.forEach(function (topic) {
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = topic.label;
+      button.setAttribute('data-topic', topic.id);
+      options.appendChild(button);
+    });
+    function setOpen(open) {
+      panel.hidden = !open;
+      launch.setAttribute('aria-expanded', open ? 'true' : 'false');
+      shell.classList.toggle('is-open', open);
+      if (document.body) document.body.classList.toggle('kl-lara-open', open);
+      if (open) trackLaraWeb(root, 'Open', '');
+    }
+    launch.addEventListener('click', function () { setOpen(panel.hidden); });
+    close.addEventListener('click', function () { setOpen(false); });
+    options.addEventListener('click', function (event) {
+      var button = event.target && event.target.closest ? event.target.closest('button[data-topic]') : null;
+      if (!button) return;
+      var id = button.getAttribute('data-topic');
+      var topic = LARA_WEB_TOPICS.find(function (item) { return item.id === id; });
+      if (!topic) return;
+      [].forEach.call(options.querySelectorAll('button'), function (btn) { btn.classList.toggle('is-selected', btn === button); });
+      answer.innerHTML = '<p>' + topic.answer + '</p><div class="kl-lara-actions"><a class="kl-lara-primary" href="' + topic.primary.href + '">' + topic.primary.label + '</a><a class="kl-lara-secondary" href="' + topic.secondary.href + '">' + topic.secondary.label + '</a></div>';
+      trackLaraWeb(root, 'Topic', id);
+    });
+    answer.addEventListener('click', function (event) {
+      var anchor = event.target && event.target.closest ? event.target.closest('a') : null;
+      if (!anchor) return;
+      trackLaraWeb(root, 'CTA_Click', anchor.textContent || '');
+    });
+  }
+
   function mount(root) {
     if (storageGet(root, 'klStickyClosed') === '1') return;
     var document = root.document;
@@ -351,9 +454,10 @@
     if (!root || !root.document || root.__KL_SITE_ENHANCE__) return;
     root.__KL_SITE_ENHANCE__ = true;
     if (root.document.readyState === 'loading') {
-      root.document.addEventListener('DOMContentLoaded', function () { mount(root); }, { once: true });
+      root.document.addEventListener('DOMContentLoaded', function () { mount(root); mountLaraWeb(root); }, { once: true });
     } else {
       mount(root);
+      mountLaraWeb(root);
     }
   }
 
