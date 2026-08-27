@@ -47,6 +47,8 @@
     enviando: false,
     variante: '',
     lead: { nome: '', telefone: '', data_evento: '', notas: '', preferencia: '' },
+    lead_id: '',
+    leadSalvo: false,
   };
 
   var cartao = document.getElementById('cartao');
@@ -108,6 +110,72 @@
 
   function nomeVariante() {
     return estado.variante === 'd' ? 'formulario_primeiro' : (estado.variante === 'b' ? 'horarios_disponiveis' : 'agendar_prova');
+  }
+
+  function qsParam(nome) {
+    try { return new URLSearchParams(location.search).get(nome) || ''; } catch (e) { return ''; }
+  }
+
+  function leadPayloadD(stage) {
+    return {
+      schema_version: '2026-08-27.site_lead.v1',
+      source: 'site',
+      source_detail: 'agendamento_formulario_d',
+      variant: estado.variante || 'd',
+      stage: stage || 'lead_form_completed',
+      nome: estado.lead.nome || '',
+      telefone: estado.lead.telefone || '',
+      ocasiao: estado.ocasiao || 'noiva',
+      loja: estado.loja || 'saofrancisco',
+      data_evento: estado.lead.data_evento || '',
+      preferencia: estado.lead.preferencia || '',
+      notas: estado.lead.notas || '',
+      consentimento: true,
+      aberto_em: estado.abertoEm,
+      sobrenome_confirmacao: '',
+      landing_page: location.href,
+      page_path: location.pathname || '/agendar.html',
+      referrer: document.referrer || '',
+      session_id: (function () {
+        try {
+          var k = 'kl_schedule_session_id';
+          var v = sessionStorage.getItem(k);
+          if (!v) { v = 'kl_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); sessionStorage.setItem(k, v); }
+          return v;
+        } catch (e) { return ''; }
+      })(),
+      utm_source: qsParam('utm_source'),
+      utm_medium: qsParam('utm_medium'),
+      utm_campaign: qsParam('utm_campaign'),
+      utm_content: qsParam('utm_content'),
+      utm_term: qsParam('utm_term'),
+      fbclid: qsParam('fbclid'),
+      gclid: qsParam('gclid'),
+      user_agent: navigator.userAgent || '',
+      created_at_client: new Date().toISOString()
+    };
+  }
+
+  function salvarLeadParcialD() {
+    if (estado.variante !== 'd' || !leadValido()) return Promise.resolve(null);
+    if (estado.lead_id && estado.leadSalvo) return Promise.resolve({ lead_id: estado.lead_id, cached: true });
+    trackSchedule('KL_Lead_Form_Submit', { has_event_date: estado.lead.data_evento ? 'yes' : 'no', preference: estado.lead.preferencia || 'none' }, 'leadsubmit:' + estado.lead.telefone);
+    return fetch(API + '/lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(leadPayloadD('lead_form_completed'))
+    }).then(function (r) {
+      return r.json().then(function (d) { if (!r.ok || !d || d.ok !== true) throw new Error((d && d.reason) || ('http ' + r.status)); return d; });
+    }).then(function (d) {
+      estado.lead_id = d.lead_id || '';
+      estado.leadSalvo = !!estado.lead_id;
+      try { if (estado.lead_id) sessionStorage.setItem('kl_site_lead_id', estado.lead_id); } catch (e) {}
+      trackSchedule('KL_Lead_Form_Success', { duplicate: d.duplicate ? 'yes' : 'no' }, 'leadsuccess:' + estado.lead_id);
+      return d;
+    }).catch(function (err) {
+      trackSchedule('KL_Lead_Form_Error', { reason: String(err && err.message || 'erro').slice(0, 80) });
+      return null; // não trava a conversão: a cliente continua para escolher horário
+    });
   }
 
   function trackSchedule(nome, extra, onceKey) {
@@ -247,8 +315,10 @@
       if (!aceite) faltou = true;
       if (faltou) return;
       estado.lead = { nome: nome, telefone: tel, data_evento: valor('evento'), notas: valor('notas'), preferencia: valor('preferencia') };
-      trackSchedule('KL_Schedule_Lead_Form_Submit', { has_event_date: estado.lead.data_evento ? 'yes' : 'no', preference: estado.lead.preferencia || 'none' }, 'leadform:' + tel);
-      ir(2);
+      estado.leadSalvo = false;
+      var btn = document.getElementById('ir-dados');
+      if (btn) { btn.disabled = true; btn.textContent = 'Salvando…'; }
+      salvarLeadParcialD().then(function () { ir(2); });
     });
   }
 
@@ -479,6 +549,7 @@
       variante_agendamento: estado.variante || 'a',
       preferencia_atendimento: extras.preferencia || '',
       formulario_primeiro: estado.variante === 'd',
+      lead_id: estado.lead_id || (function(){ try { return sessionStorage.getItem('kl_site_lead_id') || ''; } catch(e) { return ''; } })(),
       sobrenome_confirmacao: extras.honeypot || '',
     };
   }
