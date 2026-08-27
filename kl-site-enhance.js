@@ -293,6 +293,7 @@
   function mountLaraWeb(root) {
     var document = root.document;
     if (!document || document.querySelector('.kl-lara-web')) return;
+    var context = initialContext(root);
     var shell = document.createElement('div');
     shell.className = 'kl-lara-web';
     shell.innerHTML = '<button class="kl-lara-launch" type="button" aria-expanded="false"><span>Precisa de ajuda?</span><b>Fale com a Lara</b></button>'
@@ -306,6 +307,19 @@
     var close = shell.querySelector('.kl-lara-close');
     var options = shell.querySelector('.kl-lara-options');
     var answer = shell.querySelector('.kl-lara-answer');
+    var delayLaraOnHome = context.page === 'index' || context.page === 'home';
+    if (delayLaraOnHome) {
+      shell.classList.add('kl-lara-home-delayed');
+      function revealLaraAfterHero() {
+        var hero = document.querySelector('.hero');
+        var header = document.querySelector('header');
+        var headerH = header ? header.getBoundingClientRect().height : 0;
+        var threshold = hero ? Math.max(360, hero.offsetHeight - headerH - 24) : 520;
+        if ((root.scrollY || 0) > threshold) shell.classList.add('is-on');
+      }
+      root.addEventListener('scroll', revealLaraAfterHero, { passive: true });
+      root.setTimeout(revealLaraAfterHero, 1400);
+    }
     LARA_WEB_TOPICS.forEach(function (topic) {
       var button = document.createElement('button');
       button.type = 'button';
