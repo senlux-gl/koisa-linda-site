@@ -1,6 +1,7 @@
 /* Koisa Linda — escolha de horário da prova de noiva e debutante.
  *
- * Três passos: ocasião e unidade → dia e horário → quem é você.
+ * Fluxos A/B: ocasião e unidade → dia e horário → quem é você.
+ * Variante D: seus dados → ocasião/unidade → dia/horário → envio.
  *
  * A agenda vem da loja de verdade: os horários oferecidos aqui já descontam o
  * que está no calendário da unidade e o que está esperando confirmação no CRM.
@@ -45,6 +46,7 @@
     abertoEm: Date.now(),
     enviando: false,
     variante: '',
+    lead: { nome: '', telefone: '', data_evento: '', notas: '', preferencia: '' },
   };
 
   var cartao = document.getElementById('cartao');
@@ -52,6 +54,7 @@
   var rotuloPasso = document.getElementById('rotuloPasso');
 
   var ROTULOS = ['', 'Passo 1 de 3 · Ocasião e unidade', 'Passo 2 de 3 · Dia e horário', 'Passo 3 de 3 · Seus dados', 'Pronto'];
+  var ROTULOS_D = ['', 'Passo 1 de 3 · Seus dados', 'Passo 2 de 3 · Ocasião e unidade', 'Passo 3 de 3 · Dia e horário', 'Pronto'];
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -86,8 +89,8 @@
       var v = (sp.get('variant') || sp.get('ab') || '').toLowerCase();
       if (v === '1') v = 'a';
       if (v === '2') v = 'b';
-      if (v !== 'a' && v !== 'b') v = sessionStorage.getItem('kl_schedule_variant') || '';
-      if (v !== 'a' && v !== 'b') {
+      if (v !== 'a' && v !== 'b' && v !== 'd') v = sessionStorage.getItem('kl_schedule_variant') || '';
+      if (v !== 'a' && v !== 'b' && v !== 'd') {
         var key = String(navigator.userAgent || '') + '|' + String(screen.width || '') + '|' + String(new Date().getDate());
         var sum = 0;
         for (var i = 0; i < key.length; i++) sum = (sum + key.charCodeAt(i)) % 997;
@@ -104,7 +107,7 @@
   }
 
   function nomeVariante() {
-    return estado.variante === 'b' ? 'horarios_disponiveis' : 'agendar_prova';
+    return estado.variante === 'd' ? 'formulario_primeiro' : (estado.variante === 'b' ? 'horarios_disponiveis' : 'agendar_prova');
   }
 
   function trackSchedule(nome, extra, onceKey) {
@@ -136,7 +139,11 @@
     var title = document.getElementById('scheduleTitle');
     var desc = document.getElementById('scheduleDesc');
     if (!title || !desc) return;
-    if (estado.variante === 'b') {
+    if (estado.variante === 'd') {
+      if (eyebrow) eyebrow.textContent = 'Pré-agendamento qualificado';
+      title.textContent = 'Deixe seus dados para sua prova';
+      desc.textContent = 'Preencha uma vez. Depois escolha a unidade e o melhor horário — a equipe recebe tudo organizado para confirmar pelo WhatsApp.';
+    } else if (estado.variante === 'b') {
       if (eyebrow) eyebrow.textContent = 'Horários disponíveis por unidade';
       title.textContent = 'Veja o melhor horário para sua prova';
       desc.textContent = 'Escolha Barra ou São Francisco, veja dias disponíveis e peça a reserva pelo site. A equipe confirma tudo pelo WhatsApp da unidade.';
@@ -159,7 +166,7 @@
       var n = Number(barras[i].getAttribute('data-p'));
       barras[i].className = 'p' + (n < estado.passo ? ' feito' : n === estado.passo ? ' agora' : '');
     }
-    rotuloPasso.textContent = ROTULOS[Math.min(estado.passo, 4)];
+    rotuloPasso.textContent = (estado.variante === 'd' ? ROTULOS_D : ROTULOS)[Math.min(estado.passo, 4)];
     trilha.style.display = estado.passo > 3 ? 'none' : '';
     rotuloPasso.style.display = estado.passo > 3 ? 'none' : '';
   }
@@ -191,15 +198,71 @@
     return '<div class="resumo">' + partes + '</div>';
   }
 
+
+  function valor(id) {
+    var el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  }
+
+  function leadValido() {
+    var nome = estado.lead.nome || '';
+    var tel = (estado.lead.telefone || '').replace(/\D/g, '');
+    return nome.length >= 2 && tel.length >= 10 && tel.length <= 11;
+  }
+
+  function passoLeadD() {
+    cartao.innerHTML = '<h2>Primeiro, quem a loja vai atender?</h2>' +
+      '<p class="sub">Esse formulário deixa o lead mais qualificado antes de abrir a agenda. A loja já recebe nome, WhatsApp, data do evento e o que a cliente procura.</p>' +
+      '<form id="lead-d" novalidate>' +
+      '<div class="campo" id="c-nome"><label for="nome">Seu nome</label>' +
+      '<input id="nome" name="nome" type="text" autocomplete="name" maxlength="80" required value="' + esc(estado.lead.nome) + '">' +
+      '<span class="mini">Para a equipe saber quem esperar.</span></div>' +
+      '<div class="campo" id="c-tel"><label for="telefone">WhatsApp com DDD<span class="dica">É por ele que a loja confirma o seu horário.</span></label>' +
+      '<input id="telefone" name="telefone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(21) 90000-0000" required value="' + esc(estado.lead.telefone) + '">' +
+      '<span class="mini">Confira o número com DDD.</span></div>' +
+      '<div class="campo"><label for="evento">Data do evento<span class="dica">Se já tiver. Ajuda a entender urgência e preparação.</span></label>' +
+      '<input id="evento" name="evento" type="date" value="' + esc(estado.lead.data_evento) + '"></div>' +
+      '<div class="campo"><label for="preferencia">Preferência de atendimento<span class="dica">Opcional, para orientar a equipe.</span></label>' +
+      '<select id="preferencia" name="preferencia">' +
+      '<option value="">Escolha se quiser</option><option value="manha">Manhã</option><option value="tarde">Tarde</option><option value="sabado">Sábado</option><option value="primeira_data">Primeira data disponível</option></select></div>' +
+      '<div class="campo"><label for="notas">O que você procura<span class="dica">Modelo, estilo, tamanho, referência ou dúvida.</span></label>' +
+      '<textarea id="notas" name="notas" maxlength="400" placeholder="Ex.: noiva com manga, debutante azul, renda, sereia…">' + esc(estado.lead.notas) + '</textarea></div>' +
+      '<label class="mel" aria-hidden="true">Não preencha<input id="mel" name="sobrenome_confirmacao" type="text" tabindex="-1" autocomplete="off"></label>' +
+      '<div class="aceite"><input id="aceite" type="checkbox" required><span>Autorizo a Koisa Linda a usar meu nome e WhatsApp para confirmar e organizar esta prova. <a href="privacidade.html" target="_blank" rel="noopener">Como cuidamos dos seus dados</a>.</span></div>' +
+      '<span class="mini" id="mini-aceite" style="margin:-14px 0 16px;display:none">Precisamos do seu aceite para continuar.</span>' +
+      '<div class="acoes"><button type="submit" class="btn forte" id="ir-dados">Continuar para escolher a prova</button></div>' +
+      '</form>';
+    var pref = document.getElementById('preferencia');
+    if (pref) pref.value = estado.lead.preferencia || '';
+    document.getElementById('telefone').addEventListener('input', mascaraTelefone);
+    document.getElementById('lead-d').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var nome = valor('nome');
+      var tel = document.getElementById('telefone').value.replace(/\D/g, '');
+      var aceite = document.getElementById('aceite').checked;
+      var faltou = false;
+      marcarErro('c-nome', nome.length < 2); if (nome.length < 2) faltou = true;
+      marcarErro('c-tel', tel.length < 10 || tel.length > 11); if (tel.length < 10 || tel.length > 11) faltou = true;
+      document.getElementById('mini-aceite').style.display = aceite ? 'none' : 'block';
+      if (!aceite) faltou = true;
+      if (faltou) return;
+      estado.lead = { nome: nome, telefone: tel, data_evento: valor('evento'), notas: valor('notas'), preferencia: valor('preferencia') };
+      trackSchedule('KL_Schedule_Lead_Form_Submit', { has_event_date: estado.lead.data_evento ? 'yes' : 'no', preference: estado.lead.preferencia || 'none' }, 'leadform:' + tel);
+      ir(2);
+    });
+  }
+
   /* ── passo 1 ─────────────────────────────────────────────────────────────── */
   function passo1() {
-    var titulo = estado.variante === 'b' ? 'Qual prova você quer reservar?' : 'Para quem é a prova?';
-    var sub = estado.variante === 'b'
-      ? 'Primeiro diga a ocasião e a unidade. Depois o site mostra horários reais para você pedir a reserva.'
-      : 'A prova com hora marcada é de noiva e de debutante — são as duas em que a equipe separa os modelos antes e reserva o provador.';
+    var titulo = estado.variante === 'd' ? 'Agora escolha a prova e a unidade' : (estado.variante === 'b' ? 'Qual prova você quer reservar?' : 'Para quem é a prova?');
+    var sub = estado.variante === 'd'
+      ? 'Com seus dados já preenchidos, escolha onde você quer provar. Depois mostramos horários reais para pedir a reserva.'
+      : (estado.variante === 'b'
+        ? 'Primeiro diga a ocasião e a unidade. Depois o site mostra horários reais para você pedir a reserva.'
+        : 'A prova com hora marcada é de noiva e de debutante — são as duas em que a equipe separa os modelos antes e reserva o provador.');
     var html = '<h2>' + titulo + '</h2>' +
       '<p class="sub">' + sub + '</p>' +
-      '<div class="ab-plan" aria-label="Como funciona"><span>1 · escolha ocasião e loja</span><span>2 · veja horários reais</span><span>3 · receba confirmação no WhatsApp</span></div>' +
+      '<div class="ab-plan" aria-label="Como funciona">' + (estado.variante === 'd' ? '<span>1 · seus dados</span><span>2 · escolha a prova</span><span>3 · peça o horário</span>' : '<span>1 · escolha ocasião e loja</span><span>2 · veja horários reais</span><span>3 · receba confirmação no WhatsApp</span>') + '</div>' +
       '<span class="rotulo">Ocasião</span><div class="escolhas">';
     Object.keys(OCASIOES).forEach(function (k) {
       html += '<button type="button" class="escolha" data-campo="ocasiao" data-valor="' + k + '" ' +
@@ -229,7 +292,7 @@
       });
     });
     var ir2 = document.getElementById('ir2');
-    if (ir2) ir2.addEventListener('click', function () { trackSchedule('KL_Schedule_Start', {}, 'start:' + estado.ocasiao + ':' + estado.loja); ir(2); });
+    if (ir2) ir2.addEventListener('click', function () { trackSchedule('KL_Schedule_Start', {}, 'start:' + estado.ocasiao + ':' + estado.loja); ir(estado.variante === 'd' ? 3 : 2); });
   }
 
   /* ── passo 2 ─────────────────────────────────────────────────────────────── */
@@ -274,7 +337,7 @@
     html += '</div><div id="horarios"></div>' +
       '<div class="acoes">' +
       '<button type="button" class="btn leve" id="voltar1">Voltar</button>' +
-      '<button type="button" class="btn forte" id="ir3"' + (estado.hora ? '' : ' disabled') + '>Continuar</button>' +
+      '<button type="button" class="btn forte" id="ir3"' + (estado.hora ? '' : ' disabled') + '>' + (estado.variante === 'd' ? 'Pedir este horário' : 'Continuar') + '</button>' +
       '</div>';
     cartao.innerHTML = html;
 
@@ -285,9 +348,9 @@
         desenharDias();
       });
     });
-    document.getElementById('voltar1').addEventListener('click', function () { ir(1); });
+    document.getElementById('voltar1').addEventListener('click', function () { ir(estado.variante === 'd' ? 2 : 1); });
     var ir3 = document.getElementById('ir3');
-    ir3.addEventListener('click', function () { if (estado.hora) ir(3); });
+    ir3.addEventListener('click', function () { if (!estado.hora) return; if (estado.variante === 'd') return enviarLeadD(); ir(3); });
 
     if (estado.data) desenharHoras();
   }
@@ -398,6 +461,59 @@
     if (c) c.className = 'campo' + (tem ? ' erro' : '');
   }
 
+  function payloadPedido(nome, tel, dataEvento, notas, extras) {
+    extras = extras || {};
+    return {
+      nome: nome,
+      telefone: tel,
+      loja: estado.loja,
+      ocasiao: estado.ocasiao,
+      data: estado.data,
+      hora: estado.hora,
+      data_evento: dataEvento || '',
+      notas: notas || '',
+      consentimento: true,
+      aberto_em: estado.abertoEm,
+      origem: origem(),
+      experimento_agendamento: nomeVariante(),
+      variante_agendamento: estado.variante || 'a',
+      preferencia_atendimento: extras.preferencia || '',
+      formulario_primeiro: estado.variante === 'd',
+      sobrenome_confirmacao: extras.honeypot || '',
+    };
+  }
+
+  function enviarPayload(payload, botao, nomeFallback) {
+    estado.enviando = true;
+    if (botao) { botao.disabled = true; botao.textContent = 'Enviando…'; }
+    trackSchedule('KL_Schedule_Request_Submit', { selected_day: estado.data, selected_time: estado.hora, form_first: estado.variante === 'd' ? 'yes' : 'no' });
+    fetch(API + '/pedido', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then(function (r) { return r.json().then(function (d) { return { status: r.status, corpo: d }; }); })
+      .then(function (r) {
+        estado.enviando = false;
+        if (r.corpo && r.corpo.ok === true) { trackSchedule('KL_Schedule_Request_Success', { status: String(r.status) }); return pronto(r.corpo); }
+        if (r.status === 409) { trackSchedule('KL_Schedule_Request_Conflict', { status: String(r.status) }); alerta(r.corpo.mensagem); return ir(estado.variante === 'd' ? 3 : 2); }
+        if (botao) { botao.disabled = false; botao.textContent = estado.variante === 'd' ? 'Pedir este horário' : 'Pedir este horário'; }
+        trackSchedule('KL_Schedule_Request_Error', { status: String(r.status) });
+        alerta((r.corpo && r.corpo.mensagem) || 'Não consegui registrar agora. Tente de novo em instantes.');
+      })
+      .catch(function () {
+        estado.enviando = false;
+        trackSchedule('KL_Schedule_Request_Network_Error', {});
+        falhaNoEnvio(nomeFallback || payload.nome || '');
+      });
+  }
+
+  function enviarLeadD() {
+    if (estado.enviando || !leadValido()) return ir(1);
+    var botao = document.getElementById('ir3');
+    enviarPayload(payloadPedido(estado.lead.nome, estado.lead.telefone, estado.lead.data_evento, estado.lead.notas, { preferencia: estado.lead.preferencia }), botao, estado.lead.nome);
+  }
+
   function enviar(ev) {
     ev.preventDefault();
     if (estado.enviando) return;
@@ -418,47 +534,7 @@
     }
 
     var botao = document.getElementById('enviar');
-    estado.enviando = true;
-    botao.disabled = true;
-    botao.textContent = 'Enviando…';
-
-    trackSchedule('KL_Schedule_Request_Submit', { selected_day: estado.data, selected_time: estado.hora });
-
-    fetch(API + '/pedido', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        nome: nome,
-        telefone: tel,
-        loja: estado.loja,
-        ocasiao: estado.ocasiao,
-        data: estado.data,
-        hora: estado.hora,
-        data_evento: document.getElementById('evento').value || '',
-        notas: document.getElementById('notas').value.trim(),
-        consentimento: true,
-        aberto_em: estado.abertoEm,
-        origem: origem(),
-        experimento_agendamento: nomeVariante(),
-        variante_agendamento: estado.variante || 'a',
-        sobrenome_confirmacao: document.getElementById('mel').value,
-      }),
-    })
-      .then(function (r) { return r.json().then(function (d) { return { status: r.status, corpo: d }; }); })
-      .then(function (r) {
-        estado.enviando = false;
-        if (r.corpo && r.corpo.ok === true) { trackSchedule('KL_Schedule_Request_Success', { status: String(r.status) }); return pronto(r.corpo); }
-        if (r.status === 409) { trackSchedule('KL_Schedule_Request_Conflict', { status: String(r.status) }); alerta(r.corpo.mensagem); return ir(2); }
-        botao.disabled = false;
-        botao.textContent = 'Pedir este horário';
-        trackSchedule('KL_Schedule_Request_Error', { status: String(r.status) });
-        alerta((r.corpo && r.corpo.mensagem) || 'Não consegui registrar agora. Tente de novo em instantes.');
-      })
-      .catch(function () {
-        estado.enviando = false;
-        trackSchedule('KL_Schedule_Request_Network_Error', {});
-        falhaNoEnvio(nome);
-      });
+    enviarPayload(payloadPedido(nome, tel, document.getElementById('evento').value || '', document.getElementById('notas').value.trim(), { honeypot: document.getElementById('mel').value }), botao, nome);
   }
 
   function alerta(msg) {
@@ -508,6 +584,11 @@
   }
 
   function desenhar() {
+    if (estado.variante === 'd') {
+      if (estado.passo === 1) return passoLeadD();
+      if (estado.passo === 2) return passo1();
+      if (estado.passo === 3) return passo2();
+    }
     if (estado.passo === 1) return passo1();
     if (estado.passo === 2) return passo2();
     if (estado.passo === 3) return passo3();
@@ -524,7 +605,7 @@
     var un = (sp.get('un') || sp.get('loja') || '').toLowerCase();
     un = normalizarLoja(un);
     if (LOJAS[un]) estado.loja = un;
-    if (estado.ocasiao && estado.loja) estado.passo = 2;
+    if (estado.ocasiao && estado.loja && estado.variante !== 'd') estado.passo = 2;
   }
 
   pularOQueJaSeSabe();
