@@ -407,17 +407,27 @@
     document.body.appendChild(box);
 
     var shown = false;
+    function revealAfterPx() {
+      var hero = document.querySelector('.hero');
+      var header = document.querySelector('header');
+      var headerH = header ? header.getBoundingClientRect().height : 0;
+      // Na home mobile a primeira dobra já tem CTA + Lara; sticky só entra
+      // depois que a cliente sai do hero para não empilhar três CTAs.
+      if (context.page === 'index' || context.page === 'home') {
+        return hero ? Math.max(360, hero.offsetHeight - headerH - 24) : 520;
+      }
+      return 140;
+    }
     function updateVisibility() {
       var y = root.scrollY || 0;
-      if (!shown && y > 140) {
+      if (!shown && y > revealAfterPx()) {
         box.classList.add('is-on');
         shown = true;
       }
     }
     root.addEventListener('scroll', updateVisibility, { passive: true });
     root.setTimeout(function () {
-      box.classList.add('is-on');
-      shown = true;
+      updateVisibility();
     }, 1400);
     close.onclick = function () {
       box.classList.remove('is-on');
