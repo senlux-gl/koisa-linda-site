@@ -44,6 +44,7 @@
     dias: [],
     abertoEm: Date.now(),
     enviando: false,
+    variante: '',
   };
 
   var cartao = document.getElementById('cartao');
@@ -77,6 +78,79 @@
       else o = sessionStorage.getItem('kl_origem') || 'direto';
       return campanha ? o + ':' + campanha : o;
     } catch (e) { return 'direto'; }
+  }
+
+  function varianteDaVisita() {
+    try {
+      var sp = new URLSearchParams(location.search);
+      var v = (sp.get('variant') || sp.get('ab') || '').toLowerCase();
+      if (v === '1') v = 'a';
+      if (v === '2') v = 'b';
+      if (v !== 'a' && v !== 'b') v = sessionStorage.getItem('kl_schedule_variant') || '';
+      if (v !== 'a' && v !== 'b') {
+        var key = String(navigator.userAgent || '') + '|' + String(screen.width || '') + '|' + String(new Date().getDate());
+        var sum = 0;
+        for (var i = 0; i < key.length; i++) sum = (sum + key.charCodeAt(i)) % 997;
+        v = sum % 2 ? 'b' : 'a';
+      }
+      sessionStorage.setItem('kl_schedule_variant', v);
+      return v;
+    } catch (e) { return 'a'; }
+  }
+
+  function normalizarLoja(loja) {
+    if (loja === 'sf' || loja === 'niteroi' || loja === 'sao-francisco') return 'saofrancisco';
+    return loja;
+  }
+
+  function nomeVariante() {
+    return estado.variante === 'b' ? 'horarios_disponiveis' : 'agendar_prova';
+  }
+
+  function trackSchedule(nome, extra, onceKey) {
+    extra = extra || {};
+    var params = {
+      schedule_variant: nomeVariante(),
+      variant: estado.variante || 'a',
+      loja: estado.loja || undefined,
+      store: estado.loja || undefined,
+      ocasiao: estado.ocasiao || undefined,
+      step: String(estado.passo || 1),
+      page_path: location.pathname || '/agendar.html'
+    };
+    Object.keys(extra).forEach(function (k) { if (extra[k] !== undefined && extra[k] !== '') params[k] = extra[k]; });
+    try {
+      var key = onceKey ? nome + ':' + onceKey : '';
+      window.__klScheduleSent = window.__klScheduleSent || {};
+      if (key && window.__klScheduleSent[key]) return;
+      if (key) window.__klScheduleSent[key] = true;
+      window.__klScheduleEvents = window.__klScheduleEvents || [];
+      window.__klScheduleEvents.push({ name: nome, params: params, ts: Date.now() });
+      if (typeof window.gtag === 'function') window.gtag('event', nome, params);
+      if (typeof window.fbq === 'function') window.fbq('trackCustom', nome, params);
+    } catch (e) {}
+  }
+
+  function aplicarCopyVariante() {
+    var eyebrow = document.getElementById('scheduleEyebrow');
+    var title = document.getElementById('scheduleTitle');
+    var desc = document.getElementById('scheduleDesc');
+    if (!title || !desc) return;
+    if (estado.variante === 'b') {
+      if (eyebrow) eyebrow.textContent = 'Horários disponíveis por unidade';
+      title.textContent = 'Veja o melhor horário para sua prova';
+      desc.textContent = 'Escolha Barra ou São Francisco, veja dias disponíveis e peça a reserva pelo site. A equipe confirma tudo pelo WhatsApp da unidade.';
+    } else {
+      if (eyebrow) eyebrow.textContent = 'Prova com hora marcada';
+      title.textContent = 'Escolha o seu horário';
+      desc.textContent = 'Noiva e debutante são atendidas com hora marcada: a equipe separa os modelos antes de você chegar e o provador fica reservado para você.';
+    }
+    document.body.setAttribute('data-schedule-variant', estado.variante || 'a');
+  }
+
+  function textoUnidade(k) {
+    if (k === 'saofrancisco') return '<div class="unit-proof"><b>São Francisco · Niterói</b><span>Agenda com alta demanda para noivas e debutantes. Seu horário fica reservado; pode haver pequeno tempo de espera porque cada prova recebe atenção individual.</span></div>';
+    return '<div class="unit-proof"><b>Barra da Tijuca · Downtown</b><span>Prova no Shopping Downtown, com acesso fácil ao catálogo da Barra e rota direta para a equipe da unidade.</span></div>';
   }
 
   function marcarTrilha() {
@@ -119,8 +193,13 @@
 
   /* ── passo 1 ─────────────────────────────────────────────────────────────── */
   function passo1() {
-    var html = '<h2>Para quem é a prova?</h2>' +
-      '<p class="sub">A prova com hora marcada é de noiva e de debutante — são as duas em que a equipe separa os modelos antes e reserva o provador.</p>' +
+    var titulo = estado.variante === 'b' ? 'Qual prova você quer reservar?' : 'Para quem é a prova?';
+    var sub = estado.variante === 'b'
+      ? 'Primeiro diga a ocasião e a unidade. Depois o site mostra horários reais para você pedir a reserva.'
+      : 'A prova com hora marcada é de noiva e de debutante — são as duas em que a equipe separa os modelos antes e reserva o provador.';
+    var html = '<h2>' + titulo + '</h2>' +
+      '<p class="sub">' + sub + '</p>' +
+      '<div class="ab-plan" aria-label="Como funciona"><span>1 · escolha ocasião e loja</span><span>2 · veja horários reais</span><span>3 · receba confirmação no WhatsApp</span></div>' +
       '<span class="rotulo">Ocasião</span><div class="escolhas">';
     Object.keys(OCASIOES).forEach(function (k) {
       html += '<button type="button" class="escolha" data-campo="ocasiao" data-valor="' + k + '" ' +
@@ -133,11 +212,11 @@
         'aria-pressed="' + (estado.loja === k ? 'true' : 'false') + '">' +
         LOJAS[k].nome + '<small>' + LOJAS[k].detalhe + '</small></button>';
     });
-    html += '</div>' +
+    html += '</div><div class="unit-proofs">' + textoUnidade('saofrancisco') + textoUnidade('barra') + '</div>' +
       '<div class="aviso">É <b>madrinha, convidada, formanda, mãe da noiva ou terno</b>? Não precisa marcar horário: ' +
       '<a href="#sem-hora-marcada">é só chegar na loja</a> dentro do horário de funcionamento.</div>' +
       '<div class="acoes"><button type="button" class="btn forte" id="ir2"' +
-      (estado.ocasiao && estado.loja ? '' : ' disabled') + '>Ver horários</button></div>';
+      (estado.ocasiao && estado.loja ? '' : ' disabled') + '>' + (estado.variante === 'b' ? 'Ver horários disponíveis' : 'Ver horários') + '</button></div>';
     cartao.innerHTML = html;
 
     cartao.querySelectorAll('.escolha').forEach(function (b) {
@@ -145,17 +224,18 @@
         var campo = b.getAttribute('data-campo');
         estado[campo] = b.getAttribute('data-valor');
         estado.data = ''; estado.hora = '';   // trocar de loja muda a agenda
+        trackSchedule(campo === 'loja' ? 'KL_Schedule_Unit_Select' : 'KL_Schedule_Occasion_Select', { field: campo, value: estado[campo] });
         passo1();
       });
     });
     var ir2 = document.getElementById('ir2');
-    if (ir2) ir2.addEventListener('click', function () { ir(2); });
+    if (ir2) ir2.addEventListener('click', function () { trackSchedule('KL_Schedule_Start', {}, 'start:' + estado.ocasiao + ':' + estado.loja); ir(2); });
   }
 
   /* ── passo 2 ─────────────────────────────────────────────────────────────── */
   function passo2() {
     cartao.innerHTML = '<h2>Quando fica bom para você?</h2>' + resumo() +
-      '<p class="sub" id="carregando">Consultando a agenda da loja…</p>';
+      '<p class="sub" id="carregando">Consultando a agenda de ' + esc(LOJAS[estado.loja].nome) + '…</p>';
     buscarHorarios();
   }
 
@@ -171,6 +251,7 @@
         clearTimeout(expirou);
         if (!d || d.ok !== true || !Array.isArray(d.dias) || !d.dias.length) return desenharAgendaVazia();
         estado.dias = d.dias;
+        trackSchedule('KL_Schedule_Slots_Loaded', { days_count: String(d.dias.length) }, 'slots:' + estado.loja + ':' + estado.ocasiao);
         // Já abre com o primeiro dia escolhido: a tela mostra horário de verdade
         // logo de cara, em vez de um calendário mudo e um botão apagado.
         if (!estado.data) estado.data = d.dias[0].data;
@@ -232,6 +313,7 @@
     alvo.querySelectorAll('.hora').forEach(function (b) {
       b.addEventListener('click', function () {
         estado.hora = b.getAttribute('data-hora');
+        trackSchedule('KL_Schedule_Time_Select', { selected_day: estado.data, period: estado.hora < '12:00' ? 'manha' : 'tarde' });
         desenharDias();
         var seguir = document.getElementById('ir3');
         if (seguir) seguir.focus({ preventScroll: true });
@@ -240,6 +322,7 @@
   }
 
   function desenharAgendaVazia() {
+    trackSchedule('KL_Schedule_Slots_Empty', {}, 'empty:' + estado.loja + ':' + estado.ocasiao);
     cartao.innerHTML = '<h2>Sem horário livre por aqui</h2>' + resumo() +
       '<p class="vazio">A agenda das próximas três semanas nesta unidade está cheia. A equipe consegue encaixar você — chame no WhatsApp que elas veem a primeira data possível.</p>' +
       '<div class="acoes"><button type="button" class="btn leve" id="voltar1">Trocar de unidade</button>' +
@@ -250,6 +333,7 @@
   }
 
   function desenharFalhaAgenda() {
+    trackSchedule('KL_Schedule_Slots_Error', {}, 'error:' + estado.loja + ':' + estado.ocasiao);
     cartao.innerHTML = '<h2>Não consegui abrir a agenda</h2>' + resumo() +
       '<p class="vazio">A agenda não respondeu agora. Isso é problema nosso, não seu — e a loja marca com você pelo WhatsApp na mesma hora.</p>' +
       '<div class="acoes"><button type="button" class="btn leve" id="tentar">Tentar de novo</button>' +
@@ -261,6 +345,7 @@
 
   /* ── passo 3 ─────────────────────────────────────────────────────────────── */
   function passo3() {
+    trackSchedule('KL_Schedule_Form_Start', {}, 'form:' + estado.loja + ':' + estado.ocasiao + ':' + estado.data + ':' + estado.hora);
     var ocasiao = OCASIOES[estado.ocasiao];
     var rotuloEvento = estado.ocasiao === 'noiva' ? 'Data do casamento' : 'Data da festa';
 
@@ -337,6 +422,8 @@
     botao.disabled = true;
     botao.textContent = 'Enviando…';
 
+    trackSchedule('KL_Schedule_Request_Submit', { selected_day: estado.data, selected_time: estado.hora });
+
     fetch(API + '/pedido', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -352,20 +439,24 @@
         consentimento: true,
         aberto_em: estado.abertoEm,
         origem: origem(),
+        experimento_agendamento: nomeVariante(),
+        variante_agendamento: estado.variante || 'a',
         sobrenome_confirmacao: document.getElementById('mel').value,
       }),
     })
       .then(function (r) { return r.json().then(function (d) { return { status: r.status, corpo: d }; }); })
       .then(function (r) {
         estado.enviando = false;
-        if (r.corpo && r.corpo.ok === true) return pronto(r.corpo);
-        if (r.status === 409) { alerta(r.corpo.mensagem); return ir(2); }
+        if (r.corpo && r.corpo.ok === true) { trackSchedule('KL_Schedule_Request_Success', { status: String(r.status) }); return pronto(r.corpo); }
+        if (r.status === 409) { trackSchedule('KL_Schedule_Request_Conflict', { status: String(r.status) }); alerta(r.corpo.mensagem); return ir(2); }
         botao.disabled = false;
         botao.textContent = 'Pedir este horário';
+        trackSchedule('KL_Schedule_Request_Error', { status: String(r.status) });
         alerta((r.corpo && r.corpo.mensagem) || 'Não consegui registrar agora. Tente de novo em instantes.');
       })
       .catch(function () {
         estado.enviando = false;
+        trackSchedule('KL_Schedule_Request_Network_Error', {});
         falhaNoEnvio(nome);
       });
   }
@@ -425,16 +516,19 @@
   /* A cliente pode chegar de um anúncio ou de uma página de vertical já com a
    * ocasião e a loja decididas — nesse caso ela cai direto no calendário. */
   function pularOQueJaSeSabe() {
+    estado.variante = varianteDaVisita();
+    aplicarCopyVariante();
     var sp = new URLSearchParams(location.search);
     var oc = (sp.get('ocasiao') || sp.get('oc') || '').toLowerCase();
     if (OCASIOES[oc]) estado.ocasiao = oc;
     var un = (sp.get('un') || sp.get('loja') || '').toLowerCase();
-    if (un === 'sf') un = 'saofrancisco';
+    un = normalizarLoja(un);
     if (LOJAS[un]) estado.loja = un;
     if (estado.ocasiao && estado.loja) estado.passo = 2;
   }
 
   pularOQueJaSeSabe();
+  trackSchedule('KL_Schedule_Experiment_View', { url_has_store: estado.loja ? 'yes' : 'no', url_has_occasion: estado.ocasiao ? 'yes' : 'no' }, 'view:' + location.href);
   desenhar();
   marcarTrilha();
 })();

@@ -119,6 +119,17 @@ footer .fverse cite{display:block;font-family:var(--sans);font-style:normal;font
 .livre .loja p{font-size:15.5px;margin:0 0 4px;text-align:left;max-width:none;color:#6b5c57}
 .livre .loja a{display:inline-flex;align-items:center;min-height:44px;margin-top:7px;font-family:var(--sans);font-size:11.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--ruby);border-bottom:1px solid var(--baunilha)}
 
+
+.ab-plan{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 22px}
+.ab-plan span{background:var(--cream);border:1px solid var(--line);border-radius:999px;padding:9px 12px;font-family:var(--sans);font-size:10.5px;letter-spacing:1.1px;text-transform:uppercase;color:#6b5c57;text-align:center}
+.unit-proofs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 18px}
+.unit-proof{background:#fffaf1;border:1px solid var(--baunilha);border-radius:12px;padding:14px 15px}
+.unit-proof b{display:block;font-family:var(--serif);font-weight:400;font-style:italic;color:var(--ruby);font-size:18px;margin-bottom:3px}
+.unit-proof span{display:block;font-size:14.5px;color:#6b5c57;line-height:1.45}
+body[data-schedule-variant="b"] .cartao{box-shadow:0 18px 48px rgba(90,36,43,.08)}
+body[data-schedule-variant="b"] .btn.forte{letter-spacing:1.5px}
+@media(max-width:760px){.ab-plan,.unit-proofs{grid-template-columns:1fr}.ab-plan span{text-align:left}}
+
 @media(max-width:760px){
   .wm{display:none}.menu{gap:14px;font-size:12px}.menu a:nth-child(n+3){display:none}
   .topo{padding:38px 20px 6px}.topo p{font-size:17.5px}
@@ -138,9 +149,9 @@ footer .fverse cite{display:block;font-family:var(--sans);font-style:normal;font
 </div></header>
 
 <section class="topo">
-  <div class="eyebrow">Prova com hora marcada</div>
-  <h1>Escolha o seu horário</h1>
-  <p>Noiva e debutante são atendidas com hora marcada: a equipe separa os modelos antes de você chegar e o provador fica reservado para você.</p>
+  <div class="eyebrow" id="scheduleEyebrow">Prova com hora marcada</div>
+  <h1 id="scheduleTitle">Escolha o seu horário</h1>
+  <p id="scheduleDesc">Noiva e debutante são atendidas com hora marcada: a equipe separa os modelos antes de você chegar e o provador fica reservado para você.</p>
 </section>
 
 <div class="trilha" id="trilha">
@@ -178,5 +189,5 @@ footer .fverse cite{display:block;font-family:var(--sans);font-style:normal;font
 <footer><div class="fverse">“Os teus renovos são um pomar de romãs, com frutos excelentes.”<cite>Cânticos 4:13</cite></div>KOISA LINDA · Costuramos sonhos desde 1994</footer>
 
 <script defer src="kl-tracking.js?v=20260819origem"></script>
-<script src="kl-agendar.js?v=20260820b"></script>
+<script src="kl-agendar.js?v=20260827ab"></script>
 </body></html>
