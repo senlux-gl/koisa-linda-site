@@ -636,15 +636,24 @@
 
   function pronto(corpo) {
     var loja = LOJAS[estado.loja];
+    var status = String(corpo.status || '').toLowerCase();
+    var quando = corpo.quando || (function () {
+      var dia = estado.dias.filter(function (d) { return d.data === estado.data; })[0];
+      return dia ? dia.rotulo + ', ' + estado.hora.replace(':', 'h') : estado.data + ' ' + estado.hora;
+    })();
+    var textoDuvida = status === 'confirmed'
+      ? 'Olá! Acabei de confirmar uma prova pelo site da Koisa Linda para ' + quando + ' na unidade ' + loja.nome + '. Tenho uma dúvida antes de ir.'
+      : 'Olá! Acabei de pedir um horário de prova pelo site da Koisa Linda para ' + quando + ' na unidade ' + loja.nome + '. Tenho uma dúvida sobre o agendamento.';
     cartao.innerHTML = '<div class="pronto">' +
       '<div class="selo"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>' +
       '<h2>' + esc(corpo.titulo || 'Pedido enviado para a loja') + '</h2>' +
-      '<p class="quando">' + esc(corpo.quando || '') + '</p>' +
+      '<p class="quando">' + esc(quando || '') + '</p>' +
       '<p>' + esc(corpo.mensagem || '') + '</p>' +
-      '<p>Fique de olho no WhatsApp <b>' + esc(loja.nome) + '</b>: é por lá que a equipe confirma.</p>' +
+      '<p>Fique de olho no WhatsApp <b>' + esc(loja.nome) + '</b>: é por lá que a equipe confirma e tira qualquer dúvida antes da prova.</p>' +
       '<div class="acoes" style="justify-content:center">' +
       '<a class="btn forte" href="catalogo.html?cat=' +
-      (estado.ocasiao === 'noiva' ? 'vestidos-noiva' : 'vestidos-debutante') + '">Ver o catálogo</a></div>' +
+      (estado.ocasiao === 'noiva' ? 'vestidos-noiva' : 'vestidos-debutante') + '">Ver o catálogo</a>' +
+      '<a class="btn" target="_blank" rel="noopener" href="' + linkWhats(textoDuvida) + '">Tirar dúvidas pelo WhatsApp</a></div>' +
       '</div>';
     estado.passo = 4;
     marcarTrilha();
