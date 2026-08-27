@@ -36,6 +36,21 @@
     return unit === 'barra' || unit === 'sf' ? href + '&un=' + unit : href;
   }
 
+  function scheduleOccasionFromCategory(category) {
+    category = String(category || '').toLowerCase();
+    if (category === 'vestidos-noiva') return 'noiva';
+    if (category === 'vestidos-debutante') return 'debutante';
+    return '';
+  }
+
+  function scheduleHrefFromOccasion(occasion, unit, source, product) {
+    var href = 'agendar.html?ocasiao=' + encodeURIComponent(occasion) + '&ab=auto';
+    if (unit === 'barra' || unit === 'sf') href += '&un=' + unit;
+    if (source) href += '&utm_content=' + encodeURIComponent(source);
+    if (product && product.k) href += '&modelo=' + encodeURIComponent(String(product.k).trim().slice(0, 24));
+    return href;
+  }
+
   // Páginas de visita livre: existem no CAMPAIGN_UNITS (o WhatsApp continua sendo
   // o destino), mas o convite é outro.
   var VISITA_LIVRE = Object.freeze({ madrinhas: true, ternos: true });
@@ -82,6 +97,27 @@
     var page = String(context.page || 'index').toLowerCase();
     if (PAGINAS_COM_AGENDA[page]) {
       return [{ href: agendaHref(page, context.unit), label: 'Escolher horário' }];
+    }
+    if (page === 'catalogo') {
+      var occasion = scheduleOccasionFromCategory(context.category);
+      if (occasion) {
+        return [{
+          href: scheduleHrefFromOccasion(occasion, context.unit, 'catalog_sticky_' + occasion, context.openProduct),
+          label: context.unit === 'barra' || context.unit === 'sf' ? 'Ver horários' : 'Agendar prova',
+          kind: 'schedule',
+        }];
+      }
+    }
+    if (page === 'peca' || page === 'provar') {
+      var productOccasion = scheduleOccasionFromCategory(context.product && context.product.c);
+      var productUnit = context.unit || unitOf(context.product);
+      if (productOccasion) {
+        return [{
+          href: scheduleHrefFromOccasion(productOccasion, productUnit, page + '_sticky_' + productOccasion, context.product),
+          label: productUnit ? 'Ver horários' : 'Agendar prova',
+          kind: 'schedule',
+        }];
+      }
     }
     if (CAMPAIGN_UNITS[page]) {
       return ['sf', 'barra'].map(function (unit) {
@@ -171,9 +207,11 @@
        sabe a loja, e sem isso madrinhas.html joga a cliente da Barra no WhatsApp
        de São Francisco (CAMPAIGN_UNITS.madrinhas = 'sf'). */
     var unit = queryValue(root, 'un');
+    var category = queryValue(root, 'cat');
     return {
       page: page,
       unit: unit === 'barra' || unit === 'sf' ? unit : null,
+      category: category || null,
       product: productFromRuntime(root, page),
     };
   }
@@ -205,7 +243,7 @@
     // O rótulo segue a ocasião da página: em madrinha e terno, dizer "agende
     // sua prova" contradiz a própria faixa logo acima, que diz que não precisa
     // marcar. Visita livre convida a passar na loja, não a agendar.
-    label.textContent = VISITA_LIVRE[context.page] ? 'Venha quando quiser' : 'Agende sua prova';
+    label.textContent = VISITA_LIVRE[context.page] ? 'Venha quando quiser' : 'Facilite sua prova';
     var catalog = document.createElement('a');
     catalog.className = 'kl-sticky-cat';
     catalog.href = catalogLink(context.page);
@@ -220,6 +258,9 @@
     function updateDestination(patch) {
       context = Object.assign({}, context, patch || {});
       var resolved = resolveStickyTargets(context, CONTACTS);
+      label.textContent = resolved.some(function (target) { return target.kind === 'schedule'; })
+        ? 'Facilite sua prova'
+        : (VISITA_LIVRE[context.page] ? 'Venha quando quiser' : 'Agende sua prova');
       // com duas lojas o "Ver catalogo" nao cabe na barra em 375px; e o rotulo
       // volta a aparecer no celular, senao ficam dois nomes de cidade sem contexto
       catalog.style.display = resolved.length > 1 ? 'none' : '';
@@ -289,7 +330,12 @@
     document.addEventListener('kl:catalog-state', function (event) {
       if (context.page !== 'catalogo') return;
       var detail = event.detail || {};
-      updateDestination({ unit: detail.unit, status: detail.status });
+      updateDestination({
+        unit: detail.unit,
+        status: detail.status,
+        category: detail.category,
+        openProduct: detail.openProduct,
+      });
     });
   }
 

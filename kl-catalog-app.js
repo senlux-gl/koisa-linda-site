@@ -1060,6 +1060,7 @@
       detail: {
         status: resolvedStatus,
         unit: state && state.unit || null,
+        category: state && state.category || null,
         openProduct: state && state.openProduct || null,
         resultCount: currentDerived ? currentDerived.products.length : 0,
       },
