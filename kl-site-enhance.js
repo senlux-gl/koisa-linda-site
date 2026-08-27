@@ -95,6 +95,13 @@
     context = context || {};
     contacts = contacts || CONTACTS;
     var page = String(context.page || 'index').toLowerCase();
+    if (page === 'index' || page === 'home') {
+      return [{
+        href: 'agendar.html?ab=auto&utm_content=home_sticky_schedule',
+        label: 'Ver horários',
+        kind: 'schedule',
+      }];
+    }
     if (PAGINAS_COM_AGENDA[page]) {
       return [{ href: agendaHref(page, context.unit), label: 'Escolher horário' }];
     }
@@ -260,10 +267,11 @@
       var resolved = resolveStickyTargets(context, CONTACTS);
       label.textContent = resolved.some(function (target) { return target.kind === 'schedule'; })
         ? 'Facilite sua prova'
-        : (VISITA_LIVRE[context.page] ? 'Venha quando quiser' : 'Agende sua prova');
+        : (context.page === 'catalogo' ? 'Fale com a loja' : (VISITA_LIVRE[context.page] ? 'Venha quando quiser' : 'Agende sua prova'));
       // com duas lojas o "Ver catalogo" nao cabe na barra em 375px; e o rotulo
       // volta a aparecer no celular, senao ficam dois nomes de cidade sem contexto
-      catalog.style.display = resolved.length > 1 ? 'none' : '';
+      var isSchedule = resolved.some(function (target) { return target.kind === 'schedule'; });
+      catalog.style.display = (context.page === 'catalogo' || (context.page === 'index' && isSchedule) || resolved.length > 1) ? 'none' : '';
       box.classList.toggle('kl-sticky-multi', resolved.length > 1);
       while (destinations.length > resolved.length) {
         var extra = destinations.pop();
