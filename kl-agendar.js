@@ -88,7 +88,9 @@
   function varianteDaVisita() {
     try {
       var sp = new URLSearchParams(location.search);
+      var fluxo = (sp.get('fluxo') || sp.get('flow') || '').toLowerCase();
       var v = (sp.get('variant') || sp.get('ab') || '').toLowerCase();
+      if (fluxo === 'formulario' || fluxo === 'formulário' || fluxo === 'dados') v = 'd';
       if (v === '1') v = 'a';
       if (v === '2') v = 'b';
       if (v !== 'a' && v !== 'b' && v !== 'd') v = sessionStorage.getItem('kl_schedule_variant') || '';
@@ -208,9 +210,9 @@
     var desc = document.getElementById('scheduleDesc');
     if (!title || !desc) return;
     if (estado.variante === 'd') {
-      if (eyebrow) eyebrow.textContent = 'Pré-agendamento qualificado';
-      title.textContent = 'Deixe seus dados para sua prova';
-      desc.textContent = 'Preencha uma vez. Depois escolha a unidade e o melhor horário — a equipe recebe tudo organizado para confirmar pelo WhatsApp.';
+      if (eyebrow) eyebrow.textContent = 'Pré-agendamento com cuidado';
+      title.textContent = 'Sua história chega antes de você.';
+      desc.textContent = 'Conte seu momento, escolha a unidade e o melhor horário. A equipe recebe suas informações antes da prova para preparar cada detalhe com cuidado.';
     } else if (estado.variante === 'b') {
       if (eyebrow) eyebrow.textContent = 'Horários disponíveis por unidade';
       title.textContent = 'Veja o melhor horário para sua prova';
@@ -279,8 +281,9 @@
   }
 
   function passoLeadD() {
-    cartao.innerHTML = '<h2>Primeiro, quem a loja vai atender?</h2>' +
-      '<p class="sub">Esse formulário deixa o lead mais qualificado antes de abrir a agenda. A loja já recebe nome, WhatsApp, data do evento e o que a cliente procura.</p>' +
+    trackSchedule('KL_Lead_Form_Start', { source_detail: 'formulario_primeiro' }, 'leadstart:' + nomeVariante());
+    cartao.innerHTML = '<h2>Antes da prova, queremos conhecer seu momento</h2>' +
+      '<p class="sub">Não é burocracia. É para que sua experiência comece com a loja já sabendo sua ocasião, sua data e o que você procura.</p>' +
       '<form id="lead-d" novalidate>' +
       '<div class="campo" id="c-nome"><label for="nome">Seu nome</label>' +
       '<input id="nome" name="nome" type="text" autocomplete="name" maxlength="80" required value="' + esc(estado.lead.nome) + '">' +
@@ -298,7 +301,7 @@
       '<label class="mel" aria-hidden="true">Não preencha<input id="mel" name="sobrenome_confirmacao" type="text" tabindex="-1" autocomplete="off"></label>' +
       '<div class="aceite"><input id="aceite" type="checkbox" required><span>Autorizo a Koisa Linda a usar meu nome e WhatsApp para confirmar e organizar esta prova. <a href="privacidade.html" target="_blank" rel="noopener">Como cuidamos dos seus dados</a>.</span></div>' +
       '<span class="mini" id="mini-aceite" style="margin:-14px 0 16px;display:none">Precisamos do seu aceite para continuar.</span>' +
-      '<div class="acoes"><button type="submit" class="btn forte" id="ir-dados">Continuar para escolher a prova</button></div>' +
+      '<div class="acoes"><button type="submit" class="btn forte" id="ir-dados">Contar meu momento e escolher horário</button></div>' +
       '</form>';
     var pref = document.getElementById('preferencia');
     if (pref) pref.value = estado.lead.preferencia || '';
