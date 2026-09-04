@@ -118,12 +118,15 @@
     try { return new URLSearchParams(location.search).get(nome) || ''; } catch (e) { return ''; }
   }
 
+  /* O cadastro com a origem da visita. Ele nasceu preso à variante D e, por
+   * isso, `site_leads` ficava vazia justamente no fluxo que todo o tráfego pago
+   * usa — a porta parecia morta mesmo quando agendava. Vale para as duas. */
   function leadPayloadD(stage) {
     return {
       schema_version: '2026-08-27.site_lead.v1',
       source: 'site',
-      source_detail: 'agendamento_formulario_d',
-      variant: estado.variante || 'd',
+      source_detail: estado.variante === 'd' ? 'agendamento_formulario_d' : 'agendamento_agenda_primeiro',
+      variant: estado.variante || 'a',
       stage: stage || 'lead_form_completed',
       nome: estado.lead.nome || '',
       telefone: estado.lead.telefone || '',
@@ -158,8 +161,8 @@
     };
   }
 
-  function salvarLeadParcialD() {
-    if (estado.variante !== 'd' || !leadValido()) return Promise.resolve(null);
+  function registrarLeadDoSite() {
+    if (!leadValido()) return Promise.resolve(null);
     if (estado.lead_id && estado.leadSalvo) return Promise.resolve({ lead_id: estado.lead_id, cached: true });
     trackSchedule('KL_Lead_Form_Submit', { has_event_date: estado.lead.data_evento ? 'yes' : 'no', preference: estado.lead.preferencia || 'none' }, 'leadsubmit:' + estado.lead.telefone);
     return fetch(API + '/lead', {
@@ -322,7 +325,7 @@
       estado.leadSalvo = false;
       var btn = document.getElementById('ir-dados');
       if (btn) { btn.disabled = true; btn.textContent = 'Salvando…'; }
-      salvarLeadParcialD().then(function () { ir(2); });
+      registrarLeadDoSite().then(function () { ir(2); });
     });
   }
 
@@ -683,8 +686,20 @@
       return;
     }
 
+    var dataEvento = document.getElementById('evento').value || '';
+    var notas = document.getElementById('notas').value.trim();
+    var honeypot = document.getElementById('mel').value;
     var botao = document.getElementById('enviar');
-    enviarPayload(payloadPedido(nome, tel, document.getElementById('evento').value || '', document.getElementById('notas').value.trim(), { honeypot: document.getElementById('mel').value }), botao, nome);
+
+    // Grava o cadastro com utm/fbclid/gclid antes do pedido, para o agendamento
+    // poder ser ligado ao anúncio que o pagou. O pedido é o que importa: se o
+    // cadastro falhar ou demorar, ele sai assim mesmo.
+    estado.lead = { nome: nome, telefone: tel, data_evento: dataEvento, notas: notas, preferencia: '' };
+    if (botao) { botao.disabled = true; botao.textContent = 'Enviando…'; }
+    var semEsperarDemais = new Promise(function (pronto) { setTimeout(function () { pronto(null); }, 3000); });
+    Promise.race([registrarLeadDoSite(), semEsperarDemais]).then(function () {
+      enviarPayload(payloadPedido(nome, tel, dataEvento, notas, { honeypot: honeypot }), botao, nome);
+    });
   }
 
   function alerta(msg) {
