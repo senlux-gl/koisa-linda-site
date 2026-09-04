@@ -237,6 +237,7 @@
       barras[i].className = 'p' + (n < estado.passo ? ' feito' : n === estado.passo ? ' agora' : '');
     }
     rotuloPasso.textContent = (estado.variante === 'd' ? ROTULOS_D : ROTULOS)[Math.min(estado.passo, 4)];
+    document.body.setAttribute('data-passo', String(estado.passo));
     trilha.style.display = estado.passo > 3 ? 'none' : '';
     rotuloPasso.style.display = estado.passo > 3 ? 'none' : '';
   }
@@ -336,13 +337,13 @@
     var html = '<h2>' + titulo + '</h2>' +
       '<p class="sub">' + sub + '</p>' +
       '<div class="ab-plan" aria-label="Como funciona">' + (estado.variante === 'd' ? '<span>1 · seus dados</span><span>2 · escolha a prova</span><span>3 · peça o horário</span>' : '<span>1 · escolha ocasião e loja</span><span>2 · veja horários reais</span><span>3 · receba confirmação no WhatsApp</span>') + '</div>' +
-      '<span class="rotulo">Ocasião</span><div class="escolhas">';
+      '<div class="grupos"><div class="grupo"><span class="rotulo">Ocasião</span><div class="escolhas">';
     Object.keys(OCASIOES).forEach(function (k) {
       html += '<button type="button" class="escolha" data-campo="ocasiao" data-valor="' + k + '" ' +
         'aria-pressed="' + (estado.ocasiao === k ? 'true' : 'false') + '">' +
         OCASIOES[k].nome + '<small>' + OCASIOES[k].detalhe + '</small></button>';
     });
-    html += '</div><span class="rotulo">Unidade</span><div class="escolhas">';
+    html += '</div></div><div class="grupo"><span class="rotulo">Unidade</span><div class="escolhas">';
     Object.keys(LOJAS).forEach(function (k) {
       html += '<button type="button" class="escolha" data-campo="loja" data-valor="' + k + '" ' +
         'aria-pressed="' + (estado.loja === k ? 'true' : 'false') + '">' +
@@ -351,7 +352,7 @@
     // O aviso de visita livre vem DEPOIS do botão: ele é para quem não se
     // reconheceu nas duas ocasiões acima, e no meio do caminho só empurrava a
     // ação para fora da primeira tela.
-    html += '</div><div class="acoes"><button type="button" class="btn forte" id="ir2"' +
+    html += '</div></div></div><div class="acoes"><button type="button" class="btn forte" id="ir2"' +
       (estado.ocasiao && estado.loja ? '' : ' disabled') + '>' + (estado.variante === 'b' ? 'Ver horários disponíveis' : 'Ver horários') + '</button></div>' +
       '<div class="aviso">É <b>madrinha, convidada, formanda, mãe da noiva ou terno</b>? Não precisa marcar horário: ' +
       '<a href="#sem-hora-marcada">é só chegar na loja</a> dentro do horário de funcionamento.</div>';
@@ -765,9 +766,6 @@
     if (LOJAS[un]) estado.loja = un;
     if (estado.ocasiao && estado.loja && estado.variante !== 'd') {
       estado.passo = 2;
-      // Quem já chega decidida não precisa reler a explicação do topo — ela só
-      // empurra os horários para fora da primeira tela.
-      document.body.setAttribute('data-entrada', 'direta');
     }
   }
 

@@ -16,19 +16,19 @@ footer .fverse{font-family:var(--serif);font-style:italic;font-size:15px;color:r
 footer .fverse cite{display:block;font-family:var(--sans);font-style:normal;font-size:9.5px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-top:8px}
 
 /* ── o topo: diz em uma linha o que esta página faz ───────────────────────── */
-.topo{text-align:center;padding:56px 24px 8px;max-width:760px;margin:0 auto}
+.topo{text-align:center;padding:30px 24px 6px;max-width:760px;margin:0 auto}
 .topo .eyebrow{font-family:var(--sans);font-size:11px;letter-spacing:5px;text-transform:uppercase;color:var(--gold)}
-.topo h1{font-family:var(--serif);font-weight:400;font-style:italic;font-size:clamp(34px,6vw,52px);line-height:1.06;margin:14px 0 12px;color:var(--ruby);text-wrap:balance}
-.topo p{font-size:19px;color:#6b5c57;max-width:46ch;margin:0 auto;line-height:1.6}
+.topo h1{font-family:var(--serif);font-weight:400;font-style:italic;font-size:clamp(30px,4.2vw,42px);line-height:1.08;margin:10px 0 9px;color:var(--ruby);text-wrap:balance}
+.topo p{font-size:17.5px;color:#6b5c57;max-width:46ch;margin:0 auto;line-height:1.5}
 
 /* ── a trilha de passos ───────────────────────────────────────────────────── */
-.trilha{display:flex;gap:8px;justify-content:center;align-items:center;margin:30px auto 0;padding:0 24px;max-width:560px}
+.trilha{display:flex;gap:8px;justify-content:center;align-items:center;margin:18px auto 0;padding:0 24px;max-width:560px}
 .trilha .p{flex:1;height:2px;background:var(--line);position:relative;border-radius:2px}
 .trilha .p.feito,.trilha .p.agora{background:var(--gold)}
 .r{font-family:var(--sans);font-size:10.5px;letter-spacing:2.6px;text-transform:uppercase;color:var(--muted);text-align:center;margin:12px 0 0}
 
 /* ── o cartão onde tudo acontece ──────────────────────────────────────────── */
-.palco{max-width:760px;margin:26px auto 0;padding:0 24px 40px}
+.palco{max-width:880px;margin:16px auto 0;padding:0 24px 40px}
 .cartao{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:34px}
 .cartao h2{font-family:var(--serif);font-style:italic;font-weight:400;font-size:27px;color:var(--ruby);margin:0 0 6px;line-height:1.2}
 .cartao .sub{font-size:16.5px;color:#6b5c57;margin:0 0 22px;line-height:1.55}
@@ -36,6 +36,11 @@ footer .fverse cite{display:block;font-family:var(--sans);font-style:normal;font
 .rotulo:first-of-type{margin-top:0}
 
 /* escolhas grandes: alvo de toque generoso, estado visível sem depender de cor */
+/* No computador ocasião e unidade cabem lado a lado, e é uma linha de escolhas
+   a menos entre a cliente e o botão de ver os horários. */
+.grupos{display:grid;grid-template-columns:1fr 1fr;gap:0 26px}
+.grupos .grupo:first-child .rotulo{margin-top:14px}
+.grupos .grupo:last-child .rotulo{margin-top:14px}
 .escolhas{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .escolha{display:flex;flex-direction:column;gap:3px;text-align:left;border:1px solid var(--line);background:var(--cream);border-radius:12px;padding:16px 18px;min-height:64px;cursor:pointer;font-family:var(--body);font-size:18px;color:var(--ink);transition:.14s}
 .escolha small{font-family:var(--sans);font-size:11.5px;letter-spacing:.6px;color:var(--muted);text-transform:none}
@@ -46,6 +51,11 @@ footer .fverse cite{display:block;font-family:var(--sans);font-style:normal;font
 /* dias: fita horizontal que rola, como um calendário de bolso */
 /* atalhos de dia: o sábado vem para a frente porque é o dia que a prova de noiva
    e debutante procura, e numa fita de 16 dias ele fica escondido no fim */
+/* A explicação do topo serve para quem ainda não escolheu. Do passo 2 em diante
+   ela só empurra a agenda para fora da primeira tela — e quem chega do anúncio
+   já entra no passo 2. */
+body[data-passo]:not([data-passo="1"]) .topo p{display:none}
+body[data-passo]:not([data-passo="1"]) .topo{padding-bottom:0}
 .atalhos{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
 .atalho-lbl{font-family:var(--sans);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
 .atalho{border:1px solid var(--gold);background:#fdf7ec;color:var(--ruby);border-radius:999px;padding:9px 16px;min-height:40px;cursor:pointer;font-family:var(--sans);font-size:12.5px;letter-spacing:.4px}
@@ -146,9 +156,9 @@ body[data-schedule-variant="b"] .btn.forte{letter-spacing:1.5px}
   /* Quem chega do anúncio já vem com ocasião e unidade na URL e cai direto na
      agenda: o parágrafo de explicação vira only ruído empurrando os horários
      para fora da primeira tela. */
-  body[data-entrada="direta"] .topo p{display:none}
-  body[data-entrada="direta"] .topo{padding-bottom:0}
   .escolha{padding:13px 14px;min-height:58px}
+  .grupos{grid-template-columns:1fr;gap:0}
+  .grupos .grupo:last-child .rotulo{margin-top:20px}
   .livre .lojas{grid-template-columns:1fr}
   .faq-grid{grid-template-columns:1fr}
   .acoes{flex-direction:column-reverse;align-items:stretch;gap:8px}
@@ -220,5 +230,5 @@ body[data-schedule-variant="b"] .btn.forte{letter-spacing:1.5px}
 <footer><div class="fverse">“Os teus renovos são um pomar de romãs, com frutos excelentes.”<cite>Cânticos 4:13</cite></div>KOISA LINDA · Costuramos sonhos desde 1994</footer>
 
 <script defer src="kl-tracking.js?v=20260819origem"></script>
-<script src="kl-agendar.js?v=20260827ab"></script>
+<script src="kl-agendar.js?v=20260904b"></script>
 </body></html>
