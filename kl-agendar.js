@@ -237,6 +237,7 @@
       barras[i].className = 'p' + (n < estado.passo ? ' feito' : n === estado.passo ? ' agora' : '');
     }
     rotuloPasso.textContent = (estado.variante === 'd' ? ROTULOS_D : ROTULOS)[Math.min(estado.passo, 4)];
+    document.body.setAttribute('data-passo', String(estado.passo));
     trilha.style.display = estado.passo > 3 ? 'none' : '';
     rotuloPasso.style.display = estado.passo > 3 ? 'none' : '';
   }
@@ -332,27 +333,29 @@
       ? 'Com seus dados já preenchidos, escolha onde você quer provar. Depois mostramos horários reais para pedir a reserva.'
       : (estado.variante === 'b'
         ? 'Primeiro diga a ocasião e a unidade. Depois o site mostra horários reais para você pedir a reserva.'
-        : 'A prova com hora marcada é de noiva e de debutante — são as duas em que a equipe separa os modelos antes e reserva o provador.');
+        : 'Noiva e debutante provam com hora marcada. Escolha as duas coisas abaixo e a agenda real da loja aparece na hora.');
     var html = '<h2>' + titulo + '</h2>' +
       '<p class="sub">' + sub + '</p>' +
       '<div class="ab-plan" aria-label="Como funciona">' + (estado.variante === 'd' ? '<span>1 · seus dados</span><span>2 · escolha a prova</span><span>3 · peça o horário</span>' : '<span>1 · escolha ocasião e loja</span><span>2 · veja horários reais</span><span>3 · receba confirmação no WhatsApp</span>') + '</div>' +
-      '<span class="rotulo">Ocasião</span><div class="escolhas">';
+      '<div class="grupos"><div class="grupo"><span class="rotulo">Ocasião</span><div class="escolhas">';
     Object.keys(OCASIOES).forEach(function (k) {
       html += '<button type="button" class="escolha" data-campo="ocasiao" data-valor="' + k + '" ' +
         'aria-pressed="' + (estado.ocasiao === k ? 'true' : 'false') + '">' +
         OCASIOES[k].nome + '<small>' + OCASIOES[k].detalhe + '</small></button>';
     });
-    html += '</div><span class="rotulo">Unidade</span><div class="escolhas">';
+    html += '</div></div><div class="grupo"><span class="rotulo">Unidade</span><div class="escolhas">';
     Object.keys(LOJAS).forEach(function (k) {
       html += '<button type="button" class="escolha" data-campo="loja" data-valor="' + k + '" ' +
         'aria-pressed="' + (estado.loja === k ? 'true' : 'false') + '">' +
         LOJAS[k].nome + '<small>' + LOJAS[k].detalhe + '</small></button>';
     });
-    html += '</div><div class="unit-proofs">' + textoUnidade('saofrancisco') + textoUnidade('barra') + '</div>' +
+    // O aviso de visita livre vem DEPOIS do botão: ele é para quem não se
+    // reconheceu nas duas ocasiões acima, e no meio do caminho só empurrava a
+    // ação para fora da primeira tela.
+    html += '</div></div></div><div class="acoes"><button type="button" class="btn forte" id="ir2"' +
+      (estado.ocasiao && estado.loja ? '' : ' disabled') + '>' + (estado.variante === 'b' ? 'Ver horários disponíveis' : 'Ver horários') + '</button></div>' +
       '<div class="aviso">É <b>madrinha, convidada, formanda, mãe da noiva ou terno</b>? Não precisa marcar horário: ' +
-      '<a href="#sem-hora-marcada">é só chegar na loja</a> dentro do horário de funcionamento.</div>' +
-      '<div class="acoes"><button type="button" class="btn forte" id="ir2"' +
-      (estado.ocasiao && estado.loja ? '' : ' disabled') + '>' + (estado.variante === 'b' ? 'Ver horários disponíveis' : 'Ver horários') + '</button></div>';
+      '<a href="#sem-hora-marcada">é só chegar na loja</a> dentro do horário de funcionamento.</div>';
     cartao.innerHTML = html;
 
     cartao.querySelectorAll('.escolha').forEach(function (b) {
@@ -396,9 +399,71 @@
       .catch(function () { clearTimeout(expirou); desenharFalhaAgenda(); });
   }
 
+
+  function ehSabado(d) {
+    return /^s[áa]b/i.test(String((d && d.dia_semana) || ''));
+  }
+
+  function outraLoja() {
+    return estado.loja === 'barra' ? 'saofrancisco' : 'barra';
+  }
+
+  /* O sábado é o dia que a prova de noiva e debutante procura — e o primeiro a
+   * lotar. Numa fita que mostra menos de quatro dias por vez, o próximo sábado
+   * livre pode estar na décima primeira posição: quem não arrasta até lá conclui
+   * que a loja não tem sábado nenhum e vai embora. Estes atalhos põem o sábado
+   * na frente, e quando não existe sábado aqui a gente pergunta pela outra loja
+   * em vez de deixar a cliente no vazio. */
+  function atalhosDeDia() {
+    var sabados = estado.dias.filter(ehSabado).slice(0, 2);
+    if (!sabados.length) {
+      return '<div class="atalhos" id="sabado-alerta"><span class="sem-sab">Sem sábado livre por aqui nas próximas semanas.</span></div>';
+    }
+    var html = '<div class="atalhos"><span class="atalho-lbl">Ir para</span>';
+    sabados.forEach(function (d) {
+      html += '<button type="button" class="atalho" data-ir="' + d.data + '">sábado ' +
+        esc(d.dia) + ' ' + esc(String(d.mes || '').toLowerCase()) + '</button>';
+    });
+    return html + '</div>';
+  }
+
+  function ofereceSabadoDaOutraLoja() {
+    var alvo = document.getElementById('sabado-alerta');
+    if (!alvo || estado.dias.filter(ehSabado).length) return;
+    var outra = outraLoja();
+    fetch(API + '/horarios?loja=' + encodeURIComponent(outra) + '&ocasiao=' + encodeURIComponent(estado.ocasiao), { headers: { Accept: 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d || !Array.isArray(d.dias)) return;
+        var sab = d.dias.filter(ehSabado)[0];
+        if (!sab) return;
+        var atual = document.getElementById('sabado-alerta');
+        if (!atual) return;
+        atual.innerHTML = '<span class="sem-sab">Sem sábado livre em ' + esc(LOJAS[estado.loja].nome) + '.</span>' +
+          '<button type="button" class="atalho troca" id="ir-outra-loja">' +
+          esc(LOJAS[outra].nome) + ' tem sábado ' + esc(sab.dia) + ' ' + esc(String(sab.mes || '').toLowerCase()) + '</button>';
+        document.getElementById('ir-outra-loja').addEventListener('click', function () {
+          trackSchedule('KL_Schedule_Saturday_Switch', { from_store: estado.loja, to_store: outra, target_day: sab.data });
+          estado.loja = outra; estado.data = sab.data; estado.hora = '';
+          passo2();
+        });
+      })
+      .catch(function () {});
+  }
+
+  /* A fita é redesenhada a cada clique. Sem isto ela volta para o primeiro dia
+   * e some com o dia que a cliente acabou de escolher. */
+  function centralizarDiaEscolhido() {
+    var fita = document.getElementById('fita');
+    var sel = fita && fita.querySelector('.dia[aria-pressed="true"]');
+    if (!fita || !sel) return;
+    var alvo = sel.offsetLeft - (fita.clientWidth / 2) + (sel.offsetWidth / 2);
+    fita.scrollLeft = Math.max(0, alvo);
+  }
+
   function desenharDias() {
     var html = '<h2>Quando fica bom para você?</h2>' + resumo() +
-      '<span class="rotulo">Escolha o dia</span><div class="fita" id="fita">';
+      '<span class="rotulo">Escolha o dia</span>' + atalhosDeDia() + '<div class="fita" id="fita">';
     estado.dias.forEach(function (d) {
       html += '<button type="button" class="dia" data-data="' + d.data + '" ' +
         'aria-pressed="' + (estado.data === d.data ? 'true' : 'false') + '" ' +
@@ -421,11 +486,21 @@
         desenharDias();
       });
     });
+    cartao.querySelectorAll('.atalho[data-ir]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        estado.data = b.getAttribute('data-ir');
+        estado.hora = '';
+        trackSchedule('KL_Schedule_Saturday_Shortcut', { selected_day: estado.data });
+        desenharDias();
+      });
+    });
     document.getElementById('voltar1').addEventListener('click', function () { ir(estado.variante === 'd' ? 2 : 1); });
     var ir3 = document.getElementById('ir3');
     ir3.addEventListener('click', function () { if (!estado.hora) return; if (estado.variante === 'd') return enviarLeadD(); ir(3); });
 
     if (estado.data) desenharHoras();
+    centralizarDiaEscolhido();
+    ofereceSabadoDaOutraLoja();
   }
 
   function desenharHoras() {
@@ -486,10 +561,11 @@
     var rotuloEvento = estado.ocasiao === 'noiva' ? 'Data do casamento' : 'Data da festa';
 
     cartao.innerHTML = '<h2>Só falta saber quem esperar</h2>' + resumo() +
+      '<p class="sub">Este horário fica reservado para o seu pedido. A equipe de ' +
+      esc(LOJAS[estado.loja].nome) + ' confirma com você pelo WhatsApp.</p>' +
       '<form id="form" novalidate>' +
       '<div class="campo" id="c-nome"><label for="nome">Seu nome</label>' +
-      '<input id="nome" name="nome" type="text" autocomplete="name" maxlength="80" required>' +
-      '<span class="mini">Escreva seu nome para a equipe saber quem esperar.</span></div>' +
+      '<input id="nome" name="nome" type="text" autocomplete="name" maxlength="80" required></div>' +
 
       '<div class="campo" id="c-tel"><label for="telefone">WhatsApp com DDD' +
       '<span class="dica">É por ele que a loja confirma o seu horário.</span></label>' +
@@ -497,11 +573,11 @@
       '<span class="mini">Confira o número com DDD.</span></div>' +
 
       '<div class="campo"><label for="evento">' + rotuloEvento +
-      '<span class="dica">Se já tiver. É ela que diz se dá tempo de fazer sob medida.</span></label>' +
+      '<span class="dica">Opcional — diz se dá tempo de ajustar sob medida.</span></label>' +
       '<input id="evento" name="evento" type="date"></div>' +
 
       '<div class="campo"><label for="notas">O que você procura' +
-      '<span class="dica">Opcional. Ajuda a equipe a separar os modelos antes de você chegar.</span></label>' +
+      '<span class="dica">Opcional — a equipe já separa os modelos.</span></label>' +
       '<textarea id="notas" name="notas" maxlength="400" placeholder="Ex.: renda, corte sereia, manga comprida"></textarea></div>' +
 
       '<label class="mel" aria-hidden="true">Não preencha<input id="mel" name="sobrenome_confirmacao" type="text" tabindex="-1" autocomplete="off"></label>' +
@@ -688,7 +764,9 @@
     var un = (sp.get('un') || sp.get('loja') || '').toLowerCase();
     un = normalizarLoja(un);
     if (LOJAS[un]) estado.loja = un;
-    if (estado.ocasiao && estado.loja && estado.variante !== 'd') estado.passo = 2;
+    if (estado.ocasiao && estado.loja && estado.variante !== 'd') {
+      estado.passo = 2;
+    }
   }
 
   pularOQueJaSeSabe();
