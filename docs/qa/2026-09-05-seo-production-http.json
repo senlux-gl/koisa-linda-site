@@ -1,0 +1,230 @@
+{
+  "checked_at": "2026-09-05T10:34:37.757270+00:00",
+  "code": "9ae904111f91c7373f587af012846dcdd123324e",
+  "checks": [
+    {
+      "path": "/",
+      "status": 200,
+      "bytes": 55768,
+      "sha256": "b83390cb0982b0af61a1c1943e251c3231e29c720baef970ad73a7c65fbbb59a",
+      "matches_artifact": true
+    },
+    {
+      "path": "/noivas/",
+      "status": 200,
+      "bytes": 41749,
+      "sha256": "b1d6582614970fcb8b27a54f5663afdea0561b6038b8f63cd919f57285084cc2",
+      "matches_artifact": true
+    },
+    {
+      "path": "/madrinhas/",
+      "status": 200,
+      "bytes": 38783,
+      "sha256": "7c2e42d63e75f6828f1be4bbecebbcd3f8b31485bd109b180d191dba50a0dcc1",
+      "matches_artifact": true
+    },
+    {
+      "path": "/debutantes/",
+      "status": 200,
+      "bytes": 41258,
+      "sha256": "aa1e4d826dad9647af06474aa3e80da49f5d555834b487ba51e37853f0eef316",
+      "matches_artifact": true
+    },
+    {
+      "path": "/ternos/",
+      "status": 200,
+      "bytes": 34136,
+      "sha256": "4de681ee39d38451a85d9108c332818d286a99d3206046bb0f84ea18e45cc504",
+      "matches_artifact": true
+    },
+    {
+      "path": "/unidades/",
+      "status": 200,
+      "bytes": 32458,
+      "sha256": "cf6934476d0235a75a54471c809d3157fdf58222673a5c2ad43b4256087f71c6",
+      "matches_artifact": true
+    },
+    {
+      "path": "/catalogo/",
+      "status": 200,
+      "bytes": 45529,
+      "sha256": "fdf559996aefe186cf44bbc526ae742fcb83b08bf8f8c4119f0be5ac412bebb7",
+      "matches_artifact": true
+    },
+    {
+      "path": "/agendar/",
+      "status": 200,
+      "bytes": 25033,
+      "sha256": "9d08f59868e02be52df5aa25ffa3c184b28e49729e2c2576aa1d1f7c791d4d08",
+      "matches_artifact": true
+    },
+    {
+      "path": "/p/index.html",
+      "status": 200,
+      "bytes": 58897,
+      "sha256": "e53065e5e42ca5ceff72de6f6327667c9e153418a1ddaea5fb144df9c0aeab4e",
+      "matches_artifact": true
+    },
+    {
+      "path": "/p/040301.html",
+      "status": 200,
+      "bytes": 8736,
+      "sha256": "0ec9a60d720d6f6f44490a492888f7c2941cfb62748fc2d224a59cc8a3a6b2f1",
+      "matches_artifact": true
+    },
+    {
+      "path": "/p/NV-001.html",
+      "status": 200,
+      "bytes": 8717,
+      "sha256": "90973bfa4d65f012bed78190808b55fdfbac298618a27df3ee99c9500caa8fd0",
+      "matches_artifact": true
+    },
+    {
+      "path": "/p/080912.html",
+      "status": 200,
+      "bytes": 7687,
+      "sha256": "7714a03625c69509d6dee7584a7991cd191ee3b9e64f582202412ca5968d364e",
+      "matches_artifact": true
+    },
+    {
+      "path": "/peca/?codigo=040301",
+      "status": 200,
+      "bytes": 21060,
+      "sha256": "8916c71e206020406f7c86a0039f5dac86e2b9a8fd0a2c9e3272154c4200a2f5",
+      "matches_artifact": true
+    },
+    {
+      "path": "/kl-seo.css",
+      "status": 200,
+      "bytes": 2042,
+      "sha256": "26a191d78754dde5952857a344b123685c70eec7514d364ea140fcede8335514",
+      "matches_artifact": true
+    },
+    {
+      "path": "/sitemap.xml",
+      "status": 200,
+      "bytes": 54316,
+      "sha256": "ff915d882cfb2096a72bbd4a5a4c90efd2c1c710eccad9e73331180d2d438e7c",
+      "matches_artifact": true
+    },
+    {
+      "path": "/robots.txt",
+      "status": 200,
+      "bytes": 1010,
+      "sha256": "71b2334ad8acd5889bc9e93a4b98181ac77bf2203e8b8eec53542e04c6b2abd6",
+      "matches_artifact": true
+    },
+    {
+      "path": "/catalogo.html?utm_source=seo-check",
+      "status": 200,
+      "bytes": 739,
+      "sha256": "dc060e3a406ab3874abe40b867c0ecd3e0ed783f5a51f39bae9fb9c59397ddc9",
+      "matches_artifact": true
+    },
+    {
+      "path": "/vestido-de-noiva-renda-niteroi.html",
+      "status": 200,
+      "bytes": 763,
+      "sha256": "53a3478b02fdc74e1fedcebcd40186e8aac6f6bca5c94198797761fd60c9928f",
+      "matches_artifact": true
+    },
+    {
+      "path": "/noivas/com-manga-barra-da-tijuca/",
+      "status": 200,
+      "bytes": 15646,
+      "sha256": "b32bb2294a75ff260dbf4930ad42fea89b71be639b8805bf6db5167955fa6f3d",
+      "matches_artifact": true
+    },
+    {
+      "path": "/noivas/com-manga-niteroi/",
+      "status": 200,
+      "bytes": 20284,
+      "sha256": "a860958b18a6e0a1aacd3c9c28b1e9ad03b1857b9eef69f0b244643a3fd13b58",
+      "matches_artifact": true
+    },
+    {
+      "path": "/noivas/corte-a-barra-da-tijuca/",
+      "status": 200,
+      "bytes": 20877,
+      "sha256": "deecdedbda9d247f3fcaf4abf34d4a95c1403a3c5926066a529e780211e42ff8",
+      "matches_artifact": true
+    },
+    {
+      "path": "/noivas/corte-a-niteroi/",
+      "status": 200,
+      "bytes": 20409,
+      "sha256": "b2891ec03996910a0df31fb7085738ead5f2fdc64606052300ce93901e726c71",
+      "matches_artifact": true
+    },
+    {
+      "path": "/noivas/decote-v-barra-da-tijuca/",
+      "status": 200,
+      "bytes": 18589,
+      "sha256": "0765d4fee1ef0f6b4517456d8250524c36e27ba05a307019147b78a795a5292a",
+      "matches_artifact": true
+    },
+    {
+      "path": "/noivas/decote-v-niteroi/",
+      "status": 200,
+      "bytes": 20272,
+      "sha256": "b0492fb0093eb8b84a68f4ce12d5442cb8946270b97f14f5bc2eab3f54958000",
+      "matches_artifact": true
+    },
+    {
+      "path": "/noivas/minimalista-barra-da-tijuca/",
+      "status": 200,
+      "bytes": 14084,
+      "sha256": "d110007a5336c57ddba1cbcf184d4ee98a91fc97bc5fb375e70846b029dd4fbc",
+      "matches_artifact": true
+    },
+    {
+      "path": "/noivas/minimalista-niteroi/",
+      "status": 200,
+      "bytes": 19613,
+      "sha256": "2da97cd0a10499110cb19ddcdd7a3a090ff8617beac323c0ebcfca4629d5db14",
+      "matches_artifact": true
+    },
+    {
+      "path": "/noivas/princesa-barra-da-tijuca/",
+      "status": 200,
+      "bytes": 10988,
+      "sha256": "95f485284da26b0e868c8f252d97d5531257c06ea35441c1a66b0f215aaad761",
+      "matches_artifact": true
+    },
+    {
+      "path": "/noivas/princesa-niteroi/",
+      "status": 200,
+      "bytes": 15713,
+      "sha256": "7a152329c806fef39f991991d39db59ba503f2baf99b0924b19a59c44f240614",
+      "matches_artifact": true
+    },
+    {
+      "path": "/noivas/renda-barra-da-tijuca/",
+      "status": 200,
+      "bytes": 15989,
+      "sha256": "ca28c395c1bc6b07778b284897e15fcb2d6b0024c3d79b7e5e4bd2c55aa4eb01",
+      "matches_artifact": true
+    },
+    {
+      "path": "/noivas/renda-niteroi/",
+      "status": 200,
+      "bytes": 20228,
+      "sha256": "cb26b94f8ce95496325d5aeca740a55c7f5c024dbc8c78deba652ffa7459d247",
+      "matches_artifact": true
+    },
+    {
+      "path": "/noivas/sereia-barra-da-tijuca/",
+      "status": 200,
+      "bytes": 13868,
+      "sha256": "4e245f21ab262d12772d52ecbc43b50f83cd723b441a73b24014d78d1d331b21",
+      "matches_artifact": true
+    },
+    {
+      "path": "/noivas/sereia-niteroi/",
+      "status": 200,
+      "bytes": 20151,
+      "sha256": "67db01f47bf0243cedad62273048f19e5695059098889c4d77236ace5278e6f8",
+      "matches_artifact": true
+    }
+  ]
+}

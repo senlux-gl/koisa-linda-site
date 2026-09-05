@@ -31,7 +31,9 @@ O gerador percorre os arquivos existentes, produz 28 páginas principais/editori
 
 ## Publicação e retorno seguro
 
-**Publicada em 04/09/2026, após autorização explícita do Guilherme nesta tarefa.** O GitHub Pages agora publica o artefato por Actions, com domínio e HTTPS preservados. Código em produção: `9dc4e8d`; [execução de publicação validada](https://github.com/senlux-gl/koisa-linda-site/actions/runs/33936541002). A primeira publicação visual foi a execução `33936093073` (`9a3ce28`).
+**Estado atual: revisão de SEO publicada em 05/09/2026**, código `9ae9041`, pelo mesmo fluxo manual autorizado nesta tarefa. A verificação no domínio está em `docs/qa/2026-09-05-seo-production-http.json`; [execução concluída](https://github.com/senlux-gl/koisa-linda-site/actions/runs/33960978671).
+
+A revisão visual foi publicada em 04/09/2026, após autorização explícita do Guilherme nesta tarefa. O GitHub Pages publica o artefato por Actions, com domínio e HTTPS preservados. Código daquela etapa: `9dc4e8d`; [execução de publicação validada](https://github.com/senlux-gl/koisa-linda-site/actions/runs/33936541002). A primeira publicação visual foi a execução `33936093073` (`9a3ce28`).
 
 Para uma nova publicação autorizada, conferir o estado anterior e os testes; incorporar o código revisado; executar manualmente `pages.yml`; validar no domínio real home, catálogo, agendamento, aliases, parâmetros e sitemap. O workflow não tem cron nem publicação automática por push.
 

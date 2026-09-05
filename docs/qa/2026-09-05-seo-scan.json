@@ -5,5 +5,11 @@
   ],
   "classification": "unchanged public GitHub Actions run ID matched as phone",
   "new_secret_or_customer_data": 0,
-  "evidence": "README diff changes only the SEO test command and SEO documentation. Existing publication run link was preserved and previously reviewed in 2026-09-04-publication-scan.json."
+  "evidence": "README diff changes only the SEO test command and SEO documentation. Existing publication run link was preserved and previously reviewed in 2026-09-04-publication-scan.json.",
+  "publication_documentation_review": {
+    "raw_scan_findings": 3,
+    "classification": "public GitHub Actions run URLs, two historical matches and one current release match",
+    "new_secret_or_customer_data": 0,
+    "evidence": "Current run was read from GitHub API and completed successfully; HTTP evidence file and SEO report have no scanner findings."
+  }
 }
