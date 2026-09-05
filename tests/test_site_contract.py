@@ -651,7 +651,7 @@ class CatalogIntegrationContractTest(unittest.TestCase):
 
     def test_detail_uses_shared_modules_and_exact_try_on_allowlist(self):
         html = page("peca.html")
-        self.assertIn('src="kl-catalog-core.js?v=20260716tryon1"', html)
+        self.assertIn('src="kl-catalog-core.js?v=20260904urls"', html)
         self.assertIn('src="kl-catalog-actions.js?v=20260716tryon1"', html)
         self.assertIn("Core.validateProducts", html)
         self.assertIn("Actions.productWhatsAppHref", html)
@@ -910,12 +910,12 @@ class CatalogHybridContractTest(unittest.TestCase):
         html = page("catalogo.html")
         assets = (
             "kl-catalog-data.js?v=20260715db",
-            "kl-catalog-core.js?v=20260716tryon1",
+            "kl-catalog-core.js?v=20260904urls",
             "kl-catalog-actions.js?v=20260716tryon1",
             "kl-catalog-gallery.js?v=20260715catalog1",
             "kl-tracking.js?v=20260715catalog1",
             "kl-catalog-tryon.js?v=20260716tryon1",
-            "kl-catalog-app.js?v=20260716tryon1",
+            "kl-catalog-app.js?v=20260904urls",
         )
         for asset in assets:
             self.assertIn(asset, html, asset)

@@ -30,12 +30,12 @@ O gerador percorre os arquivos existentes, produz 28 páginas principais/editori
 
 ## Publicação e retorno seguro
 
-**Ainda não publicada.** Estado verificado em 04/09: GitHub Pages em `legacy`, servindo `main:/`, versão `4956efc`. Publicar exige OK explícito do Guilherme conforme o AGENTS.md do cérebro.
+**Publicada em 04/09/2026, após autorização explícita do Guilherme nesta tarefa.** O GitHub Pages agora publica o artefato por Actions, com domínio e HTTPS preservados. Código em produção: `9dc4e8d`; [execução de publicação validada](https://github.com/senlux-gl/koisa-linda-site/actions/runs/33936541002). A primeira publicação visual foi a execução `33936093073` (`9a3ce28`).
 
-Após esse OK, o agente deve salvar e conferir o estado anterior; incorporar o código revisado; configurar a origem do Pages para GitHub Actions; executar manualmente `pages.yml`; validar no domínio real home, catálogo, agendamento, aliases, parâmetros e sitemap. O workflow não tem cron nem publicação automática por push.
+Para uma nova publicação autorizada, conferir o estado anterior e os testes; incorporar o código revisado; executar manualmente `pages.yml`; validar no domínio real home, catálogo, agendamento, aliases, parâmetros e sitemap. O workflow não tem cron nem publicação automática por push.
 
 O artefato `_site/` é o que deve ir ao ar. Não publicar `_preview/` nem trocar apenas os fontes HTML mantendo o modo antigo: isso deixaria os novos caminhos incompletos. O procedimento usa a [publicação oficial de artefatos estáticos do GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
 
-Para rollback, preservar os trabalhos novos, restaurar a origem `legacy` para o snapshot de publicação anterior em uma branch de recuperação própria e conferir o domínio; não executar reset destrutivo, force push ou sobrescrever trabalho concorrente.
+Para rollback, o estado anterior está preservado em `codex/kl-site-before-20260904`, commit `4956efca27740c437024c685eb6fca2423a6d7df`. Se for necessário retornar, preservar os trabalhos novos e configurar o Pages em `legacy`, com essa branch e caminho `/`, mantendo domínio e HTTPS; conferir o domínio após o build. Não executar reset destrutivo, force push ou sobrescrever trabalho concorrente.
 
 Relatório de QA e limitações: `docs/qa/2026-09-04-design-urls.md`.

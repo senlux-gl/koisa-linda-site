@@ -1,6 +1,6 @@
 # Revisão do site Koisa Linda · 04/09/2026
 
-Status: **prévia local pronta para conferir; não publicada**.
+Status: **publicada em 04/09/2026 após autorização do Guilherme; verificação no domínio concluída**.
 Código: `/Users/guilhermepessanha/koisa-linda-site-review-20260904`.
 Prévia: http://127.0.0.1:4185/ · base publicada usada na comparação: `4956efc`.
 
@@ -29,12 +29,12 @@ A identidade aprovada foi preservada: Ruby Wine, Dourado Koisa, creme, fontes e 
 - As páginas indexadas em `/p/` mantêm seus endereços para preservar identidade existente.
 - 40 aliases históricos, além das entradas antigas `.html`; `/provar.html` leva diretamente ao catálogo com `prova=1`.
 
-**Limite da hospedagem:** as pontes usam JavaScript e link manual; não são HTTP 301. As URLs novas são documentos HTML reais com 200, sem depender de 404/SPA. A configuração atual do Pages ainda serve o diretório raiz; o artefato gerado precisa ser publicado pelo procedimento do README, após autorização.
+**Limite da hospedagem:** as pontes usam JavaScript e link manual; não são HTTP 301. As URLs novas são documentos HTML reais com 200, sem depender de 404/SPA. Antes da publicação, o Pages servia o diretório raiz. Após a autorização, passou a publicar o artefato gerado pelo procedimento do README.
 
 ## Validação concluída
 
 - 8 testes Python novos de artefato: aprovados.
-- 7 testes Node novos de compatibilidade de URL e módulos gerados: aprovados.
+- 9 testes Node novos de compatibilidade de URL, módulos gerados e preservação de atribuição durante a navegação do catálogo: aprovados.
 - Varredura de 889 arquivos HTML gerados: nenhum href, asset local ou fragmento interno inexistente. Aliases `.htm`/`.php` também têm testes de destino e preservação de parâmetros.
 - Sitemap: 835 endereços únicos, canônicos e indexáveis.
 - Home e páginas principais: 320, 375, 768, 1024 e 1440 px; sem overflow horizontal após os ajustes finais. Páginas institucionais, agenda, catálogo e amostras SEO também conferidas em 320, 768 e 1440 px.
@@ -60,8 +60,21 @@ Os testes afetados pelo novo movimento e pela inclusão de links no menu móvel 
 
 ## Publicação, contexto e pendência
 
-Nada foi publicado nem alterado em campanhas, n8n, banco ou agente vivo. `kl-agendar.js`, dados do catálogo, números de loja e IDs de medição foram preservados. `kl-tracking.js` recebeu somente reconhecimento de caminho limpo e identificação do destino catálogo; includes dos módulos alterados receberam versão de cache nova.
+Na etapa anterior à autorização, nada foi publicado. Campanhas, n8n, banco e agente vivo não foram alterados nesta entrega. `kl-agendar.js`, dados do catálogo, números de loja e IDs de medição foram preservados. `kl-tracking.js` recebeu somente reconhecimento de caminho limpo e identificação do destino catálogo; includes dos módulos alterados receberam versão de cache nova.
 
-Workflow manual de publicação preparado; sem cron, gatilho por push ou execução remota. Decisão pendente: conferir a apresentação e autorizar a publicação. Rollback e mudança necessária da origem do Pages estão no README.
+Workflow manual de publicação preparado; sem cron, gatilho por push ou execução remota. A autorização de publicação foi recebida nesta tarefa em 04/09. Rollback e mudança necessária da origem do Pages estão no README.
 
 Tentativa de registrar a revisão em “Aguardando Guilherme” no Trello: não concluída, pois a credencial Trello Senlux não estava acessível pelo 1Password nesta sessão. Nenhum card foi criado; a pendência está explicitamente registrada no handoff, sem alegar que entrou na fila.
+
+
+## Publicação autorizada e verificada
+
+- Autorização do Guilherme nesta tarefa: “pode subir po”.
+- Versão visual publicada pelo run `33936093073`, commit `9a3ce28`; ajuste final de atribuição pelo run `33936541002`, commit `9dc4e8d`. Os dois builds e deploys terminaram com success. O segundo repetiu os 17 testes novos (8 Python + 9 Node).
+- GitHub Pages mudou de `legacy/main:/` para publicação por Actions. Domínio `koisalinda.com.br` e HTTPS preservados. Nenhuma rotina por push ou cron foi ativada.
+- 27 páginas e arquivos do domínio retornaram 200 e conteúdo idêntico ao artefato revisado. As quatro saídas afetadas pelo ajuste final foram novamente comparadas após o segundo deploy. Sitemap contém 835 URLs únicas. Arquivos internos, instrumentação da prévia e caminho inexistente retornaram 404. Evidência: `2026-09-04-production-http.json`.
+- Navegador em produção: home nova com uma imagem e sem overflow após carregar; catálogo antigo redirecionou mantendo categoria/unidade; busca de uma peça, galeria e destino correto do atendimento validados; agenda antiga manteve UTM, variante, unidade, ocasião e fragmento, consultou disponibilidade e avançou ao formulário final. Nenhum pedido enviado, foto submetida ou mensagem enviada.
+- No QA final foi encontrada uma perda antiga de parâmetros dentro do próprio catálogo após o redirect da prova virtual. O serializador descartava tudo que não era filtro. A correção mantém o contexto externo ao atualizar filtros, abrir/fechar galeria e prova virtual; parâmetros do catálogo continuam sendo normalizados e removidos corretamente. Reprodução local, dois testes de regressão e navegador real confirmaram UTM/fbclid/fragmento preservados ao abrir e fechar a prova virtual e ao filtrar.
+- Suíte completa após o ajuste: Python 65 testes, com as mesmas 33 falhas anteriores; Node 192 testes, com as mesmas 11 falhas anteriores. Nenhuma falha nova. Contratos de versão do core/app atualizados para os arquivos publicados; não declarar a suíte completa verde.
+- Varredura de publicação: nenhum secret novo; os achados do scanner de conteúdo completo foram confrontados com a base e o site real: contatos públicos das lojas e falso positivo no ID público do Pixel, todos preservados. Detalhe sem valores sensíveis em `2026-09-04-publication-scan.json`.
+- Cópia de retorno anterior preservada no remoto em `codex/kl-site-before-20260904`, commit `4956efc`. Procedimento no README. A decisão de publicação desta tarefa foi concluída; não há card de aprovação a criar.

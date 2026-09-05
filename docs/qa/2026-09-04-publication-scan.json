@@ -621,5 +621,11 @@
       "context": "public_pixel_id_false_positive"
     }
   ],
-  "decision": "All findings are unchanged public store contacts or public Pixel ID; preserve the approved site and attribution. No customer data or credentials introduced."
+  "decision": "All findings are unchanged public store contacts or public Pixel ID; preserve the approved site and attribution. No customer data or credentials introduced.",
+  "followup_review": {
+    "catalog_fix_full_scan_findings": 10,
+    "documentation_full_scan_findings": 12,
+    "new_secrets": 0,
+    "decision": "Catalog fix findings are unchanged public contact and Pixel ID. Documentation findings are verified public GitHub Actions run IDs plus the unchanged public Pixel ID in existing tests. No new phone, customer data or credential added."
+  }
 }

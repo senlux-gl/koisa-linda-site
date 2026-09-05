@@ -1,0 +1,251 @@
+{
+  "origin": "https://koisalinda.com.br",
+  "verified_utc": "2026-09-05T01:28:20Z",
+  "deployment_run": 33936093073,
+  "deployed_commit": "9a3ce283a288ea7b6266d16f78349aaf9f9706f5",
+  "http_checks": [
+    {
+      "path": "/",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "501698a0e051d29e161f1f023dcae985d40a02905e16adce21e3ce777eb9dad8",
+      "bytes": 54094
+    },
+    {
+      "path": "/catalogo/",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "9b3ef6e1fa63a93ff81e8aff7b46296997e4f3e0de72781be926c917e7536030",
+      "bytes": 43214
+    },
+    {
+      "path": "/agendar/",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "94459c0fae26a9a1b3096d99cab4fd570b55a43bdb969c736856d10182eb626c",
+      "bytes": 22938
+    },
+    {
+      "path": "/noivas/",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "dfcb201dd2f9af4f9b12ada77acb836664d67e1d81f0e048a9bc1f08117d2e3e",
+      "bytes": 35733
+    },
+    {
+      "path": "/noivas/experiencia/",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "005d400c18a862ee72a32d9392aeb7c5b8ea772483d2451cca93cf01598815a0",
+      "bytes": 36263
+    },
+    {
+      "path": "/debutantes/",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "f21a6f27895c5c7e12f079223dc511ed6f46ba9e8d7d1420bc821e38902bbc44",
+      "bytes": 36366
+    },
+    {
+      "path": "/madrinhas/",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "409172d924ae55eac6c30460b56fba21c7b3659465a5f22c59d3345e4c3db4e2",
+      "bytes": 33928
+    },
+    {
+      "path": "/ternos/",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "a6b533fabeae4ef951ca86af7c6acce15c29d314c6cf50214c370146ac4ac217",
+      "bytes": 29695
+    },
+    {
+      "path": "/unidades/",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "e891fd1a08a3c7df0cc14c52941789b701b0df156a32b383e6df95282c723699",
+      "bytes": 30141
+    },
+    {
+      "path": "/sobre/",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "d27da2b15929519f43659cdc52ffe37df49347273983fa96d4852a7b8d959501",
+      "bytes": 33622
+    },
+    {
+      "path": "/servicos/",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "ff294dfae54f258ea15ba6ab06cc829910a125ad74db8284607407c9a6fbc52a",
+      "bytes": 38236
+    },
+    {
+      "path": "/como-chegar/",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "d6f60b2f4fd751caa6362dbb7152a3d87dd09cd200ad8d62fc4862673ac61925",
+      "bytes": 36144
+    },
+    {
+      "path": "/privacidade/",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "4174c8b78ef8eb020bdbb45047e3a9aa86d6511f3b73c2a6aa50cc7755b9b1af",
+      "bytes": 9875
+    },
+    {
+      "path": "/noivas/renda-niteroi/",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "281eb78694eacdffe51f25dbf2420dabda0b11f88a63f2df315d00a56fa31bb0",
+      "bytes": 24379
+    },
+    {
+      "path": "/catalogo.html",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "dc060e3a406ab3874abe40b867c0ecd3e0ed783f5a51f39bae9fb9c59397ddc9",
+      "bytes": 739
+    },
+    {
+      "path": "/agendar.html",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "1673e3c5ca590bcf09ea1df49959bce6099b5599efd8308a0e2e01930998a45c",
+      "bytes": 737
+    },
+    {
+      "path": "/provar.html",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "1ffc57d98a89b2105d1436d9355430804edc40031415790ada8b4cb0c7abe4f4",
+      "bytes": 755
+    },
+    {
+      "path": "/Festas.htm",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "f6a4fe7a4fb1fd2e5dea296da3b5cda80b709d46d5df00bb7a1a6c0688683c9c",
+      "bytes": 741
+    },
+    {
+      "path": "/kl-ui.js",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "ced399cbadbec6a9a159756869327293068399e4ffc1aaad5fa4f9e58c41b1f9",
+      "bytes": 3173
+    },
+    {
+      "path": "/kl-refine.css",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "6d5fcb1f03a8f59d985ba2d4d2e9e649caf5e2b283b5961b0f3188eeccb4a2d1",
+      "bytes": 13640
+    },
+    {
+      "path": "/kl-urls.js",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "28a20e4653d4d83737dd69033bf3195e5d7f348d08697b493bc8986936669b4a",
+      "bytes": 1609
+    },
+    {
+      "path": "/kl-tracking.js",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "c70439577c17e968a0c018c0d6da286b46103cc95702a23d5fbf46be10416b59",
+      "bytes": 22519
+    },
+    {
+      "path": "/kl-agendar.js",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "b672d753d59df67fcce0019801a4aaa356f750a8b0465f585e00f4fcb7a6ef9b",
+      "bytes": 42133
+    },
+    {
+      "path": "/kl-fonts.css",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "4d55d0722022af459367a8e25d39f24e0381bff37b058b5ac3e938b66131ea53",
+      "bytes": 1882
+    },
+    {
+      "path": "/fonts/arapey-normal.woff2",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "dd1c55cde90cb3fd1dd58de51d096cb6980ca55394ea8d03b045594878ed1f49",
+      "bytes": 8808
+    },
+    {
+      "path": "/sitemap.xml",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "ff915d882cfb2096a72bbd4a5a4c90efd2c1c710eccad9e73331180d2d438e7c",
+      "bytes": 54316,
+      "unique_urls": 835
+    },
+    {
+      "path": "/robots.txt",
+      "status": 200,
+      "same_as_reviewed_artifact": true,
+      "sha256": "71b2334ad8acd5889bc9e93a4b98181ac77bf2203e8b8eec53542e04c6b2abd6",
+      "bytes": 1010
+    }
+  ],
+  "non_public_paths": [
+    {
+      "path": "/qa-metrics.js",
+      "status": 404
+    },
+    {
+      "path": "/tools/build-site.py",
+      "status": 404
+    },
+    {
+      "path": "/README.md",
+      "status": 404
+    },
+    {
+      "path": "/kl-portal-config.js",
+      "status": 404
+    },
+    {
+      "path": "/endereco-qa-inexistente/",
+      "status": 404
+    }
+  ],
+  "followup_deployment": {
+    "deployed_commit": "9dc4e8d29f89093d0255077a86e69ed30b7545b0",
+    "deployment_run": 33936541002,
+    "verified_utc": "2026-09-05T01:34:55Z",
+    "http_checks": [
+      {
+        "path": "/catalogo/",
+        "status": 200,
+        "sha256": "7e7e45fb687ed73b07472ba1d53ac2f3b18452174adaa80f71486e4cedaa60dc",
+        "same_as_reviewed_artifact": true
+      },
+      {
+        "path": "/peca/",
+        "status": 200,
+        "sha256": "35a8c71ae3ba88376cf3f956a0a9f2c201ab7b4d68502c3da7e01840bf4d1644",
+        "same_as_reviewed_artifact": true
+      },
+      {
+        "path": "/kl-catalog-app.js",
+        "status": 200,
+        "sha256": "89907dfc6236b01d37c83292625f8b030b68c583bf19c6ede2cc9c0b44dd9a10",
+        "same_as_reviewed_artifact": true
+      },
+      {
+        "path": "/kl-catalog-core.js",
+        "status": 200,
+        "sha256": "ff7e46713200c471db3445fa47cc39bc22ba8fef7d66b3ed4158e325a0213b9e",
+        "same_as_reviewed_artifact": true
+      }
+    ]
+  }
+}
