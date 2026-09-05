@@ -97,7 +97,7 @@
     };
   }
 
-  function serializeState(state) {
+  function serializeState(state, existingSearch) {
     var params = new URLSearchParams();
     var openProduct = normalizeCode(state.openProduct);
     if (state.category) params.set('cat', state.category);
@@ -108,6 +108,11 @@
     if ((state.page || 1) > 1) params.set('pg', String(state.page));
     if (state.tryOn) params.set('prova', '1');
     if (openProduct) params.set('p', openProduct);
+    // Filter state belongs to the catalog. Keep attribution and other caller context.
+    var managed = ['cat', 'un', 'q', 'co', 'tam', 'pg', 'prova', 'p'];
+    new URLSearchParams(existingSearch || '').forEach(function (value, key) {
+      if (managed.indexOf(key) === -1) params.append(key, value);
+    });
     return params.toString();
   }
 

@@ -41,3 +41,31 @@ test('built modules recognize clean paths and generate working product and store
  const actions=require('../_site/kl-catalog-actions.js');
  assert.equal(actions.tryOnHref({k:'NV-001',c:'vestidos-noiva',un:'sf'}),'/catalogo/?prova=1&p=NV-001');
 });
+
+test('catalog navigation keeps attribution through filter, gallery and try-on changes',()=>{
+ const core=require('../kl-catalog-core.js');
+ const state={category:'vestidos-noiva',unit:'sf',colors:[],sizes:[],page:1,query:'',tryOn:true,openProduct:'040301'};
+ let query=core.serializeState(state,'?utm_source=meta&utm_campaign=noivas&fbclid=click&gclid=google&variant=a');
+ for(const next of [state,{...state,tryOn:false},{...state,tryOn:false,openProduct:null,category:null,unit:null}]){
+  query=core.serializeState(next,query);
+  const params=new URLSearchParams(query);
+  assert.equal(params.get('utm_source'),'meta');assert.equal(params.get('utm_campaign'),'noivas');
+  assert.equal(params.get('fbclid'),'click');assert.equal(params.get('gclid'),'google');assert.equal(params.get('variant'),'a');
+ }
+ const final=new URLSearchParams(query);
+ for(const key of ['prova','p','cat','un'])assert.equal(final.has(key),false,key);
+});
+test('catalog owns its filters while preserving repeated external parameters unchanged',()=>{
+ const core=require('../kl-catalog-core.js');
+ const previous=new URLSearchParams('cat=old&un=barra&co=azul&co=verde&tam=M&pg=8&q=velho&p=040301&prova=1&utm_content=a&utm_content=b&custom=sim');
+ const original=previous.toString();
+ const state={category:'vestidos-noiva',unit:'sf',colors:['Branco'],sizes:[],page:1,query:'',tryOn:false,openProduct:null};
+ const query=core.serializeState(state,previous);
+ const params=new URLSearchParams(query);
+ assert.equal(previous.toString(),original);
+ assert.equal(params.get('cat'),'vestidos-noiva');assert.equal(params.get('un'),'sf');
+ assert.deepEqual(params.getAll('co'),['Branco']);assert.deepEqual(params.getAll('utm_content'),['a','b']);
+ assert.equal(params.get('custom'),'sim');
+ for(const key of ['tam','pg','q','p','prova'])assert.equal(params.has(key),false,key);
+ assert.equal(core.serializeState(state,query),query);
+});

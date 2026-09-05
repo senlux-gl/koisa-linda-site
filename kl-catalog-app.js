@@ -663,7 +663,7 @@
   }
 
   function urlFor(nextState) {
-    var query = Core.serializeState(nextState);
+    var query = Core.serializeState(nextState, root.location && root.location.search);
     var pathname = root.location && root.location.pathname || 'catalogo.html';
     var hash = root.location && root.location.hash || '';
     return pathname + (query ? '?' + query : '') + hash;
@@ -1122,7 +1122,7 @@
       galleryProducts,
       [0, galleryProducts.length].concat(currentDerived.products),
     );
-    if (Core.serializeState(state) !== locationQuery()) replaceCanonicalUrl();
+    if (Core.serializeState(state, locationQuery()) !== locationQuery()) replaceCanonicalUrl();
     renderReady(options);
     dispatchCatalogState();
     restorePendingPosition();
