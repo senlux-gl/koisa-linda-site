@@ -38,11 +38,11 @@ STATIC_TRYON_LINK_COUNTS = {
     "como-chegar.html": 3,
     "servicos.html": 2,
     "unidades.html": 2,
-    "noivas.html": 1,
-    "debutantes.html": 1,
-    "madrinhas.html": 1,
-    "ternos.html": 1,
-    "peca.html": 1,
+    "noivas.html": 2,
+    "debutantes.html": 2,
+    "madrinhas.html": 2,
+    "ternos.html": 2,
+    "peca.html": 2,
 }
 
 
@@ -204,15 +204,18 @@ class HomeHeroContractTest(unittest.TestCase):
 
     def test_home_motion_has_static_reduced_motion_fallback(self):
         html = page("index.html")
-        for animation in ("kl-hero-curtain", "kl-hero-reveal", "kl-hero-breathe"):
-            block = balanced_css_block(html, f"@keyframes {animation}")
-            properties = set(re.findall(r"(?<![-\w])([a-z-]+)\s*:", block))
-            self.assertLessEqual(properties, {"transform", "opacity"})
-        self.assertIn("@media (prefers-reduced-motion: reduce)", html)
-        self.assertRegex(html, r"\.hero-media::after\{[^}]*transform:")
-        reduced = balanced_css_block(html, "@media (prefers-reduced-motion: reduce)")
+        css = page("kl-refine.css")
+        js = page("kl-ui.js")
+        self.assertIn('href="/kl-refine.css', html)
+        self.assertIn('src="/kl-ui.js', html)
+        block = balanced_css_block(css, "@keyframes kl-soft-enter")
+        properties = set(re.findall(r"(?<![-\w])([a-z-]+)\s*:", block))
+        self.assertLessEqual(properties, {"transform", "opacity"})
+        reduced = balanced_css_block(css, "@media(prefers-reduced-motion:reduce)")
         for declaration in ("animation:none", "transition:none", "transform:none", "opacity:1"):
             self.assertIn(declaration, reduced.replace(" ", ""))
+        self.assertNotIn("setInterval(", html + js)
+        self.assertNotRegex(html, r'<script[^>]*src="[^"]*(?:gsap|ScrollTrigger)')
 
     def test_home_keeps_critical_routes_and_integrations(self):
         html = page("index.html")
@@ -614,7 +617,7 @@ class CatalogIntegrationContractTest(unittest.TestCase):
                 count = html.count('href="catalogo.html?prova=1"')
                 self.assertEqual(expected_count, count)
                 total += count
-        self.assertEqual(19, total)
+        self.assertEqual(24, total)
 
     def test_try_on_bridge_is_not_indexed_in_sitemap(self):
         sitemap = page("sitemap.xml")

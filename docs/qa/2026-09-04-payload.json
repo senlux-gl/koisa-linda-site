@@ -1,0 +1,12 @@
+{
+  "index.html": {
+    "before_bytes": 64894,
+    "after_bytes": 54336,
+    "percent": 16.3
+  },
+  "noivas-experiencia.html": {
+    "before_bytes": 41792,
+    "after_bytes": 36396,
+    "percent": 12.9
+  }
+}

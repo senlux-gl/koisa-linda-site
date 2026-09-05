@@ -1,0 +1,42 @@
+name: Publish reviewed static site
+# Manual only. Enable Actions as the Pages source only after publication approval.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/configure-pages@v5
+      - name: Build public artifact
+        run: python3 tools/build-site.py
+      - name: Build analytics-free QA artifact
+        run: python3 tools/build-site.py --preview --output _preview
+      - name: Validate links, canonical pages and legacy redirects
+        run: |
+          python3 -m unittest discover -s tests -p test_url_build.py
+          node --test tests/url-redirects.test.cjs
+          node --check kl-ui.js
+          node --check kl-site-enhance.js
+          node --check kl-tracking.js
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish
+        id: deployment
+        uses: actions/deploy-pages@v4

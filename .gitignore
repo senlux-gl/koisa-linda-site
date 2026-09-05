@@ -6,3 +6,8 @@ _proposta-pomar.html
 # variantes de imagem geradas para o srcset (os originais ficam no repo)
 img/_originais-antes-otimizacao/
 *.bak-imagens-*
+
+# Generated static publication and local review
+_site/
+_preview/
+__pycache__/

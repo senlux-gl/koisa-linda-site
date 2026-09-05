@@ -209,7 +209,7 @@
   }
 
   function initialContext(root) {
-    var page = pageKind(root.location);
+    var page = root.KLUrls ? root.KLUrls.pageKind(root.location.pathname) : pageKind(root.location);
     /* ?un= vale em qualquer página, não só no catálogo: quem manda tráfego pago já
        sabe a loja, e sem isso madrinhas.html joga a cliente da Barra no WhatsApp
        de São Francisco (CAMPAIGN_UNITS.madrinhas = 'sf'). */
@@ -307,7 +307,7 @@
     var close = shell.querySelector('.kl-lara-close');
     var options = shell.querySelector('.kl-lara-options');
     var answer = shell.querySelector('.kl-lara-answer');
-    var delayLaraOnHome = context.page === 'index' || context.page === 'home';
+    var delayLaraOnHome = !!document.querySelector('.hero');
     if (delayLaraOnHome) {
       shell.classList.add('kl-lara-home-delayed');
       function revealLaraAfterHero() {
@@ -315,7 +315,10 @@
         var header = document.querySelector('header');
         var headerH = header ? header.getBoundingClientRect().height : 0;
         var threshold = hero ? Math.max(360, hero.offsetHeight - headerH - 24) : 520;
-        if ((root.scrollY || 0) > threshold) shell.classList.add('is-on');
+        if ((root.scrollY || 0) > threshold) {
+          shell.classList.add('is-on');
+          root.removeEventListener('scroll', revealLaraAfterHero);
+        }
       }
       root.addEventListener('scroll', revealLaraAfterHero, { passive: true });
       root.setTimeout(revealLaraAfterHero, 1400);
@@ -427,7 +430,7 @@
       var headerH = header ? header.getBoundingClientRect().height : 0;
       // Na home mobile a primeira dobra já tem CTA + Lara; sticky só entra
       // depois que a cliente sai do hero para não empilhar três CTAs.
-      if (context.page === 'index' || context.page === 'home') {
+      if (hero) {
         return hero ? Math.max(360, hero.offsetHeight - headerH - 24) : 520;
       }
       return 140;
@@ -437,6 +440,7 @@
       if (!shown && y > revealAfterPx()) {
         box.classList.add('is-on');
         shown = true;
+        root.removeEventListener('scroll', updateVisibility);
       }
     }
     root.addEventListener('scroll', updateVisibility, { passive: true });

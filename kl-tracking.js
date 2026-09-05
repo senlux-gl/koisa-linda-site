@@ -134,7 +134,7 @@
     return p;
   }
   function pageType() {
-    var p = (location.pathname.split('/').pop() || 'index.html').replace('.html', '') || 'home';
+    var p = window.KLUrls ? window.KLUrls.pageKind(location.pathname) : (location.pathname.split('/').pop() || 'index.html').replace('.html', '') || 'home';
     if (p === 'index') return 'home';
     return p;
   }
@@ -287,7 +287,7 @@
         link_domain_path: safePathFromUrl(href),
         destination_path: (function () { try { var u = new URL(href, location.href); return u.pathname + (u.search ? '?has_query=1' : ''); } catch (e2) { return ''; } })()
       };
-      if (href.indexOf('catalogo.html') > -1) linkParams.destination_category = (new URL(href, location.href).searchParams.get('cat') || '');
+      if (/catalogo(?:\.html|\/)(?:[?#]|$)/.test(href)) linkParams.destination_category = (new URL(href, location.href).searchParams.get('cat') || '');
       if (isWa) {
         var decoded = '';
         try { decoded = decodeURIComponent(href); } catch (e3) { decoded = href; }

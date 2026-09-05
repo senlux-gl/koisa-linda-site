@@ -1,0 +1,14 @@
+{
+  "tests": {
+    "before_failures": 33,
+    "after_failures": 33,
+    "new_failures": [],
+    "resolved": []
+  },
+  "node": {
+    "before_failures": 11,
+    "after_failures": 11,
+    "new_failures": [],
+    "resolved": []
+  }
+}

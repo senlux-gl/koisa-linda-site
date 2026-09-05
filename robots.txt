@@ -54,6 +54,6 @@ Allow: /
 
 User-agent: *
 Allow: /
-Disallow: /*?utm_
+# Canonical URLs consolidate campaign parameters; crawlers may read those tags.
 
 Sitemap: https://koisalinda.com.br/sitemap.xml

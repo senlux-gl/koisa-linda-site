@@ -1,0 +1,625 @@
+{
+  "authorization": "User approved publication of the reviewed site in this task on 2026-09-04",
+  "scan_secret_hits": 0,
+  "raw_regex_findings": 88,
+  "new_sensitive_values": 0,
+  "review": [
+    {
+      "file": "agendar.html",
+      "line": 1,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "agendar.html",
+      "line": 1,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "agendar.html",
+      "line": 169,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "agendar.html",
+      "line": 169,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "agendar.html",
+      "line": 188,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "agendar.html",
+      "line": 202,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "agendar.html",
+      "line": 208,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "catalogo.html",
+      "line": 6,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "catalogo.html",
+      "line": 6,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "catalogo.html",
+      "line": 167,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "catalogo.html",
+      "line": 193,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "catalogo.html",
+      "line": 193,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "como-chegar.html",
+      "line": 5,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "como-chegar.html",
+      "line": 5,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "como-chegar.html",
+      "line": 156,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "como-chegar.html",
+      "line": 182,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "como-chegar.html",
+      "line": 182,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "como-chegar.html",
+      "line": 253,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "como-chegar.html",
+      "line": 267,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "debutantes.html",
+      "line": 1,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "debutantes.html",
+      "line": 1,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "debutantes.html",
+      "line": 56,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "debutantes.html",
+      "line": 56,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "debutantes.html",
+      "line": 60,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "debutantes.html",
+      "line": 106,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "debutantes.html",
+      "line": 111,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "index.html",
+      "line": 5,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "index.html",
+      "line": 5,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "index.html",
+      "line": 181,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "index.html",
+      "line": 195,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "index.html",
+      "line": 195,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "index.html",
+      "line": 340,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "kl-site-enhance.js",
+      "line": 13,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "kl-site-enhance.js",
+      "line": 14,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "kl-tracking.js",
+      "line": 44,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "kl-tracking.js",
+      "line": 45,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "madrinhas.html",
+      "line": 1,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "madrinhas.html",
+      "line": 1,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "madrinhas.html",
+      "line": 56,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "madrinhas.html",
+      "line": 56,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "madrinhas.html",
+      "line": 60,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "madrinhas.html",
+      "line": 105,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "madrinhas.html",
+      "line": 110,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "noivas-experiencia.html",
+      "line": 4,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "noivas-experiencia.html",
+      "line": 4,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "noivas-experiencia.html",
+      "line": 240,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "noivas-experiencia.html",
+      "line": 267,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "noivas-experiencia.html",
+      "line": 267,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "noivas-experiencia.html",
+      "line": 425,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "noivas.html",
+      "line": 1,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "noivas.html",
+      "line": 1,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "noivas.html",
+      "line": 66,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "noivas.html",
+      "line": 66,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "noivas.html",
+      "line": 70,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "noivas.html",
+      "line": 116,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "noivas.html",
+      "line": 121,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "peca.html",
+      "line": 2,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "peca.html",
+      "line": 2,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "peca.html",
+      "line": 57,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "peca.html",
+      "line": 57,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "privacidade.html",
+      "line": 59,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "privacidade.html",
+      "line": 60,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "servicos.html",
+      "line": 5,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "servicos.html",
+      "line": 5,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "servicos.html",
+      "line": 125,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "servicos.html",
+      "line": 151,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "servicos.html",
+      "line": 151,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "sobre.html",
+      "line": 5,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "sobre.html",
+      "line": 5,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "sobre.html",
+      "line": 170,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "sobre.html",
+      "line": 196,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "sobre.html",
+      "line": 196,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "ternos.html",
+      "line": 1,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "ternos.html",
+      "line": 1,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "ternos.html",
+      "line": 56,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "ternos.html",
+      "line": 56,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "ternos.html",
+      "line": 60,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "ternos.html",
+      "line": 96,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "ternos.html",
+      "line": 101,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "tests/test_site_contract.py",
+      "line": 326,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "tests/test_site_contract.py",
+      "line": 326,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "tests/test_site_contract.py",
+      "line": 329,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "tests/test_site_contract.py",
+      "line": 329,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "unidades.html",
+      "line": 5,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "unidades.html",
+      "line": 5,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "unidades.html",
+      "line": 155,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_store_contact"
+    },
+    {
+      "file": "unidades.html",
+      "line": 169,
+      "type": "Telefone (celular BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    },
+    {
+      "file": "unidades.html",
+      "line": 169,
+      "type": "Telefone (fixo BR)",
+      "present_in_base_and_public_site": true,
+      "context": "public_pixel_id_false_positive"
+    }
+  ],
+  "decision": "All findings are unchanged public store contacts or public Pixel ID; preserve the approved site and attribution. No customer data or credentials introduced."
+}
