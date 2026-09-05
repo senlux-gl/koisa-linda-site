@@ -17,6 +17,7 @@ A prévia desliga os scripts de analytics e o fallback do Pixel. Consultas de di
 python3 tools/build-site.py
 python3 tools/build-site.py --preview --output _preview
 python3 -m unittest discover -s tests -p test_url_build.py
+python3 -m unittest discover -s tests -p test_seo_build.py
 node --test tests/url-redirects.test.cjs
 ```
 
@@ -39,3 +40,9 @@ O artefato `_site/` é o que deve ir ao ar. Não publicar `_preview/` nem trocar
 Para rollback, o estado anterior está preservado em `codex/kl-site-before-20260904`, commit `4956efca27740c437024c685eb6fca2423a6d7df`. Se for necessário retornar, preservar os trabalhos novos e configurar o Pages em `legacy`, com essa branch e caminho `/`, mantendo domínio e HTTPS; conferir o domínio após o build. Não executar reset destrutivo, force push ou sobrescrever trabalho concorrente.
 
 Relatório de QA e limitações: `docs/qa/2026-09-04-design-urls.md`.
+
+## SEO no build
+
+`tools/seo_site.py` organiza metadados, breadcrumbs, links estáticos entre categorias e fichas, e seleções de estilo por unidade. A fonte de tamanho/unidade é o catálogo atual; os atributos visuais vêm das fichas e do arquivo de atributos existente. A camada não promete estoque ou preço. `kl-seo.css` apresenta os elementos de navegação sem novo JavaScript.
+
+Alterações de conteúdo ou cadastro precisam passar novamente pelo build. Publicar os HTMLs brutos contornaria essas correções. Diagnóstico, validação e limites do cadastro: [revisão de SEO de 05/09/2026](docs/qa/2026-09-05-seo.md).

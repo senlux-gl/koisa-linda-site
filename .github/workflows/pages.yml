@@ -20,6 +20,7 @@ jobs:
       - name: Validate links, canonical pages and legacy redirects
         run: |
           python3 -m unittest discover -s tests -p test_url_build.py
+          python3 -m unittest discover -s tests -p test_seo_build.py
           node --test tests/url-redirects.test.cjs
           node --check kl-ui.js
           node --check kl-site-enhance.js
