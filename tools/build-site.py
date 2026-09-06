@@ -13,6 +13,13 @@ _seo_spec = importlib.util.spec_from_file_location('kl_seo_site', ROOT/'tools/se
 seo = importlib.util.module_from_spec(_seo_spec)
 _seo_spec.loader.exec_module(seo)
 PUBLIC_ROOT_FILES = frozenset(['2e6a8e0fffab111a0cbe5ae7b36fb00f.txt', 'CNAME', 'apple-touch-icon.png', 'favicon.ico', 'kl-agendar.js', 'kl-schedule-context.js', 'kl-schedule-experience.css', 'kl-capture.js', 'kl-capture.css', 'kl-catalog-actions.js', 'kl-catalog-app.js', 'kl-catalog-atributos.json', 'kl-catalog-core.js', 'kl-catalog-data.js', 'kl-catalog-gallery.js', 'kl-catalog-tryon.css', 'kl-catalog-tryon.js', 'kl-catalog.css', 'kl-fonts.css', 'kl-ga.js', 'kl-redirect.js', 'kl-refine.css', 'kl-seo.css', 'kl-site-enhance.css', 'kl-site-enhance.js', 'kl-tracking.js', 'kl-ui.js', 'robots.txt'])
+PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-capture-popup.js'}
+CAPTURE_VERSION = '20260906popup1'
+CAPTURE_EXCLUDED = frozenset(('agendar.html', 'privacidade.html', 'peca.html', 'provar.html', '404.html'))
+CAPTURE_CATEGORIES = {
+ 'noivas.html':'vestidos-noiva', 'noivas-experiencia.html':'vestidos-noiva',
+ 'debutantes.html':'vestidos-debutante', 'madrinhas.html':'vestidos-madrinha', 'ternos.html':'ternos',
+}
 BASE_ROUTES = {
  'index.html':'/', 'catalogo.html':'/catalogo/', 'agendar.html':'/agendar/',
  'noivas.html':'/noivas/', 'noivas-experiencia.html':'/noivas/experiencia/',
@@ -80,7 +87,40 @@ def redirect_page(destination):
 </head><body><h1>Seu momento continua por aqui.</h1><p>O endereço desta página mudou.</p>
 <a id="kl-redirect" href="'''+escape(destination,quote=True)+'''">Continuar para a Koisa Linda</a></body></html>'''
 
+def add_capture(s, source):
+ """Share one capture form; booking, privacy, shells and redirects stay separate."""
+ if source in CAPTURE_EXCLUDED or not (source in ROUTES or source.startswith('p/')):
+  return s
+ category=CAPTURE_CATEGORIES.get(source,'');unit=''
+ if source.startswith('vestido-de-noiva-'):
+  category='vestidos-noiva'
+  unit='sf' if source.endswith('-niteroi.html') else 'barra' if source.endswith('-barra-da-tijuca.html') else ''
+ elif source.startswith('p/'):
+  product=seo.context()[0].get(Path(source).stem,{})
+  category=product.get('c','');unit=product.get('un','')
+ template=(ROOT/'tools/partials/capture.html').read_text()
+ template=template.replace('{{category}}',escape(category,quote=True)).replace('{{unit}}',escape(unit,quote=True))
+ if '<!-- kl-capture -->' in s:
+  s=s.replace('<!-- kl-capture -->',template,1)
+ else:
+  s=seo.insert_end(s,template)
+ # Keep the catalogue Actions dependency in its original order; every other page
+ # needs only its contacts/helper module, not the catalogue App or its data.
+ if not re.search(r'<script\b[^>]*src=["\'][^"\']*\bkl-catalog-actions\.js(?:\?[^"\']*)?["\']',s):
+  s=s.replace('</head>','<script defer src="/kl-catalog-actions.js?v=20260906agenda1"></script></head>',1)
+ # Static product/style entries also need first/last attribution before capture.
+ # Keep any existing tracking tag and version; never add an extra GA loader.
+ if not re.search(r'<script\b[^>]*src=["\'][^"\']*\bkl-tracking\.js(?:\?[^"\']*)?["\']',s):
+  s=s.replace('</head>','<script defer src="/kl-tracking.js?v=20260906agenda1"></script></head>',1)
+ # A single managed bundle also refreshes any older source-page capture tags.
+ s=re.sub(r'<script\b[^>]*src=["\'][^"\']*\bkl-capture(?:-popup)?\.js(?:\?[^"\']*)?["\'][^>]*>\s*</script>','',s)
+ s=re.sub(r'<link\b[^>]*href=["\'][^"\']*\bkl-capture\.css(?:\?[^"\']*)?["\'][^>]*>','',s)
+ assets=f'<link rel="stylesheet" href="/kl-capture.css?v={CAPTURE_VERSION}">'
+ assets+=''.join(f'<script defer src="/{asset}?v={CAPTURE_VERSION}"></script>' for asset in ('kl-capture-popup.js','kl-capture.js'))
+ return s.replace('</head>',assets+'</head>',1)
+
 def render(s, source, canonical, preview=False):
+ s=add_capture(s,source)
  s=rewrite_text_urls(s,source)
  # Font files stay on the same origin and use font-display: swap.
  s=re.sub(r'<link\b[^>]*href=["\'][^"\']*fonts\.(?:googleapis|gstatic)\.com[^>]*>', '', s)

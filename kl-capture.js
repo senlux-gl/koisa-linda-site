@@ -49,29 +49,41 @@
     var result = doc.getElementById('kl-capture-result'), status = doc.getElementById('kl-capture-status');
     var continueLink = doc.getElementById('kl-capture-continue'), storage = null;
     try { storage = win.localStorage; } catch (_) {}
-    var fallbackState = {}, state = readState(storage), busy = false, requestId = '', requestBody = '', autoShown = false;
-    var eligibleAt = Date.now() + 30000, eligibleTracked = false, statusBusy = false, pendingHref = '', fallbackSession = '';
+    var fallbackState = {}, state = readState(storage), busy = false, requestId = '', requestBody = '', popup = null;
+    var statusBusy = false, pendingHref = '', fallbackSession = '';
     var contacts = win.KLCatalog && win.KLCatalog.Actions && win.KLCatalog.Actions.CONTACTS;
     function persist(next) { state = next; fallbackState = next; saveState(storage,next); }
     function currentState() { var stored = readState(storage); return stored.kind ? stored : fallbackState; }
     function context() {
       var app = win.KLCatalog && win.KLCatalog.App;
-      return app && app.getCaptureContext ? app.getCaptureContext() : {source:'catalog',product_codes:[]};
+      if (app && app.getCaptureContext) return app.getCaptureContext();
+      var category = section.dataset.captureCategory || '';
+      if (['vestidos-noiva','vestidos-debutante','vestidos-madrinha','ternos','bolsas','calcados','acessorios'].indexOf(category) < 0) category = '';
+      var params = new win.URLSearchParams(win.location.search || '');
+      var requested = (params.get('un') || params.get('loja') || '').toLowerCase();
+      if (requested === 'saofrancisco') requested = 'sf';
+      var unit = ['sf','barra'].indexOf(requested) > -1 ? requested : section.dataset.captureUnit;
+      return {source:'catalog',category:category,unit:unit === 'sf' ? 'sf' : 'barra',product_codes:[]};
     }
     function event(name, extra) {
-      if (win.KLTracking && win.KLTracking.gaEvent) win.KLTracking.gaEvent(name,Object.assign({capture_surface:'catalog',capture_version:VERSION}, extra || {}));
+      if (win.KLTracking && win.KLTracking.gaEvent) win.KLTracking.gaEvent(name,Object.assign({capture_surface:popup && popup.isOpen() ? 'popup' : 'catalog',capture_version:VERSION,capture_experience:'entry_popup_20260906'}, extra || {}));
     }
     function syncFloating() {
       var box = section.getBoundingClientRect();
       doc.body.classList.toggle('kl-capture-active', box.bottom > 0 && box.top < win.innerHeight && (!form.hidden || !result.hidden));
     }
     win.addEventListener('scroll',syncFloating,{passive:true});
-    function show(manual) {
-      if (busy || doc.querySelector('dialog[open]') || /^(INPUT|TEXTAREA|SELECT)$/.test((doc.activeElement || {}).tagName)) return;
-      if (!manual && Number(currentState().until) > Date.now()) return;
+    function showForm(trigger) {
       form.hidden = false; open.hidden = true; syncFloating(); open.setAttribute('aria-expanded','true'); close.hidden = false;
-      event('capture_invite_view',{trigger:manual?'manual':'engaged'});
-      if (manual) phone.focus();
+      if (trigger === 'page_open') event('capture_session_eligible');
+      event('capture_invite_view',{trigger:trigger});
+      if (trigger === 'manual') phone.focus({preventScroll:true});
+    }
+    function show(manual) {
+      if (busy) return;
+      if (popup) { popup.open(manual); return; }
+      if (doc.querySelector('dialog[open]')) return;
+      showForm('manual');
     }
     function hide() {
       if (busy) return;
@@ -81,17 +93,6 @@
     }
     open.addEventListener('click',function () { show(true); });
     close.addEventListener('click',hide);
-    function eligible() {
-      if (autoShown || Date.now() < eligibleAt || doc.visibilityState === 'hidden') return;
-      if (!eligibleTracked) { event('capture_session_eligible'); eligibleTracked = true; }
-      var box = section.getBoundingClientRect();
-      if (box.top < 0 || box.bottom > win.innerHeight || doc.querySelector('dialog[open]')) return;
-      if (/^(INPUT|TEXTAREA|SELECT)$/.test((doc.activeElement || {}).tagName)) return;
-      autoShown = true; show(false);
-    }
-    win.setTimeout(eligible,30000);
-    win.addEventListener('scroll',eligible,{passive:true});
-    doc.addEventListener('visibilitychange',eligible);
     async function post(path, body) {
       var controller = new win.AbortController(), timer = win.setTimeout(function () { controller.abort(); },15000);
       try {
@@ -151,7 +152,7 @@
         form.hidden = true; open.hidden = false; close.hidden = true; syncFloating(); open.setAttribute('aria-expanded','false');
         phone.value = ''; marketing.checked = false; syncFloating();
         event('capture_request_pending',{marketing_opt_in:payload.marketing_opt_in});
-        continueLink.focus();
+        if (!popup || popup.isOpen()) continueLink.focus({preventScroll:true});
       } catch (_) { status.textContent = 'Não foi possível confirmar o cadastro agora. Tente novamente; nenhum envio de WhatsApp parte deste formulário.'; event('capture_request_error'); }
       finally { busy=false;submit.disabled=false;submit.textContent='Receber modelos no WhatsApp'; }
     });
@@ -161,6 +162,16 @@
       pendingHref = whatsappHref(state.token,state.marketing === true,contacts[state.unit === 'sf' ? 'sf' : 'barra']);
       result.hidden = false; continueLink.hidden = false; status.textContent = 'Seu pedido aguarda confirmação. Abra o WhatsApp e envie a mensagem preparada pelo mesmo número informado. O pedido vale por 24 horas.';
       syncFloating();
+    }
+    if (win.KLCapturePopup) {
+      popup = win.KLCapturePopup.mount(win, section, {
+        isSuppressed:function(){return busy || Number(currentState().until) > Date.now();},
+        onOpen:showForm,
+        onClose:function(){
+          form.hidden=true;open.hidden=false;close.hidden=true;open.setAttribute('aria-expanded','false');
+          event('capture_invite_dismiss',{capture_surface:'popup'});syncFloating();
+        }
+      });
     }
   }
   return {DAY:DAY,normalizePhone:normalizePhone,makePayload:makePayload,whatsappHref:whatsappHref,readState:readState,saveState:saveState,isSuppressed:isSuppressed,init:init};

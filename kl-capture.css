@@ -3,3 +3,24 @@
 @media(max-width:640px){.kl-capture{margin:18px 0 24px;padding:22px 20px}.kl-capture-heading{display:block}.kl-capture h2{max-width:27ch}.kl-capture #kl-capture-open{margin-top:18px;width:100%}.kl-capture #kl-capture-submit,.kl-capture #kl-capture-continue{width:100%}.kl-capture-privacy{display:block;margin:16px 0 0;text-align:center}.kl-capture-phone{max-width:none}.kl-capture #kl-capture-close{right:-13px;top:-18px}}
 
 body.kl-capture-active .kl-sticky-cta,body.kl-capture-active .kl-lara-web{display:none!important}
+
+/* The entry popup reuses the inline form and its request/consent controller. */
+.kl-capture-dialog{box-sizing:border-box;width:min(540px,calc(100vw - 32px));max-width:none;max-height:calc(100dvh - 32px);margin:auto;padding:0;border:1px solid #ded1c0;border-radius:12px;background:#fbf7ef;color:#2c2326;box-shadow:0 24px 80px #24141540;overflow:auto;overscroll-behavior:contain}
+.kl-capture-dialog::backdrop{background:#21151899;backdrop-filter:blur(3px)}
+.kl-capture-dialog .kl-capture{box-sizing:border-box;width:100%;margin:0;padding:36px 30px 28px;border:0;background:transparent}
+.kl-capture-dialog .kl-capture-heading{display:block;padding-right:22px}
+.kl-capture-dialog .kl-capture h2{font-size:30px;font-style:italic;line-height:1.2;max-width:20ch}
+.kl-capture-dialog .kl-capture-heading p:not(.kl-capture-eyebrow){font-size:18px;line-height:1.35}
+.kl-capture-dialog .kl-capture form{margin-top:19px;padding-top:19px}
+.kl-capture-dialog .kl-capture-phone{max-width:none}
+.kl-capture-dialog .kl-capture-phone input{box-sizing:border-box}
+.kl-capture-dialog .kl-capture-consent{font-size:13px;line-height:1.5;margin:14px 0 18px}
+.kl-capture-dialog #kl-capture-use{font-size:15px;line-height:1.4;margin:12px 0}
+.kl-capture-dialog #kl-capture-close,.kl-capture-dialog #kl-capture-open{display:none!important}
+.kl-capture-dialog #kl-capture-submit,.kl-capture-dialog #kl-capture-continue{box-sizing:border-box;width:100%}
+.kl-capture-dialog .kl-capture-privacy{display:block;margin:15px 0 0;text-align:center}
+.kl-capture-popup-close{position:sticky;z-index:1;float:right;top:8px;right:8px;margin:8px 8px -52px 0;display:grid;place-items:center;width:44px;height:44px;min-height:44px;padding:0;border:0;border-radius:50%;background:#fbf7ef;color:#722f37;cursor:pointer;font:28px/1 Arial,sans-serif}
+.kl-capture-popup-close:focus-visible{outline:2px solid #c89f3c;outline-offset:-4px}
+body.kl-capture-popup-open{overflow:hidden}
+body.kl-capture-popup-open .kl-sticky-cta,body.kl-capture-popup-open .kl-lara-web{display:none!important}
+@media(max-width:640px){.kl-capture-dialog .kl-capture{padding:30px 22px 23px}.kl-capture-dialog .kl-capture h2{font-size:28px}.kl-capture-dialog .kl-capture-heading{padding-right:20px}}
