@@ -61,6 +61,7 @@ test('back from form retains typed fields and choice of consent when selecting a
   doc.getElementById('evento').value = '2026-12-12';
   doc.getElementById('notas').value = 'Quero experimentar manga comprida';
   doc.getElementById('aceite').checked = true;
+  doc.getElementById('kl-schedule-measurement').checked = true;
   doc.getElementById('voltar2').click();
   await new Promise(setImmediate);
   doc.getElementById('ir3').click();
@@ -69,6 +70,7 @@ test('back from form retains typed fields and choice of consent when selecting a
   assert.equal(doc.getElementById('evento').value, '2026-12-12');
   assert.equal(doc.getElementById('notas').value, 'Quero experimentar manga comprida');
   assert.equal(doc.getElementById('aceite').checked, true);
+  assert.equal(doc.getElementById('kl-schedule-measurement').checked, true);
   assert.equal(env.calls.filter(call => /\/(lead|pedido)$/.test(call.url)).length, 0);
 });
 
@@ -123,6 +125,7 @@ test('waiting for an updated lead freezes the selected booking and prevents anot
   assert.equal(back.disabled, true);
   back.click();
   doc.getElementById('ir3').click();
+  await new Promise(setImmediate);
   release();
   await new Promise(setImmediate);
   const orders = env.calls.filter(call => call.url.endsWith('/pedido'));

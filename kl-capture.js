@@ -30,7 +30,8 @@
       request_id: input.requestId, telefone: normalizePhone(input.phone), session_id: input.sessionId,
       marketing_opt_in: input.marketing === true, consent_version: VERSION,
       source: context.source === 'favorites' ? 'favorites' : 'catalog', category: context.category || '',
-      product_codes: (context.product_codes || []).slice(0,6), attribution: input.attribution || {}, website: input.website || ''
+      product_codes: (context.product_codes || []).slice(0,6), attribution: input.attribution || {}, website: input.website || '',
+      analytics: input.analytics || {consent:false,version:'2026-09-06.measurement.v1'}
     };
   }
   function whatsappHref(token, marketing, destination) {
@@ -133,12 +134,17 @@
       var session = tracking.getSessionId ? tracking.getSessionId() : fallbackSession;
       var chosen = context();
       var payload = makePayload({phone:phone.value,marketing:marketing.checked,sessionId:session,context:chosen,attribution:tracking.getAttribution ? tracking.getAttribution() : {},website:doc.getElementById('kl-capture-website').value});
-      var fingerprint = JSON.stringify(payload);
-      if (fingerprint !== requestBody) { requestId = win.crypto.randomUUID(); requestBody = fingerprint; }
-      payload.request_id = requestId;
       busy = true; submit.disabled = true; submit.textContent = 'Preparando seu pedido…';
       result.hidden = false; continueLink.hidden = true; status.textContent = ''; syncFloating();
       try {
+        var measurement = doc.getElementById('kl-capture-measurement');
+        var allowed = !!measurement && measurement.checked === true;
+        if (measurement) measurement.disabled = true;
+        payload.analytics = tracking.getGoogleIdentity ? await tracking.getGoogleIdentity(allowed) : {consent:allowed,version:'2026-09-06.measurement.v1'};
+        // A tag callback arriving on retry must not create a second request.
+        var fingerprint = JSON.stringify(Object.assign({},payload,{analytics:{consent:payload.analytics.consent,version:payload.analytics.version}}));
+        if (fingerprint !== requestBody) { requestId = win.crypto.randomUUID(); requestBody = fingerprint; }
+        payload.request_id = requestId;
         var response = await post('',payload);
         if (!response.ok || response.status !== 'pending_confirmation' || !/^[a-f0-9]{32}$/.test(response.token || '')) {
           status.textContent = response.status === 'rate_limited' ? 'Já recebemos pedidos recentes para este número. Tente novamente mais tarde.' : 'Não conseguimos preparar seu pedido. Confira o número e tente novamente.';
@@ -154,7 +160,7 @@
         event('capture_request_pending',{marketing_opt_in:payload.marketing_opt_in});
         if (!popup || popup.isOpen()) continueLink.focus({preventScroll:true});
       } catch (_) { status.textContent = 'Não foi possível confirmar o cadastro agora. Tente novamente; nenhum envio de WhatsApp parte deste formulário.'; event('capture_request_error'); }
-      finally { busy=false;submit.disabled=false;submit.textContent='Receber modelos no WhatsApp'; }
+      finally { if (measurement) measurement.disabled=false;busy=false;submit.disabled=false;submit.textContent='Receber modelos no WhatsApp'; }
     });
     phone.addEventListener('input',function () { phone.setCustomValidity(''); });
     continueLink.addEventListener('click',function () { if (pendingHref) { event('capture_whatsapp_open'); win.open(pendingHref,'_blank','noopener,noreferrer'); } });

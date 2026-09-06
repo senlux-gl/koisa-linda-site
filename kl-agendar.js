@@ -184,6 +184,8 @@
     if (JSON.stringify(next) !== JSON.stringify(estado.lead)) estado.leadSalvo = false;
     estado.lead = next;
     estado.aceite = Boolean(document.getElementById('aceite') && document.getElementById('aceite').checked);
+    var measurement = document.getElementById('kl-schedule-measurement');
+    if (measurement) estado.measurementAllowed = measurement.checked === true;
     estado.opcionaisAbertos = Boolean(document.getElementById('schedule-optional') && document.getElementById('schedule-optional').open);
   }
 
@@ -193,6 +195,8 @@
       if (node) node.value = estado.lead[id === 'evento' ? 'data_evento' : id] || '';
     });
     document.getElementById('aceite').checked = estado.aceite;
+    var measurement = document.getElementById('kl-schedule-measurement');
+    if (measurement) measurement.checked = estado.measurementAllowed === true;
     var details = document.getElementById('schedule-optional');
     if (details) details.open = estado.opcionaisAbertos || Boolean(estado.lead.data_evento || estado.lead.notas || estado.lead.preferencia);
   }
@@ -223,6 +227,7 @@
       preferencia: estado.lead.preferencia || '',
       notas: notasDoPedido(estado.lead.notas),
       consentimento: true,
+      analytics: estado.googleIdentity || {consent:false,version:'2026-09-06.measurement.v1'},
       aberto_em: estado.abertoEm,
       sobrenome_confirmacao: '',
       attribution: attribution,
@@ -248,10 +253,18 @@
     if (estado.lead_id && estado.leadSalvo) return Promise.resolve({ lead_id: estado.lead_id, cached: true });
     estado.leadContext = JSON.stringify([estado.ocasiao, estado.loja, referenciaModelo()]);
     trackSchedule('KL_Lead_Form_Submit', { has_event_date: estado.lead.data_evento ? 'yes' : 'no', preference: estado.lead.preferencia || 'none' }, 'leadsubmit:' + estado.lead.telefone);
-    return fetch(API + '/lead', {
+    var measurement = document.getElementById('kl-schedule-measurement');
+    var allowed = measurement ? measurement.checked === true : estado.measurementAllowed === true;
+    estado.measurementAllowed = allowed;
+    var identity = window.KLTracking && window.KLTracking.getGoogleIdentity
+      ? window.KLTracking.getGoogleIdentity(allowed) : Promise.resolve({consent:allowed,version:'2026-09-06.measurement.v1'});
+    return identity.then(function (googleIdentity) {
+      estado.googleIdentity = googleIdentity;
+      return fetch(API + '/lead', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(leadPayloadD('lead_form_completed'))
+      });
     }).then(function (r) {
       return r.json().then(function (d) { if (!r.ok || !d || d.ok !== true) throw new Error((d && d.reason) || ('http ' + r.status)); return d; });
     }).then(function (d) {
@@ -400,6 +413,7 @@
       '</details>' +
       '<label class="mel" aria-hidden="true">Não preencha<input id="mel" name="sobrenome_confirmacao" type="text" tabindex="-1" autocomplete="off"></label>' +
       '<label class="aceite"><input id="aceite" type="checkbox" required><span>Autorizo a Koisa Linda a usar meu nome e WhatsApp para confirmar e organizar esta prova. <a href="privacidade.html" target="_blank" rel="noopener">Como cuidamos dos seus dados</a>.</span></label>' +
+      '<label class="aceite"><input id="kl-schedule-measurement" type="checkbox"><span>Permito relacionar esta visita ao meu atendimento e às compras para medir os resultados dos anúncios no Google. Opcional; posso retirar essa autorização.</span></label>' +
       '<span class="mini" id="mini-aceite" style="margin:-14px 0 16px;display:none">Precisamos do seu aceite para continuar.</span>' +
       '<div class="acoes"><button type="submit" class="btn forte" id="ir-dados">Contar meu momento e escolher horário</button></div>' +
       '</form>';
@@ -409,6 +423,7 @@
     document.getElementById('telefone').addEventListener('input', mascaraTelefone);
     document.getElementById('lead-d').addEventListener('submit', function (ev) {
       ev.preventDefault();
+      if (estado.enviando) return;
       var nome = valor('nome');
       var tel = document.getElementById('telefone').value.replace(/\D/g, '');
       var aceite = document.getElementById('aceite').checked;
@@ -421,8 +436,9 @@
       estado.lead = { nome: nome, telefone: tel, data_evento: valor('evento'), notas: valor('notas'), preferencia: valor('preferencia') };
       estado.leadSalvo = false;
       var btn = document.getElementById('ir-dados');
+      marcarEnvio(true);
       if (btn) { btn.disabled = true; btn.textContent = 'Salvando…'; }
-      registrarLeadDoSite().then(function () { ir(2); });
+      registrarLeadDoSite().then(function () { marcarEnvio(false); ir(2); });
     });
   }
 
@@ -698,6 +714,7 @@
       '<label class="aceite"><input id="aceite" type="checkbox" required>' +
       '<span>Autorizo a Koisa Linda a usar meu nome e WhatsApp para confirmar e organizar esta prova. ' +
       '<a href="privacidade.html" target="_blank" rel="noopener">Como cuidamos dos seus dados</a>.</span></label>' +
+      '<label class="aceite"><input id="kl-schedule-measurement" type="checkbox"><span>Permito relacionar esta visita ao meu atendimento e às compras para medir os resultados dos anúncios no Google. Opcional; posso retirar essa autorização.</span></label>' +
       '<span class="mini" id="mini-aceite" style="margin:-14px 0 16px">Precisamos do seu aceite para registrar a prova.</span>' +
 
       '<div class="acoes"><button type="button" class="btn leve" id="voltar2">Voltar</button>' +

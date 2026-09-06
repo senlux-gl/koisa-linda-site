@@ -248,6 +248,34 @@
       if (window.__klGA4EventQueue.length < 100) window.__klGA4EventQueue.push({ name: name, params: params });
     }
   }
+  // Explicit, optional linking of this visit to later service outcomes.
+  // A KL session is not a GA client ID. Never derive either ID from contact data.
+  function getGoogleIdentity(allowed) {
+    var result = { consent: allowed === true, version: '2026-09-06.measurement.v1' };
+    if (!result.consent || typeof window.gtag !== 'function') return Promise.resolve(result);
+    return new Promise(function (resolve) {
+      var remaining = 2, finished = false;
+      var timer = window.setTimeout(finish, 600);
+      function finish() {
+        if (finished) return;
+        finished = true; window.clearTimeout(timer); resolve(Object.assign({}, result));
+      }
+      ['client_id', 'session_id'].forEach(function (field) {
+        var received = false;
+        try {
+          window.gtag('get', GA4_ID, field, function (value) {
+            if (finished || received) return;
+            received = true;
+            var pattern = field === 'client_id' ? /^[0-9]{1,20}\.[0-9]{1,20}$/ : /^[0-9]{1,20}$/;
+            if (typeof value === 'string' || typeof value === 'number') {
+              if (pattern.test(String(value))) result[field] = String(value);
+            }
+            if (--remaining === 0) finish();
+          });
+        } catch (e) { if (!received) { received = true; if (--remaining === 0) finish(); } }
+      });
+    });
+  }
   function track(name, params, opts) {
     params = baseParams(params || {});
     if (opts && opts.onceKey) {
@@ -609,7 +637,7 @@
     bindCatalogFilterPatches();
     track('KL_Page_Context', { url_has_query: location.search ? 'yes' : 'no' }, { onceKey: 'page:' + location.href });
   }
-  window.KLTracking = Object.freeze({ catalog: catalog, getAttribution: getAttribution, getPersistedAttribution: getPersistedAttribution, getSessionId: getSessionId, gaEvent: gaEvent });
+  window.KLTracking = Object.freeze({ catalog: catalog, getAttribution: getAttribution, getPersistedAttribution: getPersistedAttribution, getSessionId: getSessionId, getGoogleIdentity: getGoogleIdentity, gaEvent: gaEvent });
   getAttribution();
   getSessionId();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
