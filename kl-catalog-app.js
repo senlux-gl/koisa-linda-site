@@ -612,6 +612,10 @@
       loadMore: root.document.getElementById('catalog-load-more'),
       results: root.document.getElementById('catalog-results'),
       search: root.document.getElementById('catalog-search'),
+      scheduleInvite: root.document.getElementById('catalog-schedule-invite'),
+      scheduleLink: root.document.getElementById('catalog-schedule-link'),
+      scheduleDescription: root.document.getElementById('catalog-schedule-description'),
+      scheduleCapture: root.document.getElementById('catalog-schedule-capture'),
       sentinel: root.document.getElementById('catalog-sentinel'),
       shortcuts: Array.prototype.slice.call(
         root.document.querySelectorAll('[data-shortcut-cat]'),
@@ -911,6 +915,29 @@
         shortcut.dataset.shortcutCat === state.category ? 'true' : 'false',
       );
     });
+    syncScheduleInvitation();
+  }
+
+  function syncScheduleInvitation() {
+    if (!dom.scheduleInvite || !dom.scheduleLink) return;
+    if (dom.scheduleCapture && root.location) {
+      dom.scheduleCapture.setAttribute('href', root.location.pathname
+        + (root.location.search || '') + '#kl-capture');
+    }
+    var href = Actions.categoryScheduleHref(state.category, state.unit);
+    dom.scheduleInvite.hidden = !href;
+    if (!href) {
+      dom.scheduleLink.removeAttribute('href');
+      return;
+    }
+    dom.scheduleLink.setAttribute('href', href);
+    if (dom.scheduleDescription) {
+      var moment = state.category === 'vestidos-noiva' ? 'o seu casamento' : 'os seus 15 anos';
+      var place = state.unit === 'barra' ? 'na Barra da Tijuca'
+        : state.unit === 'sf' ? 'em São Francisco' : 'na unidade que preferir';
+      dom.scheduleDescription.textContent = 'Encontre o vestido para ' + moment
+        + ' com a orientação da nossa equipe. Escolha um horário para provar ' + place + '.';
+    }
   }
 
   function ensureActiveFilterDom() {
@@ -1181,6 +1208,13 @@
   }
 
   function connectFilterControls() {
+    if (dom.scheduleLink) {
+      markManual(dom.scheduleLink);
+      dom.scheduleLink.addEventListener('click', function () {
+        if (!Actions.categoryScheduleHref(state.category, state.unit)) return;
+        trackCatalog('KL_Catalog_Schedule_Click', catalogContext('catalog_category_schedule'));
+      });
+    }
     if (dom.category) {
       markManual(dom.category);
       dom.category.addEventListener('change', function () {
@@ -2065,10 +2099,11 @@
         || !historyController || !dialogShell) return false;
     var galleryFavorite = dom.galleryDialog.querySelector('#gallery-favorite');
     var galleryWhatsapp = dom.galleryDialog.querySelector('#gallery-whatsapp');
+    var gallerySchedule = dom.galleryDialog.querySelector('#gallery-schedule');
     var galleryTryOn = dom.galleryDialog.querySelector('#gallery-try-on');
     var galleryPrevious = dom.galleryDialog.querySelector('.gallery-prev');
     var galleryNext = dom.galleryDialog.querySelector('.gallery-next');
-    [galleryFavorite, galleryWhatsapp, galleryTryOn, galleryPrevious, galleryNext].forEach(markManual);
+    [galleryFavorite, galleryWhatsapp, gallerySchedule, galleryTryOn, galleryPrevious, galleryNext].forEach(markManual);
     if (galleryPrevious) galleryPrevious.addEventListener('click', function () {
       galleryNavigateSource = 'previous';
     }, true);
@@ -2095,6 +2130,15 @@
       onTrack: function () {},
     });
     if (!gallery.isReady()) return false;
+    if (gallerySchedule) gallerySchedule.addEventListener('click', function () {
+      var product = productForCode(state.openProduct);
+      if (!Actions.productScheduleHref(product)) return;
+      trackCatalog('KL_Catalog_Schedule_Click', catalogContext('catalog_product_schedule', {
+        productCode: product.k,
+        category: product.c,
+        unit: Core.unitOf(product),
+      }));
+    });
     if (galleryWhatsapp) galleryWhatsapp.addEventListener('click', function () {
       var product = productForCode(state.openProduct);
       if (!product) return;

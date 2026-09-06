@@ -9,7 +9,23 @@ const ALLOWED_EVENTS = [
   'KL_Filter_Change', 'KL_Catalog_Load_More', 'KL_Product_Open',
   'KL_Product_Navigate', 'KL_Favorite_Toggle', 'KL_Favorites_View',
   'KL_WhatsApp_Click', 'KL_Try_On_Click', 'KL_Catalog_Empty',
+  'KL_Catalog_Schedule_Click',
 ];
+
+test('entrada da agenda e clique do catálogo preservam fontes permitidas sem conversão antecipada', () => {
+  ['catalog_product_schedule', 'catalog_category_schedule'].forEach(source => {
+    const env = loadTracking({ search: '?ui_source=' + source, products: [] });
+    env.window.KLTracking.catalog('KL_Catalog_Schedule_Click', {
+      category: 'vestidos-debutante', unit: 'sf', source,
+    });
+    const calls = env.fbqCalls.filter(args => args[0] === 'trackCustom');
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0][1], 'KL_Catalog_Schedule_Click');
+    assert.equal(calls[0][2].ui_source, source);
+    assert.equal(calls[0][2].entry_ui_source, source);
+    assert.equal(env.fbqCalls.some(args => ['Schedule', 'Lead'].includes(args[1])), false);
+  });
+});
 
 test('KLTracking.catalog envia toda a matriz permitida e rejeita evento desconhecido', () => {
   const rawEmail = 'nome' + '@' + 'example.invalid';

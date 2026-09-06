@@ -1,0 +1,34 @@
+/* Booking experience: keep the appointment purpose beside the calendar. */
+body .topo #scheduleDesc{display:block!important;max-width:50ch;margin:10px auto 0;line-height:1.4}
+.schedule-guide{font-family:var(--sans);font-size:12px;line-height:1.5;margin:12px auto 0;color:var(--ruby)}
+.schedule-guide a{text-decoration:underline;text-underline-offset:4px;display:inline-flex;align-items:center;min-height:44px}
+.schedule-guide span{margin:0 9px;color:var(--gold)}
+.schedule-reference{display:block;margin-top:5px;font-size:.94em}
+.schedule-reference-note{font-size:15px;line-height:1.4;color:var(--ink);margin:12px 0 18px}
+.schedule-optional{border-block:1px solid var(--line);margin:10px 0 22px;padding:4px 0}
+.schedule-optional summary{cursor:pointer;min-height:48px;align-content:center;color:var(--ruby);font-family:var(--sans);font-size:13px;line-height:1.5;padding:10px 0}
+.schedule-optional summary:focus-visible{outline:2px solid var(--ruby);outline-offset:4px}
+.schedule-optional[open] summary{margin-bottom:14px}
+.schedule-help{display:flex;gap:8px 22px;flex-wrap:wrap;align-items:center;margin:20px 0 0;padding-top:14px;border-top:1px solid var(--line);font-family:var(--sans);font-size:12px;line-height:1.5}
+.schedule-help a{color:var(--ruby);text-decoration:underline;text-underline-offset:4px;min-height:44px;display:inline-flex;align-items:center}
+.schedule-help a:focus-visible{outline:2px solid var(--ruby);outline-offset:4px}
+body .faq{padding-top:36px;padding-bottom:40px;scroll-margin-top:90px}
+body .faq h2{line-height:1.15}
+body .faq-grid{display:block;border-top:1px solid var(--line)}
+body .faq-item{border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;padding:19px 0}
+body .faq-item b{font-size:22px}
+body .faq-item p{font-size:18px;max-width:68ch}
+body .aceite{cursor:pointer;line-height:1.45}
+body .aceite a{text-decoration:underline;text-underline-offset:3px}
+body .livre{padding-top:35px;padding-bottom:40px;scroll-margin-top:90px}
+@media(max-width:760px){
+  body .topo #scheduleDesc{font-size:16px;max-width:35ch}
+  body .topo h1{font-size:30px;line-height:1.15}
+  .schedule-guide{margin-top:4px;font-size:11px}
+  .schedule-guide span{margin-inline:5px}
+  body .cartao{padding:20px 16px}
+  body .cartao h2{line-height:1.15}
+  body .cartao .sub{font-size:17px;line-height:1.4}
+  body .faq .intro{font-size:18px}
+  .schedule-help{gap:2px 14px;margin-top:12px}
+}

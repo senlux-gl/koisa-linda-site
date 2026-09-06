@@ -46,13 +46,31 @@
     enviando: false,
     variante: '',
     lead: { nome: '', telefone: '', data_evento: '', notas: '', preferencia: '' },
+    aceite: false,
+    opcionaisAbertos: false,
     lead_id: '',
     leadSalvo: false,
+    leadContext: '',
   };
 
   var cartao = document.getElementById('cartao');
   var trilha = document.getElementById('trilha');
   var rotuloPasso = document.getElementById('rotuloPasso');
+  var camposBloqueados = [];
+
+  function marcarEnvio(ativo) {
+    estado.enviando = ativo;
+    if (ativo) {
+      ['button', 'input', 'select', 'textarea'].forEach(function (tag) {
+        cartao.querySelectorAll(tag).forEach(function (node) {
+          if (!node.disabled) { camposBloqueados.push(node); node.disabled = true; }
+        });
+      });
+    } else {
+      camposBloqueados.forEach(function (node) { node.disabled = false; });
+      camposBloqueados = [];
+    }
+  }
 
   var ROTULOS = ['', 'Passo 1 de 3 · Ocasião e unidade', 'Passo 2 de 3 · Dia e horário', 'Passo 3 de 3 · Seus dados', 'Pronto'];
   var ROTULOS_D = ['', 'Passo 1 de 3 · Seus dados', 'Passo 2 de 3 · Ocasião e unidade', 'Passo 3 de 3 · Dia e horário', 'Pronto'];
@@ -147,6 +165,47 @@
     return id;
   }
 
+  function referenciaModelo() {
+    var context = window.KLScheduleContext;
+    return context ? context.resolveReference(qsParam('modelo'), estado.ocasiao, window.KL_DATA) : '';
+  }
+
+  function notasDoPedido(comment) {
+    var context = window.KLScheduleContext;
+    return context ? context.orderNotes(referenciaModelo(), comment) : String(comment || '').slice(0, 400);
+  }
+
+  function guardarDados() {
+    if (!document.getElementById('nome')) return;
+    var next = {
+      nome: valor('nome'), telefone: valor('telefone'), data_evento: valor('evento'),
+      notas: valor('notas'), preferencia: document.getElementById('preferencia') ? valor('preferencia') : estado.lead.preferencia
+    };
+    if (JSON.stringify(next) !== JSON.stringify(estado.lead)) estado.leadSalvo = false;
+    estado.lead = next;
+    estado.aceite = Boolean(document.getElementById('aceite') && document.getElementById('aceite').checked);
+    estado.opcionaisAbertos = Boolean(document.getElementById('schedule-optional') && document.getElementById('schedule-optional').open);
+  }
+
+  function restaurarDados() {
+    ['nome', 'telefone', 'evento', 'notas', 'preferencia'].forEach(function (id) {
+      var node = document.getElementById(id);
+      if (node) node.value = estado.lead[id === 'evento' ? 'data_evento' : id] || '';
+    });
+    document.getElementById('aceite').checked = estado.aceite;
+    var details = document.getElementById('schedule-optional');
+    if (details) details.open = estado.opcionaisAbertos || Boolean(estado.lead.data_evento || estado.lead.notas || estado.lead.preferencia);
+  }
+
+  function ajudaDaProva() {
+    return '<nav class="schedule-help" aria-label="Ajuda para sua prova"><a href="' + esc(ancoraDaPagina('duvidas-agendamento')) + '">Como funciona a prova</a>' +
+      '<a target="_blank" rel="noopener" href="' + linkWhats('Olá! Quero tirar uma dúvida sobre a prova de ' + OCASIOES[estado.ocasiao].detalhe + ' na unidade ' + LOJAS[estado.loja].nome + '.') + '">Falar com a unidade</a></nav>';
+  }
+
+  function ancoraDaPagina(id) {
+    return location.pathname + location.search + '#' + id;
+  }
+
   function leadPayloadD(stage) {
     var attribution = attributionDoLead();
     var entry = attribution.last || {};
@@ -162,7 +221,7 @@
       loja: estado.loja || 'saofrancisco',
       data_evento: estado.lead.data_evento || '',
       preferencia: estado.lead.preferencia || '',
-      notas: estado.lead.notas || '',
+      notas: notasDoPedido(estado.lead.notas),
       consentimento: true,
       aberto_em: estado.abertoEm,
       sobrenome_confirmacao: '',
@@ -187,6 +246,7 @@
   function registrarLeadDoSite() {
     if (!leadValido()) return Promise.resolve(null);
     if (estado.lead_id && estado.leadSalvo) return Promise.resolve({ lead_id: estado.lead_id, cached: true });
+    estado.leadContext = JSON.stringify([estado.ocasiao, estado.loja, referenciaModelo()]);
     trackSchedule('KL_Lead_Form_Submit', { has_event_date: estado.lead.data_evento ? 'yes' : 'no', preference: estado.lead.preferencia || 'none' }, 'leadsubmit:' + estado.lead.telefone);
     return fetch(API + '/lead', {
       method: 'POST',
@@ -209,6 +269,8 @@
   function trackSchedule(nome, extra, onceKey) {
     extra = extra || {};
     var params = {
+      schedule_experience: '20260906-prova-contexto',
+      has_model_reference: referenciaModelo() ? 'yes' : 'no',
       schedule_variant: nomeVariante(),
       variant: estado.variante || 'a',
       loja: estado.loja || undefined,
@@ -243,15 +305,15 @@
     if (estado.variante === 'd') {
       if (eyebrow) eyebrow.textContent = 'Pré-agendamento com cuidado';
       title.textContent = 'Sua história chega antes de você.';
-      desc.textContent = 'Conte seu momento, escolha a unidade e o melhor horário. A equipe recebe suas informações antes da prova para preparar cada detalhe com cuidado.';
+      desc.textContent = 'Conte seu momento e escolha quando vir. Nossa equipe acompanha você na escolha e na prova dos vestidos.';
     } else if (estado.variante === 'b') {
       if (eyebrow) eyebrow.textContent = 'Horários disponíveis por unidade';
       title.textContent = 'Veja o melhor horário para sua prova';
-      desc.textContent = 'Escolha Barra ou São Francisco, veja dias disponíveis e peça a reserva pelo site. A equipe confirma tudo pelo WhatsApp da unidade.';
+      desc.textContent = 'Escolha quando vir à loja. Nossa equipe acompanha você na escolha e na prova dos vestidos.';
     } else {
       if (eyebrow) eyebrow.textContent = 'Prova com hora marcada';
       title.textContent = 'Escolha o seu horário';
-      desc.textContent = 'Noiva e debutante são atendidas com hora marcada: a equipe separa os modelos antes de você chegar e o provador fica reservado para você.';
+      desc.textContent = 'Prove vestidos com o acompanhamento da nossa equipe. Escolha a unidade e o melhor horário para o seu momento.';
     }
     document.body.setAttribute('data-schedule-variant', estado.variante || 'a');
   }
@@ -274,6 +336,8 @@
   }
 
   function ir(passo) {
+    if (estado.enviando) return;
+    guardarDados();
     estado.passo = passo;
     desenhar();
     marcarTrilha();
@@ -297,6 +361,8 @@
       var d = estado.dias.filter(function (x) { return x.data === estado.data; })[0];
       if (d) partes += ' · <b>' + esc(d.rotulo) + ', ' + esc(estado.hora.replace(':', 'h')) + '</b>';
     }
+    var modelo = referenciaModelo();
+    if (modelo) partes += '<span class="schedule-reference">Referência do catálogo: <b>' + esc(modelo) + '</b></span>';
     return '<div class="resumo">' + partes + '</div>';
   }
 
@@ -314,15 +380,16 @@
 
   function passoLeadD() {
     trackSchedule('KL_Lead_Form_Start', { source_detail: 'formulario_primeiro' }, 'leadstart:' + nomeVariante());
-    cartao.innerHTML = '<h2>Antes da prova, queremos conhecer seu momento</h2>' +
-      '<p class="sub">Não é burocracia. É para que sua experiência comece com a loja já sabendo sua ocasião, sua data e o que você procura.</p>' +
+    cartao.innerHTML = '<h2>Antes da prova, queremos conhecer seu momento</h2>' + resumo() +
+      '<p class="sub">Preencha seu nome e WhatsApp. Se quiser, conte também a data do evento e os estilos que você gosta.</p>' +
       '<form id="lead-d" novalidate>' +
       '<div class="campo" id="c-nome"><label for="nome">Seu nome</label>' +
       '<input id="nome" name="nome" type="text" autocomplete="name" maxlength="80" required value="' + esc(estado.lead.nome) + '">' +
       '<span class="mini">Para a equipe saber quem esperar.</span></div>' +
-      '<div class="campo" id="c-tel"><label for="telefone">WhatsApp com DDD<span class="dica">É por ele que a loja confirma o seu horário.</span></label>' +
+      '<div class="campo" id="c-tel"><label for="telefone">WhatsApp com DDD<span class="dica">Para a equipe falar com você sobre a prova.</span></label>' +
       '<input id="telefone" name="telefone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(21) 90000-0000" required value="' + esc(estado.lead.telefone) + '">' +
       '<span class="mini">Confira o número com DDD.</span></div>' +
+      '<details class="schedule-optional" id="schedule-optional"><summary>Conte mais sobre seu momento (opcional)</summary>' +
       '<div class="campo"><label for="evento">Data do evento<span class="dica">Se já tiver. Ajuda a entender urgência e preparação.</span></label>' +
       '<input id="evento" name="evento" type="date" value="' + esc(estado.lead.data_evento) + '"></div>' +
       '<div class="campo"><label for="preferencia">Preferência de atendimento<span class="dica">Opcional, para orientar a equipe.</span></label>' +
@@ -330,11 +397,13 @@
       '<option value="">Escolha se quiser</option><option value="manha">Manhã</option><option value="tarde">Tarde</option><option value="sabado">Sábado</option><option value="primeira_data">Primeira data disponível</option></select></div>' +
       '<div class="campo"><label for="notas">O que você procura<span class="dica">Modelo, estilo, tamanho, referência ou dúvida.</span></label>' +
       '<textarea id="notas" name="notas" maxlength="400" placeholder="Ex.: noiva com manga, debutante azul, renda, sereia…">' + esc(estado.lead.notas) + '</textarea></div>' +
+      '</details>' +
       '<label class="mel" aria-hidden="true">Não preencha<input id="mel" name="sobrenome_confirmacao" type="text" tabindex="-1" autocomplete="off"></label>' +
-      '<div class="aceite"><input id="aceite" type="checkbox" required><span>Autorizo a Koisa Linda a usar meu nome e WhatsApp para confirmar e organizar esta prova. <a href="privacidade.html" target="_blank" rel="noopener">Como cuidamos dos seus dados</a>.</span></div>' +
+      '<label class="aceite"><input id="aceite" type="checkbox" required><span>Autorizo a Koisa Linda a usar meu nome e WhatsApp para confirmar e organizar esta prova. <a href="privacidade.html" target="_blank" rel="noopener">Como cuidamos dos seus dados</a>.</span></label>' +
       '<span class="mini" id="mini-aceite" style="margin:-14px 0 16px;display:none">Precisamos do seu aceite para continuar.</span>' +
       '<div class="acoes"><button type="submit" class="btn forte" id="ir-dados">Contar meu momento e escolher horário</button></div>' +
       '</form>';
+    restaurarDados();
     var pref = document.getElementById('preferencia');
     if (pref) pref.value = estado.lead.preferencia || '';
     document.getElementById('telefone').addEventListener('input', mascaraTelefone);
@@ -367,7 +436,7 @@
         : 'Noiva e debutante provam com hora marcada. Escolha as duas coisas abaixo e a agenda real da loja aparece na hora.');
     var html = '<h2>' + titulo + '</h2>' +
       '<p class="sub">' + sub + '</p>' +
-      '<div class="ab-plan" aria-label="Como funciona">' + (estado.variante === 'd' ? '<span>1 · seus dados</span><span>2 · escolha a prova</span><span>3 · peça o horário</span>' : '<span>1 · escolha ocasião e loja</span><span>2 · veja horários reais</span><span>3 · receba confirmação no WhatsApp</span>') + '</div>' +
+      '<div class="ab-plan" aria-label="Como funciona">' + (estado.variante === 'd' ? '<span>1 · seus dados</span><span>2 · escolha a prova</span><span>3 · peça o horário</span>' : '<span>1 · escolha ocasião e loja</span><span>2 · veja horários reais</span><span>3 · confira sua confirmação</span>') + '</div>' +
       '<div class="grupos"><div class="grupo"><span class="rotulo">Ocasião</span><div class="escolhas">';
     Object.keys(OCASIOES).forEach(function (k) {
       html += '<button type="button" class="escolha" data-campo="ocasiao" data-valor="' + k + '" ' +
@@ -386,13 +455,15 @@
     html += '</div></div></div><div class="acoes"><button type="button" class="btn forte" id="ir2"' +
       (estado.ocasiao && estado.loja ? '' : ' disabled') + '>' + (estado.variante === 'b' ? 'Ver horários disponíveis' : 'Ver horários') + '</button></div>' +
       '<div class="aviso">É <b>madrinha, convidada, formanda, mãe da noiva ou terno</b>? Não precisa marcar horário: ' +
-      '<a href="#sem-hora-marcada">é só chegar na loja</a> dentro do horário de funcionamento.</div>';
+      '<a href="' + esc(ancoraDaPagina('sem-hora-marcada')) + '">é só chegar na loja</a> dentro do horário de funcionamento.</div>';
     cartao.innerHTML = html;
 
     cartao.querySelectorAll('.escolha').forEach(function (b) {
       b.addEventListener('click', function () {
         var campo = b.getAttribute('data-campo');
+        if (estado.enviando) return;
         estado[campo] = b.getAttribute('data-valor');
+        estado.leadSalvo = false;
         estado.data = ''; estado.hora = '';   // trocar de loja muda a agenda
         trackSchedule(campo === 'loja' ? 'KL_Schedule_Unit_Select' : 'KL_Schedule_Occasion_Select', { field: campo, value: estado[campo] });
         passo1();
@@ -474,8 +545,10 @@
           '<button type="button" class="atalho troca" id="ir-outra-loja">' +
           esc(LOJAS[outra].nome) + ' tem sábado ' + esc(sab.dia) + ' ' + esc(String(sab.mes || '').toLowerCase()) + '</button>';
         document.getElementById('ir-outra-loja').addEventListener('click', function () {
+          if (estado.enviando) return;
           trackSchedule('KL_Schedule_Saturday_Switch', { from_store: estado.loja, to_store: outra, target_day: sab.data });
           estado.loja = outra; estado.data = sab.data; estado.hora = '';
+          estado.leadSalvo = false;
           passo2();
         });
       })
@@ -512,6 +585,7 @@
 
     cartao.querySelectorAll('.dia').forEach(function (b) {
       b.addEventListener('click', function () {
+        if (estado.enviando) return;
         estado.data = b.getAttribute('data-data');
         estado.hora = '';
         desenharDias();
@@ -519,12 +593,16 @@
     });
     cartao.querySelectorAll('.atalho[data-ir]').forEach(function (b) {
       b.addEventListener('click', function () {
+        if (estado.enviando) return;
         estado.data = b.getAttribute('data-ir');
         estado.hora = '';
         trackSchedule('KL_Schedule_Saturday_Shortcut', { selected_day: estado.data });
         desenharDias();
       });
     });
+    var ajuda = document.createElement('div');
+    ajuda.innerHTML = ajudaDaProva();
+    cartao.appendChild(ajuda);
     document.getElementById('voltar1').addEventListener('click', function () { ir(estado.variante === 'd' ? 2 : 1); });
     var ir3 = document.getElementById('ir3');
     ir3.addEventListener('click', function () { if (!estado.hora) return; if (estado.variante === 'd') return enviarLeadD(); ir(3); });
@@ -554,6 +632,7 @@
 
     alvo.querySelectorAll('.hora').forEach(function (b) {
       b.addEventListener('click', function () {
+        if (estado.enviando) return;
         estado.hora = b.getAttribute('data-hora');
         trackSchedule('KL_Schedule_Time_Select', { selected_day: estado.data, period: estado.hora < '12:00' ? 'manha' : 'tarde' });
         desenharDias();
@@ -571,6 +650,7 @@
       '<a class="btn forte" target="_blank" rel="noopener" href="' +
       linkWhats('Olá! Vim pelo site e quero agendar uma prova de ' + OCASIOES[estado.ocasiao].detalhe +
         ' na unidade ' + LOJAS[estado.loja].nome + '.') + '">Falar com a loja</a></div>';
+    cartao.insertAdjacentHTML('beforeend', ajudaDaProva());
     document.getElementById('voltar1').addEventListener('click', function () { ir(1); });
   }
 
@@ -592,36 +672,39 @@
     var rotuloEvento = estado.ocasiao === 'noiva' ? 'Data do casamento' : 'Data da festa';
 
     cartao.innerHTML = '<h2>Só falta saber quem esperar</h2>' + resumo() +
-      '<p class="sub">Este horário fica reservado para o seu pedido. A equipe de ' +
-      esc(LOJAS[estado.loja].nome) + ' confirma com você pelo WhatsApp.</p>' +
+      '<p class="sub">Ao finalizar, você verá se a prova está confirmada ou se o pedido aguarda confirmação da equipe.</p>' +
+      (referenciaModelo() ? '<p class="schedule-reference-note">O modelo é uma referência. A equipe confere a disponibilidade da peça para a data do seu evento.</p>' : '') +
       '<form id="form" novalidate>' +
       '<div class="campo" id="c-nome"><label for="nome">Seu nome</label>' +
       '<input id="nome" name="nome" type="text" autocomplete="name" maxlength="80" required></div>' +
 
       '<div class="campo" id="c-tel"><label for="telefone">WhatsApp com DDD' +
-      '<span class="dica">É por ele que a loja confirma o seu horário.</span></label>' +
+      '<span class="dica">Para a equipe falar com você sobre a prova.</span></label>' +
       '<input id="telefone" name="telefone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(21) 90000-0000" required>' +
       '<span class="mini">Confira o número com DDD.</span></div>' +
 
+      '<details class="schedule-optional" id="schedule-optional"><summary>Conte mais sobre seu momento (opcional)</summary>' +
       '<div class="campo"><label for="evento">' + rotuloEvento +
-      '<span class="dica">Opcional — diz se dá tempo de ajustar sob medida.</span></label>' +
+      '<span class="dica">Se já souber, ajuda a equipe a preparar seu atendimento.</span></label>' +
       '<input id="evento" name="evento" type="date"></div>' +
 
       '<div class="campo"><label for="notas">O que você procura' +
-      '<span class="dica">Opcional — a equipe já separa os modelos.</span></label>' +
+      '<span class="dica">Estilo, tamanho ou alguma dúvida para a equipe.</span></label>' +
       '<textarea id="notas" name="notas" maxlength="400" placeholder="Ex.: renda, corte sereia, manga comprida"></textarea></div>' +
 
+      '</details>' +
       '<label class="mel" aria-hidden="true">Não preencha<input id="mel" name="sobrenome_confirmacao" type="text" tabindex="-1" autocomplete="off"></label>' +
 
-      '<div class="aceite"><input id="aceite" type="checkbox" required>' +
+      '<label class="aceite"><input id="aceite" type="checkbox" required>' +
       '<span>Autorizo a Koisa Linda a usar meu nome e WhatsApp para confirmar e organizar esta prova. ' +
-      '<a href="privacidade.html" target="_blank" rel="noopener">Como cuidamos dos seus dados</a>.</span></div>' +
+      '<a href="privacidade.html" target="_blank" rel="noopener">Como cuidamos dos seus dados</a>.</span></label>' +
       '<span class="mini" id="mini-aceite" style="margin:-14px 0 16px">Precisamos do seu aceite para registrar a prova.</span>' +
 
       '<div class="acoes"><button type="button" class="btn leve" id="voltar2">Voltar</button>' +
-      '<button type="submit" class="btn forte" id="enviar">Pedir este horário</button></div>' +
+      '<button type="submit" class="btn forte" id="enviar">Finalizar agendamento</button></div>' +
       '</form>';
 
+    restaurarDados();
     document.getElementById('mini-aceite').style.display = 'none';
     document.getElementById('voltar2').addEventListener('click', function () { ir(2); });
     document.getElementById('form').addEventListener('submit', enviar);
@@ -651,7 +734,7 @@
       data: estado.data,
       hora: estado.hora,
       data_evento: dataEvento || '',
-      notas: notas || '',
+      notas: notasDoPedido(notas),
       consentimento: true,
       aberto_em: estado.abertoEm,
       origem: origem(),
@@ -665,7 +748,7 @@
   }
 
   function enviarPayload(payload, botao, nomeFallback) {
-    estado.enviando = true;
+    marcarEnvio(true);
     if (botao) { botao.disabled = true; botao.textContent = 'Enviando…'; }
     trackSchedule('KL_Schedule_Request_Submit', { selected_day: estado.data, selected_time: estado.hora, form_first: estado.variante === 'd' ? 'yes' : 'no' });
     fetch(API + '/pedido', {
@@ -675,7 +758,7 @@
     })
       .then(function (r) { return r.json().then(function (d) { return { status: r.status, corpo: d }; }); })
       .then(function (r) {
-        estado.enviando = false;
+        marcarEnvio(false);
         if (r.corpo && r.corpo.ok === true) { trackSchedule('KL_Schedule_Request_Success', { status: String(r.status) }); return pronto(r.corpo); }
         if (r.status === 409) { trackSchedule('KL_Schedule_Request_Conflict', { status: String(r.status) }); alerta(r.corpo.mensagem); return ir(estado.variante === 'd' ? 3 : 2); }
         if (botao) { botao.disabled = false; botao.textContent = estado.variante === 'd' ? 'Pedir este horário' : 'Pedir este horário'; }
@@ -683,16 +766,24 @@
         alerta((r.corpo && r.corpo.mensagem) || 'Não consegui registrar agora. Tente de novo em instantes.');
       })
       .catch(function () {
-        estado.enviando = false;
+        marcarEnvio(false);
         trackSchedule('KL_Schedule_Request_Network_Error', {});
         falhaNoEnvio(nomeFallback || payload.nome || '');
       });
   }
 
   function enviarLeadD() {
-    if (estado.enviando || !leadValido()) return ir(1);
+    if (estado.enviando) return;
+    if (!leadValido()) return ir(1);
     var botao = document.getElementById('ir3');
-    enviarPayload(payloadPedido(estado.lead.nome, estado.lead.telefone, estado.lead.data_evento, estado.lead.notas, { preferencia: estado.lead.preferencia }), botao, estado.lead.nome);
+    if (botao && botao.disabled) return;
+    marcarEnvio(true);
+    if (botao) { botao.disabled = true; botao.textContent = 'Enviando…'; }
+    var limite = new Promise(function (resolve) { setTimeout(function () { resolve(null); }, 3000); });
+    var mudouContexto = estado.leadContext !== JSON.stringify([estado.ocasiao, estado.loja, referenciaModelo()]);
+    Promise.race([mudouContexto ? registrarLeadDoSite() : Promise.resolve(null), limite]).then(function () {
+      enviarPayload(payloadPedido(estado.lead.nome, estado.lead.telefone, estado.lead.data_evento, estado.lead.notas, { preferencia: estado.lead.preferencia }), botao, estado.lead.nome);
+    });
   }
 
   function enviar(ev) {
@@ -723,6 +814,8 @@
     // poder ser ligado ao anúncio que o pagou. O pedido é o que importa: se o
     // cadastro falhar ou demorar, ele sai assim mesmo.
     estado.lead = { nome: nome, telefone: tel, data_evento: dataEvento, notas: notas, preferencia: '' };
+    estado.leadSalvo = false;
+    marcarEnvio(true);
     if (botao) { botao.disabled = true; botao.textContent = 'Enviando…'; }
     var semEsperarDemais = new Promise(function (pronto) { setTimeout(function () { pronto(null); }, 3000); });
     Promise.race([registrarLeadDoSite(), semEsperarDemais]).then(function () {
@@ -751,7 +844,7 @@
       '<div class="acoes"><a class="btn forte" target="_blank" rel="noopener" href="' +
       linkWhats('Olá! Sou ' + nome + '. Vim pelo site e quero agendar uma prova de ' +
         OCASIOES[estado.ocasiao].detalhe + ' na unidade ' + LOJAS[estado.loja].nome +
-        ' em ' + quando + '.') + '">Enviar pelo WhatsApp</a></div>';
+        ' em ' + quando + '.' + (referenciaModelo() ? ' Referência do catálogo: ' + referenciaModelo() + '.' : '')) + '">Enviar pelo WhatsApp</a></div>';
     estado.passo = 4;
     marcarTrilha();
   }
@@ -830,6 +923,10 @@
   }
 
   pularOQueJaSeSabe();
+  document.querySelectorAll('.schedule-guide a').forEach(function (a) {
+    var id = String(a.getAttribute('href') || '').split('#')[1];
+    if (id === 'duvidas-agendamento' || id === 'sem-hora-marcada') a.setAttribute('href', ancoraDaPagina(id));
+  });
   trackSchedule('KL_Schedule_Experiment_View', { url_has_store: estado.loja ? 'yes' : 'no', url_has_occasion: estado.ocasiao ? 'yes' : 'no' }, 'view:' + location.href);
   desenhar();
   marcarTrilha();

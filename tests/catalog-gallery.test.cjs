@@ -8,6 +8,51 @@ const vm = require('node:vm');
 const fixtures = require('./helpers/catalog-fixtures.cjs');
 const { createHistory, createImageLoader } = require('./helpers/fake-browser.cjs');
 const Gallery = require('../kl-catalog-gallery.js');
+const Actions = require('../kl-catalog-actions.js');
+const Core = require('../kl-catalog-core.js');
+const { createFakeCatalogBrowser } = require('./helpers/fake-browser.cjs');
+
+test('galeria atualiza a agenda ao navegar e remove destino antigo em categoria informal', () => {
+  const browser = createFakeCatalogBrowser({ dialogs: true });
+  const dialog = browser.nodes.galleryDialog;
+  function add(tag, id, className) {
+    const node = browser.document.createElement(tag);
+    if (id) node.setAttribute('id', id);
+    if (className) node.className = className;
+    dialog.appendChild(node);
+    return node;
+  }
+  ['gallery-title', 'gallery-code', 'gallery-unit', 'gallery-specs'].forEach(id => add('div', id));
+  add('button', 'gallery-favorite');
+  const whatsapp = add('a', 'gallery-whatsapp', 'gallery-primary');
+  const schedule = add('a', 'gallery-schedule', 'gallery-primary');
+  add('button', null, 'gallery-prev');
+  const next = add('button', null, 'gallery-next');
+  const close = add('button', null, 'gallery-close');
+  const products = [fixtures[0], fixtures[2], fixtures[3], fixtures[1]];
+  const gallery = Gallery.create({
+    dialog, image: browser.nodes.galleryImage, products, core: Core, actions: Actions,
+    onNavigate: code => gallery.update(code), onRequestClose() {}, onFavorite() {},
+    isFavorite: () => false, onTrack() {},
+  });
+
+  assert.equal(gallery.open('NV-001'), true);
+  assert.equal(schedule.hidden, false);
+  assert.equal(schedule.getAttribute('href'), Actions.productScheduleHref(products[0]));
+  assert.equal(whatsapp.classList.contains('gallery-primary'), false);
+  assert.equal(whatsapp.classList.contains('gallery-secondary'), true);
+  assert.equal(browser.document.activeElement, close);
+  next.click();
+  assert.equal(schedule.getAttribute('href'), Actions.productScheduleHref(products[1]));
+  next.click();
+  assert.equal(schedule.hidden, true);
+  assert.equal(schedule.getAttribute('href'), null);
+  assert.equal(whatsapp.classList.contains('gallery-primary'), true);
+  assert.equal(whatsapp.classList.contains('gallery-secondary'), false);
+  next.click();
+  assert.equal(schedule.hidden, false);
+  assert.equal(schedule.getAttribute('href'), Actions.productScheduleHref(products[3]));
+});
 
 test('intercepta somente clique primário simples com galeria pronta', () => {
   const base = {

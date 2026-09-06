@@ -15,7 +15,7 @@
   var searchTimer = null;
   var CATALOG_CATEGORIES = ['vestidos-noiva', 'vestidos-debutante', 'vestidos-madrinha', 'ternos', 'bolsas', 'calcados', 'acessorios'];
   var CATALOG_UNITS = ['barra', 'sf'];
-  var CATALOG_SOURCES = ['generic', 'bootstrap', 'data-source', 'catalog', 'manual', 'observer', 'grid', 'deep-link', 'previous', 'next', 'swipe', 'gallery', 'favorites', 'data', 'filters', 'category', 'unit', 'color', 'size', 'shortcut', 'chip', 'clear'];
+  var CATALOG_SOURCES = ['catalog_product_schedule', 'catalog_category_schedule', 'generic', 'bootstrap', 'data-source', 'catalog', 'manual', 'observer', 'grid', 'deep-link', 'previous', 'next', 'swipe', 'gallery', 'favorites', 'data', 'filters', 'category', 'unit', 'color', 'size', 'shortcut', 'chip', 'clear'];
 
   function now() { return Date.now ? Date.now() : new Date().getTime(); }
   function qs(sel, root) { return (root || document).querySelector(sel); }
@@ -140,7 +140,7 @@
     return p;
   }
   var ATTRIBUTION_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'utm_id', 'fbclid', 'gclid'];
-  var ENTRY_UI_SOURCES = ['debutantes_hero_schedule', 'home_final_schedule', 'home_flow_catalog', 'home_flow_schedule', 'home_hero_cta', 'home_intencao_debutante', 'home_intencao_noiva', 'home_loja_barra', 'home_loja_sf', 'home_schedule_cta', 'home_sticky_schedule', 'home_tryon_cta', 'lara_web_debutante', 'lara_web_disponibilidade', 'lara_web_festa', 'lara_web_noiva', 'lara_web_terno', 'lara_web_unidades', 'noivas_experiencia_header', 'noivas_hero_schedule', 'unidades_band_schedule', 'unidades_card_barra', 'unidades_card_sf', 'unidades_top_barra', 'unidades_top_sf', 'catalog_sticky_noiva', 'catalog_sticky_debutante', 'peca_sticky_noiva', 'peca_sticky_debutante', 'provar_sticky_noiva', 'provar_sticky_debutante'];
+  var ENTRY_UI_SOURCES = ['catalog_product_schedule', 'catalog_category_schedule', 'debutantes_hero_schedule', 'home_final_schedule', 'home_flow_catalog', 'home_flow_schedule', 'home_hero_cta', 'home_intencao_debutante', 'home_intencao_noiva', 'home_loja_barra', 'home_loja_sf', 'home_schedule_cta', 'home_sticky_schedule', 'home_tryon_cta', 'lara_web_debutante', 'lara_web_disponibilidade', 'lara_web_festa', 'lara_web_noiva', 'lara_web_terno', 'lara_web_unidades', 'noivas_experiencia_header', 'noivas_hero_schedule', 'unidades_band_schedule', 'unidades_card_barra', 'unidades_card_sf', 'unidades_top_barra', 'unidades_top_sf', 'catalog_sticky_noiva', 'catalog_sticky_debutante', 'peca_sticky_noiva', 'peca_sticky_debutante', 'provar_sticky_noiva', 'provar_sticky_debutante'];
   var entryUiSource = '';
   var attributionCache = null;
   var sessionId = '';
@@ -344,6 +344,7 @@
       KL_WhatsApp_Click: true,
       KL_Try_On_Click: true,
       KL_Catalog_Empty: true,
+      KL_Catalog_Schedule_Click: true,
     };
     if (!allowed[eventName]) return;
     if (eventName === 'KL_WhatsApp_Click' && context.href) return contactClick(context);

@@ -143,6 +143,7 @@
     var specs = dialog.querySelector('#gallery-specs');
     var favorite = dialog.querySelector('#gallery-favorite');
     var whatsapp = dialog.querySelector('#gallery-whatsapp');
+    var schedule = dialog.querySelector('#gallery-schedule');
     var tryOn = dialog.querySelector('#gallery-try-on');
     var previous = dialog.querySelector('.gallery-prev');
     var next = dialog.querySelector('.gallery-next');
@@ -231,6 +232,15 @@
       favorite.setAttribute('aria-pressed', saved ? 'true' : 'false');
       favorite.textContent = saved ? 'Peça salva' : 'Salvar peça';
       whatsapp.href = actions.productWhatsAppHref(product, actions.CONTACTS);
+      var scheduleHref = schedule && typeof actions.productScheduleHref === 'function'
+        ? actions.productScheduleHref(product) : null;
+      if (schedule) {
+        schedule.hidden = !scheduleHref;
+        if (scheduleHref) schedule.setAttribute('href', scheduleHref);
+        else schedule.removeAttribute('href');
+      }
+      whatsapp.classList.remove(scheduleHref ? 'gallery-primary' : 'gallery-secondary');
+      whatsapp.classList.add(scheduleHref ? 'gallery-secondary' : 'gallery-primary');
       var tryOnHref = actions.tryOnHref(product);
       tryOn.hidden = !tryOnHref;
       if (tryOnHref) tryOn.href = tryOnHref;

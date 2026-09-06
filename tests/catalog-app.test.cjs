@@ -51,6 +51,11 @@ function enhanceBrowser(browser, { sessionSeed, scrollY } = {}) {
   const search = add('input', 'catalog-search');
   const facets = add('div', 'catalog-facets');
   const activeFilters = add('div', 'catalog-active-filters');
+  const scheduleInvite = add('aside', 'catalog-schedule-invite');
+  scheduleInvite.hidden = true;
+  add('p', 'catalog-schedule-description');
+  add('a', 'catalog-schedule-link');
+  add('a', 'catalog-schedule-capture').setAttribute('href', '/catalogo/#kl-capture');
   Object.assign(browser.nodes, { title, search, facets, activeFilters });
 
   const listeners = new Map();
@@ -111,6 +116,84 @@ function enhanceBrowser(browser, { sessionSeed, scrollY } = {}) {
   browser.sessionStorage = sessionStorage;
   browser.dispatchWindow = (type, init) => window.dispatchEvent(Object.assign({ type }, init || {}));
 }
+
+test('convite de prova acompanha ocasião e unidade do filtro e limpa destino ao sair', () => {
+  const { browser } = mountBrowser({ raw: fixtures, search: '?cat=vestidos-noiva&un=sf' });
+  browser.triggerDOMContentLoaded();
+  const { scheduleInvite, scheduleLink, scheduleDescription } = browser.nodes;
+  assert.equal(scheduleInvite.hidden, false);
+  let url = new URL(scheduleLink.getAttribute('href'), 'https://koisalinda.com.br');
+  assert.equal(url.pathname, '/agendar/');
+  assert.equal(url.searchParams.get('ocasiao'), 'noiva');
+  assert.equal(url.searchParams.get('un'), 'sf');
+  assert.equal(url.searchParams.has('modelo'), false);
+  assert.match(scheduleDescription.textContent, /São Francisco/);
+
+  browser.nodes.units.children[0].click();
+  browser.nodes.category.value = 'vestidos-debutante';
+  browser.nodes.category.dispatchEvent({ type: 'change' });
+  url = new URL(scheduleLink.getAttribute('href'), 'https://koisalinda.com.br');
+  assert.equal(url.searchParams.get('ocasiao'), 'debutante');
+  assert.equal(url.searchParams.has('un'), false, 'cliente escolhe unidade quando não filtrou');
+  assert.match(scheduleDescription.textContent, /15 anos/);
+
+  scheduleLink.click();
+  const clicks = browser.trackingCalls.filter(call => call.name === 'KL_Catalog_Schedule_Click');
+  assert.equal(clicks.length, 1);
+  assert.equal(clicks[0].context.source, 'catalog_category_schedule');
+  assert.equal(clicks[0].context.category, 'vestidos-debutante');
+  browser.window.KLTracking.catalog = () => { throw new Error('tracker unavailable'); };
+  assert.doesNotThrow(() => scheduleLink.click());
+
+  browser.nodes.category.value = 'ternos';
+  browser.nodes.category.dispatchEvent({ type: 'change' });
+  assert.equal(scheduleInvite.hidden, true);
+  assert.equal(scheduleLink.getAttribute('href'), null);
+});
+
+test('alternativa de captura preserva rota, filtros e atribuição para navegar no mesmo documento', () => {
+  ['/catalogo/', '/catalogo.html'].forEach(pathname => {
+    const { browser } = mountBrowser({ raw: fixtures, search: '?cat=vestidos-noiva&un=sf&utm_source=instagram' });
+    browser.window.location.pathname = pathname;
+    browser.triggerDOMContentLoaded();
+    const capture = browser.nodes.scheduleCapture;
+    function assertSameDocumentAnchor() {
+      const target = new URL(capture.getAttribute('href'), 'https://koisalinda.com.br');
+      assert.equal(target.pathname, browser.window.location.pathname);
+      assert.equal(target.search, browser.window.location.search);
+      assert.equal(target.hash, '#kl-capture');
+    }
+    assertSameDocumentAnchor();
+    browser.nodes.units.children[1].click();
+    assertSameDocumentAnchor();
+    assert.equal(new URL(capture.getAttribute('href'), 'https://koisalinda.com.br').searchParams.get('un'), 'barra');
+    browser.nodes.category.value = 'vestidos-debutante';
+    browser.nodes.category.dispatchEvent({ type: 'change' });
+    assertSameDocumentAnchor();
+    assert.equal(new URL(capture.getAttribute('href'), 'https://koisalinda.com.br').searchParams.get('cat'), 'vestidos-debutante');
+  });
+});
+
+test('clique de agenda da galeria usa produto atual e tracking nunca impede navegação', () => {
+  const gallery = createGalleryDouble();
+  const { browser } = mountBrowser({ raw: fixtures, dialogs: true, gallery: gallery.Gallery, search: '?p=NV-001' });
+  const schedule = browser.document.createElement('a');
+  schedule.setAttribute('id', 'gallery-schedule');
+  schedule.setAttribute('href', Actions.productScheduleHref(fixtures[0]));
+  browser.nodes.galleryDialog.appendChild(schedule);
+  browser.triggerDOMContentLoaded();
+  assert.equal(schedule.getAttribute('data-kl-track-manual'), 'true');
+  const click = { type: 'click', defaultPrevented: false };
+  schedule.dispatchEvent(click);
+  assert.equal(click.defaultPrevented, false);
+  const event = browser.trackingCalls.find(call => call.name === 'KL_Catalog_Schedule_Click');
+  assert.equal(event.context.productCode, 'NV-001');
+  assert.equal(event.context.category, 'vestidos-noiva');
+  assert.equal(event.context.unit, 'barra');
+  assert.equal(event.context.source, 'catalog_product_schedule');
+  browser.window.KLTracking.catalog = () => { throw new Error('tracker unavailable'); };
+  assert.doesNotThrow(() => schedule.click());
+});
 
 function mountBrowser({
   raw,
