@@ -1,0 +1,106 @@
+{
+  "base_commit": "f6830e2",
+  "node": {
+    "tests": 224,
+    "pass": 213,
+    "fail": 11,
+    "new_failures": [],
+    "baseline_failures": [
+      "CTA individual e prova virtual seguem a unidade e o código canônico da peça",
+      "init inválido valida antes de state, storage e favoritos e rende recuperação",
+      "URL, busca, categorias e unidades compartilham state canônico sem vazar a query em eventos",
+      "facetas reais preservam os tamanhos numéricos extremos usados no catálogo",
+      "ponte da prova descarta query e hash quando não existe p",
+      "ponte da prova normaliza espaços e caixa de p",
+      "ponte da prova lê somente o primeiro p e ignora valor vazio",
+      "ponte da prova rejeita charset inválido",
+      "ponte da prova rejeita p com mais de 64 caracteres",
+      "ponte da prova preserva p válido e remove parâmetros extras e hash",
+      "sticky de noiva e debutante leva para a agenda, e o resto continua no WhatsApp"
+    ],
+    "resolved_by_build": [
+      "built modules recognize clean paths and generate working product and store routes"
+    ]
+  },
+  "python": {
+    "tests": 74,
+    "fail": 33,
+    "errors": [],
+    "new_failures": [],
+    "baseline_failures": [
+      "test_about_keeps_tracking_and_enhancement_scripts (test_site_contract.AboutBrandContractTest.test_about_keeps_tracking_and_enhancement_scripts)",
+      "test_about_uses_approved_brand_platform (test_site_contract.AboutBrandContractTest.test_about_uses_approved_brand_platform)",
+      "test_catalog_loads_split_assets_in_dependency_order (test_site_contract.CatalogHybridContractTest.test_catalog_loads_split_assets_in_dependency_order)",
+      "test_catalog_seo_titles_do_not_use_long_dashes (test_site_contract.CatalogHybridContractTest.test_catalog_seo_titles_do_not_use_long_dashes)",
+      "test_catalog_tryon_dialog_has_accessible_static_structure (test_site_contract.CatalogHybridContractTest.test_catalog_tryon_dialog_has_accessible_static_structure)",
+      "test_catalog_tryon_form_covers_selection_upload_and_disclaimer (test_site_contract.CatalogHybridContractTest.test_catalog_tryon_form_covers_selection_upload_and_disclaimer)",
+      "test_catalog_tryon_photo_guide_explains_input_and_result (test_site_contract.CatalogHybridContractTest.test_catalog_tryon_photo_guide_explains_input_and_result)",
+      "test_campaign_whatsapps_match_the_audited_units (test_site_contract.CatalogIntegrationContractTest.test_campaign_whatsapps_match_the_audited_units) (page='noivas.html')",
+      "test_campaign_whatsapps_match_the_audited_units (test_site_contract.CatalogIntegrationContractTest.test_campaign_whatsapps_match_the_audited_units) (page='debutantes.html')",
+      "test_campaign_whatsapps_match_the_audited_units (test_site_contract.CatalogIntegrationContractTest.test_campaign_whatsapps_match_the_audited_units) (page='madrinhas.html')",
+      "test_campaign_whatsapps_match_the_audited_units (test_site_contract.CatalogIntegrationContractTest.test_campaign_whatsapps_match_the_audited_units) (page='ternos.html')",
+      "test_every_shared_page_uses_new_cache_versions (test_site_contract.CatalogIntegrationContractTest.test_every_shared_page_uses_new_cache_versions) (page='index.html')",
+      "test_every_shared_page_uses_new_cache_versions (test_site_contract.CatalogIntegrationContractTest.test_every_shared_page_uses_new_cache_versions) (page='sobre.html')",
+      "test_every_shared_page_uses_new_cache_versions (test_site_contract.CatalogIntegrationContractTest.test_every_shared_page_uses_new_cache_versions) (page='catalogo.html')",
+      "test_every_shared_page_uses_new_cache_versions (test_site_contract.CatalogIntegrationContractTest.test_every_shared_page_uses_new_cache_versions) (page='como-chegar.html')",
+      "test_every_shared_page_uses_new_cache_versions (test_site_contract.CatalogIntegrationContractTest.test_every_shared_page_uses_new_cache_versions) (page='servicos.html')",
+      "test_every_shared_page_uses_new_cache_versions (test_site_contract.CatalogIntegrationContractTest.test_every_shared_page_uses_new_cache_versions) (page='unidades.html')",
+      "test_every_shared_page_uses_new_cache_versions (test_site_contract.CatalogIntegrationContractTest.test_every_shared_page_uses_new_cache_versions) (page='noivas.html')",
+      "test_every_shared_page_uses_new_cache_versions (test_site_contract.CatalogIntegrationContractTest.test_every_shared_page_uses_new_cache_versions) (page='debutantes.html')",
+      "test_every_shared_page_uses_new_cache_versions (test_site_contract.CatalogIntegrationContractTest.test_every_shared_page_uses_new_cache_versions) (page='madrinhas.html')",
+      "test_every_shared_page_uses_new_cache_versions (test_site_contract.CatalogIntegrationContractTest.test_every_shared_page_uses_new_cache_versions) (page='ternos.html')",
+      "test_every_shared_page_uses_new_cache_versions (test_site_contract.CatalogIntegrationContractTest.test_every_shared_page_uses_new_cache_versions) (page='peca.html')",
+      "test_shared_header_hamburger_is_vertical_and_touch_safe_through_1100 (test_site_contract.CatalogIntegrationContractTest.test_shared_header_hamburger_is_vertical_and_touch_safe_through_1100)",
+      "test_try_on_bridge_is_minimal_same_brand_and_has_a_manual_fallback (test_site_contract.CatalogIntegrationContractTest.test_try_on_bridge_is_minimal_same_brand_and_has_a_manual_fallback)",
+      "test_try_on_bridge_is_not_indexed_in_sitemap (test_site_contract.CatalogIntegrationContractTest.test_try_on_bridge_is_not_indexed_in_sitemap)",
+      "test_home_keeps_critical_routes_and_integrations (test_site_contract.HomeHeroContractTest.test_home_keeps_critical_routes_and_integrations)",
+      "test_home_uses_face_safe_editorial_hero (test_site_contract.HomeHeroContractTest.test_home_uses_face_safe_editorial_hero)",
+      "test_visible_pages_keep_shared_scripts_one_h1_and_approved_whatsapps (test_site_contract.VisiblePagesContractTest.test_visible_pages_keep_shared_scripts_one_h1_and_approved_whatsapps) (page='index.html')",
+      "test_visible_pages_keep_shared_scripts_one_h1_and_approved_whatsapps (test_site_contract.VisiblePagesContractTest.test_visible_pages_keep_shared_scripts_one_h1_and_approved_whatsapps) (page='sobre.html')",
+      "test_visible_pages_keep_shared_scripts_one_h1_and_approved_whatsapps (test_site_contract.VisiblePagesContractTest.test_visible_pages_keep_shared_scripts_one_h1_and_approved_whatsapps) (page='catalogo.html')",
+      "test_visible_pages_keep_shared_scripts_one_h1_and_approved_whatsapps (test_site_contract.VisiblePagesContractTest.test_visible_pages_keep_shared_scripts_one_h1_and_approved_whatsapps) (page='como-chegar.html')",
+      "test_visible_pages_keep_shared_scripts_one_h1_and_approved_whatsapps (test_site_contract.VisiblePagesContractTest.test_visible_pages_keep_shared_scripts_one_h1_and_approved_whatsapps) (page='servicos.html')",
+      "test_visible_pages_keep_shared_scripts_one_h1_and_approved_whatsapps (test_site_contract.VisiblePagesContractTest.test_visible_pages_keep_shared_scripts_one_h1_and_approved_whatsapps) (page='unidades.html')"
+    ]
+  },
+  "focused_tracking": {
+    "tests": 34,
+    "passed": 34
+  },
+  "catalog_contact_wiring": {
+    "tests": 1,
+    "passed": 1
+  },
+  "build": {
+    "output": "/Users/guilhermepessanha/koisa-linda-site-tracking-20260906/_site",
+    "pages": 28,
+    "product_pages": 808,
+    "legacy_aliases": 40,
+    "sitemap_urls": 835,
+    "preview": false
+  },
+  "preview": {
+    "output": "/Users/guilhermepessanha/koisa-linda-site-tracking-20260906/_preview",
+    "pages": 28,
+    "product_pages": 808,
+    "legacy_aliases": 40,
+    "sitemap_urls": 0,
+    "preview": true
+  },
+  "syntax_checks": "all four changed JavaScript assets passed node --check",
+  "diff_check": "passed",
+  "production_mutations": false,
+  "reviews": {
+    "spec": "approved after regression fixes",
+    "quality": "approved",
+    "publication_gate_tests": {
+      "python_url": 8,
+      "python_seo": 9,
+      "node_url": 9
+    },
+    "security_scan": {
+      "secret_findings": 0,
+      "regex_hits_reviewed": "Only unchanged public store phones/pixel IDs and synthetic test fixtures, opaque identifiers and UUIDs; no customer data."
+    }
+  }
+}

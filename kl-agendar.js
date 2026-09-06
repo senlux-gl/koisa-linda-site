@@ -5,9 +5,8 @@
  *
  * A agenda vem da loja de verdade: os horários oferecidos aqui já descontam o
  * que está no calendário da unidade e o que está esperando confirmação no CRM.
- * O que esta tela NUNCA faz é prometer horário confirmado — quem confirma é a
- * equipe da loja, e dizer o contrário quebraria a promessa em mais de um terço
- * dos casos.
+ * A resposta da agenda distingue prova confirmada de pedido que ainda espera
+ * aprovação da equipe. A tela e as conversões respeitam esse estado.
  *
  * Se a agenda não responder, a cliente não fica sem caminho: o WhatsApp da
  * unidade escolhida aparece com a mensagem já escrita.
@@ -68,12 +67,12 @@
    * para o pedido feito aqui contar na mesma régua dos que chegam por lá. */
   function origem() {
     try {
-      var sp = new URLSearchParams(location.search);
-      var src = (sp.get('utm_source') || '').toLowerCase();
-      var campanha = sp.get('utm_campaign') || '';
+      var entry = attributionDoLead().last || {};
+      var src = (entry.utm_source || '').toLowerCase();
+      var campanha = entry.utm_campaign || '';
       var o = '';
-      if (sp.get('gclid') || /google|gbp/.test(src)) o = 'google';
-      else if (sp.get('fbclid') || /instagram|facebook|meta/.test(src) || src === 'ig') o = 'instagram';
+      if (entry.gclid || /google|gbp/.test(src)) o = 'google';
+      else if (entry.fbclid || /instagram|facebook|meta/.test(src) || src === 'ig') o = 'instagram';
       else {
         var ref = document.referrer ? new URL(document.referrer).hostname : '';
         if (/(^|\.)google\./.test(ref)) o = 'google';
@@ -121,7 +120,36 @@
   /* O cadastro com a origem da visita. Ele nasceu preso à variante D e, por
    * isso, `site_leads` ficava vazia justamente no fluxo que todo o tráfego pago
    * usa — a porta parecia morta mesmo quando agendava. Vale para as duas. */
+  function attributionDoLead() {
+    if (window.KLTracking && typeof window.KLTracking.getAttribution === 'function') return window.KLTracking.getAttribution();
+    // Fallback if the shared tracker could not load. Only known current URL fields.
+    var entry = { landing_path: location.pathname || '/agendar.html', captured_at: new Date().toISOString() };
+    try { if (document.referrer) entry.referrer = new URL(document.referrer).origin; } catch (e) {}
+    ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'utm_id', 'gclid', 'fbclid'].forEach(function (key) {
+      var value = qsParam(key);
+      var click = key === 'gclid' || key === 'fbclid';
+      if (!value || value.length > (click ? 512 : 120) || /[\x00-\x1f\x7f]/.test(value)) return;
+      if (click) { if (/^[A-Za-z0-9._~-]+$/.test(value)) entry[key] = value; return; }
+      if (/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(value)) return;
+      if (!(/^(utm_campaign|utm_content|utm_id)$/.test(key) && /^[A-Za-z0-9_.~-]+$/.test(value)) && /\+?\d[\d\s().-]{7,}\d/.test(value)) return;
+      entry[key] = value;
+    });
+    return { first: entry, last: entry };
+  }
+
+  function sessionIdDaVisita() {
+    if (window.KLTracking && window.KLTracking.getSessionId) return window.KLTracking.getSessionId();
+    var id = window.__klScheduleSessionId || '';
+    if (!id) { try { id = sessionStorage.getItem('kl_schedule_session_id') || ''; } catch (e) {} }
+    if (!/^kl_[A-Za-z0-9_-]{6,80}$/.test(id)) id = 'kl_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+    window.__klScheduleSessionId = id;
+    try { sessionStorage.setItem('kl_schedule_session_id', id); } catch (e) {}
+    return id;
+  }
+
   function leadPayloadD(stage) {
+    var attribution = attributionDoLead();
+    var entry = attribution.last || {};
     return {
       schema_version: '2026-08-27.site_lead.v1',
       source: 'site',
@@ -138,24 +166,19 @@
       consentimento: true,
       aberto_em: estado.abertoEm,
       sobrenome_confirmacao: '',
-      landing_page: location.href,
+      attribution: attribution,
+      landing_page: location.origin + (entry.landing_path || location.pathname),
       page_path: location.pathname || '/agendar.html',
-      referrer: document.referrer || '',
-      session_id: (function () {
-        try {
-          var k = 'kl_schedule_session_id';
-          var v = sessionStorage.getItem(k);
-          if (!v) { v = 'kl_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); sessionStorage.setItem(k, v); }
-          return v;
-        } catch (e) { return ''; }
-      })(),
-      utm_source: qsParam('utm_source'),
-      utm_medium: qsParam('utm_medium'),
-      utm_campaign: qsParam('utm_campaign'),
-      utm_content: qsParam('utm_content'),
-      utm_term: qsParam('utm_term'),
-      fbclid: qsParam('fbclid'),
-      gclid: qsParam('gclid'),
+      referrer: (function () { try { return document.referrer ? new URL(document.referrer).origin : ''; } catch (e) { return ''; } })(),
+      session_id: sessionIdDaVisita(),
+      utm_source: entry.utm_source || '',
+      utm_medium: entry.utm_medium || '',
+      utm_campaign: entry.utm_campaign || '',
+      utm_content: entry.utm_content || '',
+      utm_term: entry.utm_term || '',
+      utm_id: entry.utm_id || '',
+      fbclid: entry.fbclid || '',
+      gclid: entry.gclid || '',
       user_agent: navigator.userAgent || '',
       created_at_client: new Date().toISOString()
     };
@@ -178,7 +201,7 @@
       trackSchedule('KL_Lead_Form_Success', { duplicate: d.duplicate ? 'yes' : 'no' }, 'leadsuccess:' + estado.lead_id);
       return d;
     }).catch(function (err) {
-      trackSchedule('KL_Lead_Form_Error', { reason: String(err && err.message || 'erro').slice(0, 80) });
+      trackSchedule('KL_Lead_Form_Error', { reason: 'request_failed' });
       return null; // não trava a conversão: a cliente continua para escolher horário
     });
   }
@@ -202,7 +225,12 @@
       if (key) window.__klScheduleSent[key] = true;
       window.__klScheduleEvents = window.__klScheduleEvents || [];
       window.__klScheduleEvents.push({ name: nome, params: params, ts: Date.now() });
-      if (typeof window.gtag === 'function') window.gtag('event', nome, params);
+      if (window.KLTracking && window.KLTracking.gaEvent) window.KLTracking.gaEvent(nome, params);
+      else if (window.__klGA4Ready && typeof window.gtag === 'function') window.gtag('event', nome, params);
+      else {
+        window.__klGA4EventQueue = window.__klGA4EventQueue || [];
+        if (window.__klGA4EventQueue.length < 100) window.__klGA4EventQueue.push({ name: nome, params: params });
+      }
       if (typeof window.fbq === 'function') window.fbq('trackCustom', nome, params);
     } catch (e) {}
   }
@@ -731,6 +759,7 @@
   function pronto(corpo) {
     var loja = LOJAS[estado.loja];
     var status = String(corpo.status || '').toLowerCase();
+    var confirmed = status === 'confirmed';
     var quando = corpo.quando || (function () {
       var dia = estado.dias.filter(function (d) { return d.data === estado.data; })[0];
       return dia ? dia.rotulo + ', ' + estado.hora.replace(':', 'h') : estado.data + ' ' + estado.hora;
@@ -740,10 +769,10 @@
       : 'Olá! Acabei de pedir um horário de prova pelo site da Koisa Linda para ' + quando + ' na unidade ' + loja.nome + '. Tenho uma dúvida sobre o agendamento.';
     cartao.innerHTML = '<div class="pronto">' +
       '<div class="selo"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>' +
-      '<h2>' + esc(corpo.titulo || 'Pedido enviado para a loja') + '</h2>' +
+      '<h2>' + esc(confirmed ? 'Prova confirmada' : 'Pedido enviado · aguardando confirmação') + '</h2>' +
       '<p class="quando">' + esc(quando || '') + '</p>' +
       '<p>' + esc(corpo.mensagem || '') + '</p>' +
-      '<p>Fique de olho no WhatsApp <b>' + esc(loja.nome) + '</b>: é por lá que a equipe confirma e tira qualquer dúvida antes da prova.</p>' +
+      '<p>' + (confirmed ? 'Seu horário está confirmado. A equipe de <b>' + esc(loja.nome) + '</b> espera você e pode tirar dúvidas pelo WhatsApp.' : 'Fique de olho no WhatsApp <b>' + esc(loja.nome) + '</b>: é por lá que a equipe confirma seu pedido antes da prova.') + '</p>' +
       '<div class="acoes" style="justify-content:center">' +
       '<a class="btn forte" href="catalogo.html?cat=' +
       (estado.ocasiao === 'noiva' ? 'vestidos-noiva' : 'vestidos-debutante') + '">Ver o catálogo</a>' +
@@ -751,10 +780,26 @@
       '</div>';
     estado.passo = 4;
     marcarTrilha();
+    var appointmentId = String(corpo.appointment_id || '');
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(appointmentId)) return;
+    var eventKey = status + ':' + appointmentId;
+    var sent = window.__klAppointmentEvents || [];
     try {
-      if (window.fbq) window.fbq('track', 'Schedule', { content_category: estado.ocasiao });
-      if (window.gtag) window.gtag('event', 'agendamento_site', { loja: estado.loja, ocasiao: estado.ocasiao });
+      var storedEvents = sessionStorage.getItem('kl_appointment_events');
+      if (storedEvents) sent = sent.concat(JSON.parse(storedEvents));
     } catch (e) {}
+    if (!Array.isArray(sent)) sent = [];
+    if (sent.indexOf(eventKey) > -1) return;
+    if (confirmed) {
+      try { if (typeof window.fbq === 'function') window.fbq('track', 'Schedule', { content_category: estado.ocasiao }, { eventID: appointmentId }); } catch (e) {}
+      trackSchedule('agendamento_site', { appointment_status: 'confirmed' }, eventKey);
+    } else if (status === 'pending_approval' || status === 'pedido_registrado') {
+      trackSchedule('KL_Schedule_Pending_Approval', { appointment_status: 'pending_approval' }, eventKey);
+    } else return;
+    sent.push(eventKey);
+    window.__klAppointmentEvents = sent.slice(-100);
+    try { sessionStorage.setItem('kl_appointment_events', JSON.stringify(window.__klAppointmentEvents)); } catch (e) {}
+
   }
 
   function desenhar() {

@@ -46,7 +46,7 @@
   function scheduleHrefFromOccasion(occasion, unit, source, product) {
     var href = 'agendar.html?ocasiao=' + encodeURIComponent(occasion) + '&ab=auto';
     if (unit === 'barra' || unit === 'sf') href += '&un=' + unit;
-    if (source) href += '&utm_content=' + encodeURIComponent(source);
+    if (source) href += '&ui_source=' + encodeURIComponent(source);
     if (product && product.k) href += '&modelo=' + encodeURIComponent(String(product.k).trim().slice(0, 24));
     return href;
   }
@@ -97,7 +97,7 @@
     var page = String(context.page || 'index').toLowerCase();
     if (page === 'index' || page === 'home') {
       return [{
-        href: 'agendar.html?ab=auto&utm_content=home_sticky_schedule',
+        href: 'agendar.html?ab=auto&ui_source=home_sticky_schedule',
         label: 'Ver horários',
         kind: 'schedule',
       }];
@@ -241,43 +241,43 @@
       id: 'noiva',
       label: 'Sou noiva',
       answer: 'Para noiva, a prova é com hora marcada. A equipe separa os modelos antes de você chegar e o provador fica reservado para você.',
-      primary: { label: 'Ver horários', href: 'agendar.html?ocasiao=noiva&ab=auto&utm_content=lara_web_noiva' },
-      secondary: { label: 'Ver vestidos de noiva', href: 'catalogo.html?cat=vestidos-noiva&utm_content=lara_web_noiva' },
+      primary: { label: 'Ver horários', href: 'agendar.html?ocasiao=noiva&ab=auto&ui_source=lara_web_noiva' },
+      secondary: { label: 'Ver vestidos de noiva', href: 'catalogo.html?cat=vestidos-noiva&ui_source=lara_web_noiva' },
     },
     {
       id: 'debutante',
       label: 'Sou debutante',
       answer: 'Para debutante, também é melhor vir com hora marcada. Assim a consultora prepara a prova para vestidos de valsa, recepção e fotos.',
-      primary: { label: 'Ver horários', href: 'agendar.html?ocasiao=debutante&ab=auto&utm_content=lara_web_debutante' },
-      secondary: { label: 'Ver debutantes', href: 'catalogo.html?cat=vestidos-debutante&utm_content=lara_web_debutante' },
+      primary: { label: 'Ver horários', href: 'agendar.html?ocasiao=debutante&ab=auto&ui_source=lara_web_debutante' },
+      secondary: { label: 'Ver debutantes', href: 'catalogo.html?cat=vestidos-debutante&ui_source=lara_web_debutante' },
     },
     {
       id: 'festa',
       label: 'Madrinha ou festa',
       answer: 'Para madrinha, convidada, formanda e festa não precisa agendar. Você pode ver modelos no catálogo e passar na unidade dentro do horário de funcionamento.',
-      primary: { label: 'Ver vestidos de festa', href: 'catalogo.html?cat=vestidos-madrinha&utm_content=lara_web_festa' },
-      secondary: { label: 'Ver unidades', href: 'unidades.html?utm_content=lara_web_festa' },
+      primary: { label: 'Ver vestidos de festa', href: 'catalogo.html?cat=vestidos-madrinha&ui_source=lara_web_festa' },
+      secondary: { label: 'Ver unidades', href: 'unidades.html?ui_source=lara_web_festa' },
     },
     {
       id: 'terno',
       label: 'Preciso de terno',
       answer: 'Para terno também é visita livre. Veja os modelos e escolha a unidade mais prática para provar dentro do horário de atendimento.',
-      primary: { label: 'Ver ternos', href: 'catalogo.html?cat=ternos&utm_content=lara_web_terno' },
-      secondary: { label: 'Ver unidades', href: 'unidades.html?utm_content=lara_web_terno' },
+      primary: { label: 'Ver ternos', href: 'catalogo.html?cat=ternos&ui_source=lara_web_terno' },
+      secondary: { label: 'Ver unidades', href: 'unidades.html?ui_source=lara_web_terno' },
     },
     {
       id: 'unidades',
       label: 'Endereço e horário',
       answer: 'A Koisa Linda atende em São Francisco, Niterói, e na Barra da Tijuca, Shopping Downtown. Na página de unidades você vê endereço, horário e rotas.',
-      primary: { label: 'Ver unidades', href: 'unidades.html?utm_content=lara_web_unidades' },
-      secondary: { label: 'Agendar noiva/debutante', href: 'agendar.html?ab=auto&utm_content=lara_web_unidades' },
+      primary: { label: 'Ver unidades', href: 'unidades.html?ui_source=lara_web_unidades' },
+      secondary: { label: 'Agendar noiva/debutante', href: 'agendar.html?ab=auto&ui_source=lara_web_unidades' },
     },
     {
       id: 'disponibilidade',
       label: 'Disponibilidade de peça',
       answer: 'Disponibilidade de peça precisa ser confirmada com a loja, porque o acervo muda com provas e reservas. Se você viu um modelo, salve ou envie o código para a unidade.',
-      primary: { label: 'Abrir catálogo', href: 'catalogo.html?utm_content=lara_web_disponibilidade' },
-      secondary: { label: 'Falar com unidade', href: 'unidades.html?utm_content=lara_web_disponibilidade' },
+      primary: { label: 'Abrir catálogo', href: 'catalogo.html?ui_source=lara_web_disponibilidade' },
+      secondary: { label: 'Falar com unidade', href: 'unidades.html?ui_source=lara_web_disponibilidade' },
     },
   ]);
 

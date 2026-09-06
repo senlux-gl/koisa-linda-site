@@ -22,14 +22,18 @@ function createStorage(seed) {
 function loadTracking(options) {
   options = options || {};
   const storage = createStorage(options.storage);
+  if (options.blockedStorage) { storage.getItem = storage.setItem = () => { throw new Error("blocked"); }; }
   const fbqCalls = [];
+  const gtagCalls = [];
   const listeners = new Map();
   const location = new URL(
-    'https://koisalinda.com.br/catalogo.html' + String(options.search || ''),
+    (options.url || 'https://koisalinda.com.br/catalogo.html') + String(options.search || ''),
   );
   const document = {
+    head: { appendChild() {} },
+    createElement() { return {}; },
     readyState: 'loading',
-    referrer: '',
+    referrer: options.referrer || '',
     title: 'Catálogo - Koisa Linda',
     visibilityState: 'visible',
     documentElement: { scrollHeight: 1200, scrollTop: 0 },
@@ -44,6 +48,9 @@ function loadTracking(options) {
   const window = {
     document,
     fbq(...args) { fbqCalls.push(args); },
+    gtag(...args) { gtagCalls.push(args); },
+    __klGA4Ready: options.gaReady !== false,
+    KL_ADS: { id: 'AW-test', label: { barra: 'barra-label', sao_francisco: 'sf-label' } },
     innerHeight: 800,
     innerWidth: 1280,
     KL_DATA: Array.isArray(options.products) ? options.products : [],
@@ -76,7 +83,9 @@ function loadTracking(options) {
     window,
   };
   vm.runInNewContext(TRACKING_SOURCE, sandbox, { filename: 'kl-tracking.js' });
-  return { window, fbqCalls, storage };
+  return { window, fbqCalls, gtagCalls, storage, sandbox, document,
+    dispatch(type, event = {}) { (listeners.get(type) || []).forEach(fn => fn(event)); },
+  };
 }
 
 module.exports = { loadTracking };
