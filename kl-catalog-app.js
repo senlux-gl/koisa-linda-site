@@ -72,26 +72,6 @@
     }
   }
 
-  function trackMetaLead(source, extra) {
-    var payload = Object.assign({
-      content_name: 'Koisa Linda catálogo → WhatsApp',
-      content_category: extra && extra.contentCategory || 'catalogo',
-      source: source || 'catalog',
-      catalog_unit: extra && extra.unit || state && state.unit || '',
-      favorite_count: extra && extra.favoriteCount || 0,
-    }, extra || {});
-    try {
-      if (typeof root.fbq === 'function') root.fbq('track', 'Lead', payload);
-    } catch (error) {
-      // Tracking must never block the customer path.
-    }
-    try {
-      if (typeof root.gtag === 'function') root.gtag('event', 'generate_lead', payload);
-    } catch (error) {
-      // GA4 is optional.
-    }
-  }
-
   function catalogContext(source, extra) {
     return Object.assign({
       category: state && state.category || null,
@@ -1957,14 +1937,10 @@
         button.type = 'button';
         button.addEventListener('click', function () {
           trackCatalog('KL_WhatsApp_Click', catalogContext('favorites', {
+            href: batch.href,
             favoriteCount: favorites.items().length,
             unit: unit,
           }));
-          trackMetaLead('favorites', {
-            favoriteCount: favorites.items().length,
-            unit: unit,
-            contentCategory: batch.items.map(function (product) { return product && product.c; }).filter(Boolean).join(','),
-          });
           if (typeof root.open === 'function') root.open(batch.href, '_blank', 'noopener');
         });
         actions.appendChild(button);
@@ -2123,6 +2099,7 @@
       var product = productForCode(state.openProduct);
       if (!product) return;
       trackCatalog('KL_WhatsApp_Click', catalogContext('gallery', {
+        href: galleryWhatsapp.getAttribute('href'),
         productCode: product.k,
         favoriteCount: favorites.items().length,
         unit: Core.unitOf(product),

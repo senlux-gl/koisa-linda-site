@@ -2196,3 +2196,29 @@ test('tracking de ação não duplica em rerender, popstate ou paginação no fi
   browser.dispatchWindow('popstate');
   assert.equal(browser.trackingCalls.length, before);
 });
+
+test('gallery and favorites provide the clicked href to the shared contact tracker', () => {
+  const gallery = createGalleryDouble();
+  const { browser } = mountBrowser({ raw: fixtures, dialogs: true, gallery: gallery.Gallery, search: '?p=NV-001' });
+  const wa = browser.document.createElement('a');
+  wa.setAttribute('id', 'gallery-whatsapp');
+  browser.nodes.galleryDialog.appendChild(wa);
+  browser.triggerDOMContentLoaded();
+  const href = Actions.productWhatsAppHref(fixtures.find(p => p.k === 'NV-001'), Actions.CONTACTS);
+  wa.setAttribute('href', href);
+  wa.click();
+  const galleryEvent = browser.trackingCalls.find(call => call.name === 'KL_WhatsApp_Click');
+  assert.equal(galleryEvent.context.href, href);
+
+  const second = mountBrowser({ raw: fixtures, dialogs: true });
+  second.browser.triggerDOMContentLoaded();
+  second.browser.nodes.grid.children[0].children[1].children[2].click();
+  second.browser.nodes.favoritesOpen.click();
+  const send = second.browser.findAll(second.browser.nodes.favoritesDialog, node => node.className === 'favorites-send')[0];
+  let opened;
+  second.browser.window.open = url => { opened = url; };
+  send.click();
+  const favoriteEvent = second.browser.trackingCalls.find(call => call.name === 'KL_WhatsApp_Click');
+  assert.equal(favoriteEvent.context.href, opened);
+  assert.match(opened, /^https:\/\/wa\.me\//);
+});

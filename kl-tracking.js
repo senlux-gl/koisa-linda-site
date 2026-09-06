@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var VERSION = '20260819-origem-v1';
+  var VERSION = '20260906-attribution-v2';
   var GA4_ID = 'G-D6HYW29TS4';
   var PIXEL_READY_TIMEOUT = 8000;
   var SCROLL_DEPTHS = [25, 50, 75, 90];
@@ -15,7 +15,7 @@
   var searchTimer = null;
   var CATALOG_CATEGORIES = ['vestidos-noiva', 'vestidos-debutante', 'vestidos-madrinha', 'ternos', 'bolsas', 'calcados', 'acessorios'];
   var CATALOG_UNITS = ['barra', 'sf'];
-  var CATALOG_SOURCES = ['bootstrap', 'data-source', 'catalog', 'manual', 'observer', 'grid', 'deep-link', 'previous', 'next', 'swipe', 'gallery', 'favorites', 'data', 'filters', 'category', 'unit', 'color', 'size', 'shortcut', 'chip', 'clear'];
+  var CATALOG_SOURCES = ['generic', 'bootstrap', 'data-source', 'catalog', 'manual', 'observer', 'grid', 'deep-link', 'previous', 'next', 'swipe', 'gallery', 'favorites', 'data', 'filters', 'category', 'unit', 'color', 'size', 'shortcut', 'chip', 'clear'];
 
   function now() { return Date.now ? Date.now() : new Date().getTime(); }
   function qs(sel, root) { return (root || document).querySelector(sel); }
@@ -118,6 +118,7 @@
   function baseParams(extra) {
     var p = {
       tracking_version: VERSION,
+      entry_ui_source: entryUiSource,
       page_path: location.pathname || '/',
       page_title: clean(document.title, 100),
       page_type: pageType(),
@@ -138,29 +139,114 @@
     if (p === 'index') return 'home';
     return p;
   }
-  function getPersistedAttribution() {
-    var keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'gclid'];
+  var ATTRIBUTION_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'utm_id', 'fbclid', 'gclid'];
+  var ENTRY_UI_SOURCES = ['debutantes_hero_schedule', 'home_final_schedule', 'home_flow_catalog', 'home_flow_schedule', 'home_hero_cta', 'home_intencao_debutante', 'home_intencao_noiva', 'home_loja_barra', 'home_loja_sf', 'home_schedule_cta', 'home_sticky_schedule', 'home_tryon_cta', 'lara_web_debutante', 'lara_web_disponibilidade', 'lara_web_festa', 'lara_web_noiva', 'lara_web_terno', 'lara_web_unidades', 'noivas_experiencia_header', 'noivas_hero_schedule', 'unidades_band_schedule', 'unidades_card_barra', 'unidades_card_sf', 'unidades_top_barra', 'unidades_top_sf', 'catalog_sticky_noiva', 'catalog_sticky_debutante', 'peca_sticky_noiva', 'peca_sticky_debutante', 'provar_sticky_noiva', 'provar_sticky_debutante'];
+  var entryUiSource = '';
+  var attributionCache = null;
+  var sessionId = '';
+  function readStorage(key) {
+    try { return sessionStorage.getItem(key) || ''; } catch (e) { return ''; }
+  }
+  function attributionValue(key, value) {
+    value = value == null ? '' : String(value);
+    if (!value || /[\x00-\x1f\x7f]/.test(value)) return '';
+    if (key === 'gclid' || key === 'fbclid') {
+      return value.length <= 512 && /^[A-Za-z0-9._~-]+$/.test(value) ? value : '';
+    }
+    if (value.length > 120 || /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(value)) return '';
+    // Numeric campaign/content IDs are opaque. Free text still rejects phones.
+    if (/^(utm_campaign|utm_content|utm_id)$/.test(key) && /^[A-Za-z0-9_.~-]+$/.test(value)) return value;
+    return /\+?\d[\d\s().-]{7,}\d/.test(value) ? '' : value;
+  }
+  function attributionRecord(input) {
     var out = {};
+    input = input && typeof input === 'object' ? input : {};
+    ATTRIBUTION_KEYS.forEach(function (key) {
+      var value = attributionValue(key, input[key]);
+      if (value) out[key] = value;
+    });
+    var path = clean(String(input.landing_path || '').split(/[?#]/)[0], 160);
+    if (path.charAt(0) === '/') out.landing_path = path;
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(input.captured_at || '') && !isNaN(Date.parse(input.captured_at))) out.captured_at = input.captured_at;
     try {
-      var sp = new URLSearchParams(location.search);
-      var changed = false;
-      keys.forEach(function (k) {
-        var v = sp.get(k);
-        if (v) { sessionStorage.setItem('kl_' + k, clean(v, 120)); changed = true; }
-      });
-      if (changed) sessionStorage.setItem('kl_landing_path', clean(location.pathname, 160));
-      keys.forEach(function (k) {
-        var v = sessionStorage.getItem('kl_' + k);
-        if (v) out[k] = k === 'fbclid' || k === 'gclid' ? 'present' : clean(v, 120);
-      });
-      var lp = sessionStorage.getItem('kl_landing_path');
-      if (lp) {
-        var cleanLanding = clean(String(lp).split(/[?#]/)[0], 160);
-        if (cleanLanding !== lp) sessionStorage.setItem('kl_landing_path', cleanLanding);
-        if (cleanLanding) out.landing_path = cleanLanding;
-      }
+      var ref = new URL(input.referrer || '');
+      if (/^https?:$/.test(ref.protocol)) out.referrer = ref.origin;
     } catch (e) {}
     return out;
+  }
+  function getAttribution() {
+    if (!attributionCache) {
+      var saved = {};
+      try { saved = JSON.parse(readStorage('kl_attribution_v2')) || {}; } catch (e) {}
+      var first = attributionRecord(saved.first);
+      var last = attributionRecord(saved.last);
+      if (!Object.keys(last).length) {
+        var legacy = { landing_path: readStorage('kl_landing_path') };
+        ATTRIBUTION_KEYS.forEach(function (key) { legacy[key] = readStorage('kl_' + key); });
+        last = attributionRecord(legacy);
+      }
+      var entry = {};
+      var sp = new URLSearchParams(location.search);
+      ATTRIBUTION_KEYS.forEach(function (key) {
+        var value = attributionValue(key, sp.get(key));
+        if (value) entry[key] = value;
+      });
+      var internalReferrer = false;
+      try { internalReferrer = new URL(document.referrer).origin === location.origin; } catch (e) {}
+      var legacyUiSource = enumValue(entry.utm_content, ENTRY_UI_SOURCES);
+      var onlyContent = entry.utm_content && Object.keys(entry).every(function (key) { return key === 'utm_content'; });
+      var internalCta = onlyContent && (internalReferrer || (!document.referrer && legacyUiSource && Object.keys(last).length));
+      entryUiSource = enumValue(sp.get('ui_source'), ENTRY_UI_SOURCES) || (internalCta ? legacyUiSource : '');
+      // Old site CTAs used utm_content for button position, not acquisition.
+      if (internalCta) entry = {};
+      var internalContinuation = internalReferrer && ATTRIBUTION_KEYS.every(function (key) { return (entry[key] || '') === (last[key] || ''); });
+      if ((Object.keys(entry).length && !internalContinuation) || !Object.keys(last).length) {
+        if (!Object.keys(first).length && Object.keys(last).length) first = last;
+        entry.landing_path = location.pathname || '/';
+        entry.captured_at = new Date().toISOString();
+        entry.referrer = document.referrer || '';
+        last = attributionRecord(entry);
+      }
+      if (!Object.keys(first).length) first = last;
+      attributionCache = { first: first, last: last };
+      try {
+        sessionStorage.setItem('kl_attribution_v2', JSON.stringify(attributionCache));
+        ATTRIBUTION_KEYS.forEach(function (key) {
+          if (last[key]) sessionStorage.setItem('kl_' + key, last[key]);
+          else sessionStorage.removeItem('kl_' + key);
+        });
+        if (last.landing_path) sessionStorage.setItem('kl_landing_path', last.landing_path);
+      } catch (e) {}
+    }
+    return { first: Object.assign({}, attributionCache.first), last: Object.assign({}, attributionCache.last) };
+  }
+  // Flat legacy analytics view: raw click identifiers belong only in the lead payload.
+  function getPersistedAttribution() {
+    var last = getAttribution().last;
+    var out = {};
+    Object.keys(last).forEach(function (key) {
+      if (key === 'captured_at' || key === 'referrer') return;
+      if (/^(utm_campaign|utm_content|utm_id)$/.test(key) && /\+?\d[\d\s().-]{7,}\d/.test(last[key])) return;
+      out[key] = key === 'fbclid' || key === 'gclid' ? 'present' : last[key];
+    });
+    return out;
+  }
+  function getSessionId() {
+    if (!sessionId) {
+      var stored = window.__klScheduleSessionId || readStorage('kl_schedule_session_id');
+      sessionId = /^kl_[A-Za-z0-9_-]{6,80}$/.test(stored) ? stored : 'kl_' + now().toString(36) + Math.random().toString(36).slice(2, 10);
+      window.__klScheduleSessionId = sessionId;
+      try { sessionStorage.setItem('kl_schedule_session_id', sessionId); } catch (e) {}
+    }
+    return sessionId;
+  }
+  function gaEvent(name, params) {
+    if (entryUiSource) params = Object.assign({ entry_ui_source: entryUiSource }, params);
+    if (window.__klGA4Ready && typeof window.gtag === 'function') window.gtag('event', name, params);
+    else {
+      window.__klGA4EventQueue = window.__klGA4EventQueue || [];
+      if (window.__klGA4EventQueue.length < 100) window.__klGA4EventQueue.push({ name: name, params: params });
+    }
   }
   function track(name, params, opts) {
     params = baseParams(params || {});
@@ -174,7 +260,7 @@
       if (recentEvents[recentKey] && t - recentEvents[recentKey] < 500) return;
       recentEvents[recentKey] = t;
     } catch (e) {}
-    try { if (typeof window.gtag === 'function') window.gtag('event', name, params); } catch (e) {}
+    try { gaEvent(name, params); } catch (e) {}
     if (typeof window.fbq === 'function') {
       window.fbq('trackCustom', name, params);
       if (window.__KL_TRACKING_DEBUG__) {
@@ -198,6 +284,51 @@
     }
     try { window.fbq('track', name, params || {}); } catch (e) {}
   }
+  var recentContacts = {};
+  function contactClick(context) {
+    var href = String(context.href || '');
+    var url;
+    try { url = new URL(href, location.href); } catch (e) { return; }
+    if (url.protocol !== 'https:' || !/^(wa\.me|(?:www\.|api\.|web\.)?whatsapp\.com)$/i.test(url.hostname)) return;
+    var store = getStoreFromHref(url.pathname + '?' + (url.searchParams.get('phone') || ''));
+    if (!store) return;
+    var key = url.href;
+    var time = now();
+    if (recentContacts[key] !== undefined && time - recentContacts[key] < 3000) return;
+    recentContacts[key] = time;
+    var text = url.searchParams.get('text') || '';
+    var code = context.productCode || codeFromText(text);
+    var product = getProductByCode(code);
+    var params = Object.assign({}, productParams(product), {
+      store: store,
+      catalog_unit: store === 'barra' ? 'barra' : 'sf',
+      ui_source: enumValue(context.source, CATALOG_SOURCES) || 'generic',
+      product_code: clean(code, 24),
+      favorite_count: safeCount(context.favoriteCount, 10000),
+      has_prefill: text ? 'yes' : 'no',
+      conversion_stage: 'contact_click'
+    });
+    track('KL_WhatsApp_Click', params);
+    var conversion = {
+      content_name: clean(code, 24) || 'whatsapp',
+      content_category: code ? 'peca' : 'contato',
+      store: store,
+      ui_source: params.ui_source,
+      conversion_stage: 'contact_click'
+    };
+    standard('Lead', conversion);
+    try {
+      gaEvent('generate_lead', conversion);
+      if (typeof window.gtag === 'function') {
+        var ads = window.KL_ADS;
+        var label = ads && ads.label && ads.label[store];
+        if (ads && ads.id && label) window.gtag('event', 'conversion', { send_to: ads.id + '/' + label });
+      }
+    } catch (e) {}
+    var intent = /agendar (uma )?prova/i.test(text) ? 'prova'
+      : (/agendar (uma )?visita|visita/i.test(text) ? 'visita' : '');
+    if (intent) track('KL_Schedule_Intent', { store: store, intent: intent });
+  }
   function catalog(eventName, context) {
     context = context || {};
     var allowed = {
@@ -215,6 +346,7 @@
       KL_Catalog_Empty: true,
     };
     if (!allowed[eventName]) return;
+    if (eventName === 'KL_WhatsApp_Click' && context.href) return contactClick(context);
     var product = context.productCode ? getProductByCode(context.productCode) : null;
     var params = Object.assign({}, productParams(product), {
       result_count: safeCount(context.resultCount, 100000),
@@ -223,7 +355,7 @@
       query_length: safeCount(context.queryLength, 80),
       query_has_product_code: context.queryHasProductCode === 'yes' ? 'yes' : 'no',
       favorite_count: safeCount(context.favoriteCount, 10000),
-      source: enumValue(context.source, CATALOG_SOURCES),
+      ui_source: enumValue(context.source, CATALOG_SOURCES),
     });
     if (eventName === 'KL_Catalog_Search' && context.productCode && product) {
       params.product_code = clean(product.k, 24);
@@ -289,41 +421,7 @@
       };
       if (/catalogo(?:\.html|\/)(?:[?#]|$)/.test(href)) linkParams.destination_category = (new URL(href, location.href).searchParams.get('cat') || '');
       if (isWa) {
-        var decoded = '';
-        try { decoded = decodeURIComponent(href); } catch (e3) { decoded = href; }
-        var code = codeFromText(decoded);
-        var d = getProductByCode(code) || getProductFromElement(target);
-        var waOnce = 'wa:' + href + ':' + Math.floor(now() / 3000);
-        track('KL_WhatsApp_Click', Object.assign(linkParams, productParams(d), {
-          store: getStoreFromHref(href),
-          product_code: code || (d && d.k) || '',
-          has_prefill: /[?&]text=/.test(href) ? 'yes' : 'no'
-        }), { onceKey: waOnce });
-        standard('Lead', {
-          content_name: code || (d && d.k) || text || 'whatsapp',
-          content_category: code ? 'peca' : 'contato'
-        }, waOnce);
-        /* Intenção declarada no prefill do WhatsApp. É INTENÇÃO de agendar (clique no
-         * botão), não agendamento confirmado — esse vive na conversa com a Lara/CRM. */
-        var waText = String(decoded || '').toLowerCase();
-        var waIntent = /agendar (uma )?prova/.test(waText) ? 'prova'
-          : (/agendar (uma )?visita|visita/.test(waText) ? 'visita'
-            : (/encontrar a loja|downtown/.test(waText) ? 'como_chegar' : 'geral'));
-        if (waIntent === 'prova' || waIntent === 'visita') {
-          track('KL_Schedule_Intent', {
-            store: getStoreFromHref(href),
-            intent: waIntent
-          }, { onceKey: 'sched:' + waOnce });
-        }
-        /* Conversão nativa do Google Ads roteada por loja — cada campanha de unidade
-         * otimiza pela conversão da própria praça. Inerte enquanto kl-ga.js não tiver IDs. */
-        try {
-          var klAds = window.KL_ADS;
-          var waLabel = klAds && klAds.label ? klAds.label[getStoreFromHref(href)] : '';
-          if (klAds && klAds.id && waLabel && typeof window.gtag === 'function') {
-            window.gtag('event', 'conversion', { send_to: klAds.id + '/' + waLabel });
-          }
-        } catch (e4) {}
+        contactClick({ href: href, source: 'generic' });
         return;
       }
       track('KL_CTA_Click', linkParams);
@@ -432,6 +530,9 @@
     (document.head || document.documentElement).appendChild(g);
     window.gtag('js', new Date());
     window.gtag('config', GA4_ID);
+    var queue = window.__klGA4EventQueue || [];
+    window.__klGA4EventQueue = [];
+    queue.forEach(function (event) { gaEvent(event.name, event.params); });
   }
 
   /* ── Carimbo de origem no WhatsApp ──────────────────────────────────────────
@@ -507,7 +608,9 @@
     bindCatalogFilterPatches();
     track('KL_Page_Context', { url_has_query: location.search ? 'yes' : 'no' }, { onceKey: 'page:' + location.href });
   }
-  window.KLTracking = Object.freeze({ catalog: catalog });
+  window.KLTracking = Object.freeze({ catalog: catalog, getAttribution: getAttribution, getPersistedAttribution: getPersistedAttribution, getSessionId: getSessionId, gaEvent: gaEvent });
+  getAttribution();
+  getSessionId();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
