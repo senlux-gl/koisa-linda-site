@@ -1,0 +1,135 @@
+{
+  "full_file_findings": [
+    {
+      "file": "agendar.html",
+      "line": 1,
+      "classification": "existing_public_store_contact_or_pixel_id",
+      "matched_values_already_in_HEAD": true
+    },
+    {
+      "file": "agendar.html",
+      "line": 1,
+      "classification": "existing_public_store_contact_or_pixel_id",
+      "matched_values_already_in_HEAD": true
+    },
+    {
+      "file": "agendar.html",
+      "line": 169,
+      "classification": "existing_public_store_contact_or_pixel_id",
+      "matched_values_already_in_HEAD": true
+    },
+    {
+      "file": "agendar.html",
+      "line": 169,
+      "classification": "existing_public_store_contact_or_pixel_id",
+      "matched_values_already_in_HEAD": true
+    },
+    {
+      "file": "agendar.html",
+      "line": 189,
+      "classification": "existing_public_store_contact_or_pixel_id",
+      "matched_values_already_in_HEAD": true
+    },
+    {
+      "file": "agendar.html",
+      "line": 219,
+      "classification": "existing_public_store_contact_or_pixel_id",
+      "matched_values_already_in_HEAD": true
+    },
+    {
+      "file": "agendar.html",
+      "line": 225,
+      "classification": "existing_public_store_contact_or_pixel_id",
+      "matched_values_already_in_HEAD": true
+    },
+    {
+      "file": "catalogo.html",
+      "line": 6,
+      "classification": "existing_public_store_contact_or_pixel_id",
+      "matched_values_already_in_HEAD": true
+    },
+    {
+      "file": "catalogo.html",
+      "line": 6,
+      "classification": "existing_public_store_contact_or_pixel_id",
+      "matched_values_already_in_HEAD": true
+    },
+    {
+      "file": "catalogo.html",
+      "line": 169,
+      "classification": "existing_public_store_contact_or_pixel_id",
+      "matched_values_already_in_HEAD": true
+    },
+    {
+      "file": "catalogo.html",
+      "line": 195,
+      "classification": "existing_public_store_contact_or_pixel_id",
+      "matched_values_already_in_HEAD": true
+    },
+    {
+      "file": "catalogo.html",
+      "line": 195,
+      "classification": "existing_public_store_contact_or_pixel_id",
+      "matched_values_already_in_HEAD": true
+    },
+    {
+      "file": "kl-agendar.js",
+      "line": 23,
+      "classification": "existing_public_store_contact_or_pixel_id",
+      "matched_values_already_in_HEAD": true
+    },
+    {
+      "file": "kl-agendar.js",
+      "line": 29,
+      "classification": "existing_public_store_contact_or_pixel_id",
+      "matched_values_already_in_HEAD": true
+    },
+    {
+      "file": "kl-catalog-actions.js",
+      "line": 14,
+      "classification": "existing_public_store_contact_or_pixel_id",
+      "matched_values_already_in_HEAD": true
+    },
+    {
+      "file": "kl-catalog-actions.js",
+      "line": 15,
+      "classification": "existing_public_store_contact_or_pixel_id",
+      "matched_values_already_in_HEAD": true
+    },
+    {
+      "file": "kl-catalog-app.js",
+      "line": 746,
+      "classification": "existing_public_store_contact_or_pixel_id",
+      "matched_values_already_in_HEAD": true
+    },
+    {
+      "file": "kl-tracking.js",
+      "line": 44,
+      "classification": "existing_public_store_contact_or_pixel_id",
+      "matched_values_already_in_HEAD": true
+    },
+    {
+      "file": "kl-tracking.js",
+      "line": 45,
+      "classification": "existing_public_store_contact_or_pixel_id",
+      "matched_values_already_in_HEAD": true
+    },
+    {
+      "file": "tests/helpers/fake-schedule-browser.cjs",
+      "line": 62,
+      "classification": "synthetic_test_fixture",
+      "matched_values_already_in_HEAD": true
+    },
+    {
+      "file": "tests/helpers/fake-schedule-browser.cjs",
+      "line": 88,
+      "classification": "synthetic_test_fixture",
+      "matched_values_already_in_HEAD": true
+    }
+  ],
+  "new_secrets": 0,
+  "all_flagged_values_preexisting": true,
+  "added_content_scan_exit": 1,
+  "scope": "reviewed site changes only; existing store contacts and public Pixel IDs preserved; no operational IDs masked to satisfy regex",
+  "added_content_findings": "Two regex matches are the existing public Meta Pixel identifier on an edited HTML line, verified against HEAD; not a phone or secret."
+}

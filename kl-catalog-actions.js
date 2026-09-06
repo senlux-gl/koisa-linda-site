@@ -41,6 +41,29 @@
       : null;
   }
 
+  function scheduleOccasion(category) {
+    return category === 'vestidos-noiva' ? 'noiva'
+      : category === 'vestidos-debutante' ? 'debutante' : null;
+  }
+
+  // The caller supplies a product resolved from the canonical catalog, never URL text.
+  function productScheduleHref(product) {
+    var occasion = scheduleOccasion(product && product.c);
+    var unit = unitOf(product);
+    var code = product && typeof product.k === 'string' ? normalizeCode(product.k) : '';
+    if (!occasion || !unit || !/^[A-Z0-9][A-Z0-9-]{0,39}$/.test(code)) return null;
+    return '/agendar/?ocasiao=' + occasion + '&un=' + unit
+      + '&modelo=' + encodeURIComponent(code) + '&ui_source=catalog_product_schedule';
+  }
+
+  function categoryScheduleHref(category, unit) {
+    var occasion = scheduleOccasion(category);
+    if (!occasion) return null;
+    return '/agendar/?ocasiao=' + occasion
+      + (unit === 'barra' || unit === 'sf' ? '&un=' + unit : '')
+      + '&ui_source=catalog_category_schedule';
+  }
+
   function unitLabel(unit) {
     return unit === 'barra' ? 'Barra da Tijuca'
       : unit === 'sf' ? 'São Francisco'
@@ -309,9 +332,11 @@
     FAVORITES_KEY: FAVORITES_KEY,
     TRY_ON_CATEGORIES: TRY_ON_CATEGORIES,
     buildFavoriteBatches: buildFavoriteBatches,
+    categoryScheduleHref: categoryScheduleHref,
     createFavorites: createFavorites,
     isTryOnEligible: isTryOnEligible,
     productMessage: productMessage,
+    productScheduleHref: productScheduleHref,
     productWhatsAppHref: productWhatsAppHref,
     resolveSharedCta: resolveSharedCta,
     tryOnHref: tryOnHref,

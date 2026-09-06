@@ -66,6 +66,8 @@ function loadSchedule(options = {}) {
   });
   window.window = window;
   function run(file) { vm.runInNewContext(read(file), window, { filename: file }); }
+  window.KL_DATA = options.products || [];
+  if (fs.existsSync(path.join(__dirname, '../../kl-schedule-context.js'))) run('kl-schedule-context.js');
   if (options.tracking !== false) run('kl-tracking.js');
   run('kl-agendar.js');
   return { ...browser, storage, calls, fbqCalls, gtagCalls, run };

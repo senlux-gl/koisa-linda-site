@@ -464,6 +464,62 @@
   padding:26px 32px 90px;
 }
 
+.catalog-schedule-invite{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+  padding:24px;
+  margin-bottom:28px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--cream);
+}
+
+.catalog-schedule-invite h2{
+  margin:0 0 10px;
+  font:italic 500 28px/1.2 var(--serif);
+  color:var(--ruby);
+}
+
+.catalog-schedule-invite p{
+  margin:0;
+  max-width:620px;
+  color:var(--ink);
+  font-size:18px;
+  line-height:1.5;
+}
+
+.catalog-schedule-actions{
+  flex:0 0 auto;
+  text-align:center;
+}
+
+.catalog-schedule-alternative{
+  display:inline-block;
+  margin-top:14px;
+  color:var(--ruby);
+  font:13px/1.5 var(--sans);
+  text-underline-offset:3px;
+}
+
+.catalog-schedule-actions a:focus-visible{
+  outline:3px solid var(--ruby);
+  outline-offset:4px;
+}
+
+.catalog-schedule-invite[hidden],
+.gallery-primary[hidden],
+.gallery-secondary[hidden]{
+  display:none;
+}
+
+@media(max-width:860px){
+  .catalog-schedule-invite{align-items:stretch;flex-direction:column;gap:16px;padding:20px}
+  .catalog-schedule-invite h2{font-size:26px}
+  .catalog-schedule-actions{width:100%}
+}
+
 .catalog-grid,
 .catalog-skeleton-grid{
   display:grid;

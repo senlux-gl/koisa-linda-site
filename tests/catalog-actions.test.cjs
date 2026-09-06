@@ -187,16 +187,37 @@ test('isTryOnEligible usa a allowlist canônica da prova virtual', () => {
 
 test('CTA individual e prova virtual seguem a unidade e o código canônico da peça', () => {
   assert.match(Actions.productWhatsAppHref(fixtures[0], contacts), /^https:\/\/wa\.me\/101\?text=/);
-  assert.equal(
-    decodeURIComponent(Actions.productWhatsAppHref(fixtures[0], contacts).split('?text=')[1]),
-    'Olá! Tenho interesse na peça NV-001. Você consegue confirmar a disponibilidade e me ajudar a agendar uma prova?',
-  );
+  const message = new URL(Actions.productWhatsAppHref(fixtures[0], contacts)).searchParams.get('text');
+  assert.match(message, /NV-001/);
+  assert.match(message, /Barra da Tijuca/);
+  assert.match(message, /confirmar disponibilidade/);
   assert.equal(Actions.productWhatsAppHref({ k: 'X', un: 'invalida' }, contacts), 'unidades.html');
   assert.equal(
     Actions.tryOnHref({ ...fixtures[0], k: ' nv 001/azul ' }),
     'catalogo.html?prova=1&p=NV%20001%2FAZUL',
   );
   assert.equal(Actions.tryOnHref(fixtures.find((item) => item.c === 'ternos')), null);
+});
+
+test('agendamento presencial leva ocasião, unidade e código canônico sem dados de contato', () => {
+  [fixtures[0], fixtures[1], fixtures[2], { ...fixtures[0], k: 'NV-GG-001' }].forEach(product => {
+    const href = Actions.productScheduleHref(product);
+    const url = new URL(href, 'https://koisalinda.com.br');
+    assert.equal(url.pathname, '/agendar/');
+    assert.equal(url.searchParams.get('ocasiao'), product.c === 'vestidos-noiva' ? 'noiva' : 'debutante');
+    assert.equal(url.searchParams.get('un'), product.un);
+    assert.equal(url.searchParams.get('modelo'), product.k);
+    assert.equal(url.searchParams.get('ui_source'), 'catalog_product_schedule');
+    assert.deepEqual([...url.searchParams.keys()], ['ocasiao', 'un', 'modelo', 'ui_source']);
+  });
+});
+
+test('agendamento rejeita categorias informais, unidade desconhecida e código inválido', () => {
+  [null, {}, ...fixtures.slice(3),
+    { ...fixtures[0], un: 'outra' }, { ...fixtures[0], k: '' },
+    { ...fixtures[0], k: 123 }, { ...fixtures[0], k: 'NV-001&telefone=123' },
+    { ...fixtures[0], k: '../NV-001' }, { ...fixtures[0], k: 'N'.repeat(41) },
+  ].forEach(product => assert.equal(Actions.productScheduleHref(product), null));
 });
 
 test('CTA compartilhado nunca escolhe unidade arbitrária e mantém labels exatos', () => {
