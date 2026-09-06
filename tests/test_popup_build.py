@@ -64,8 +64,8 @@ class PopupBuildTest(unittest.TestCase):
    self.assertLess(script_paths.index(expected[1]), script_paths.index(expected[2]), path)
    capture_assets = [tag['src'] for tag in page.scripts if urlsplit(tag['src']).path in expected[1:]]
    capture_styles = [url for url in page.styles if urlsplit(url).path == '/kl-capture.css']
-   self.assertEqual(capture_styles, ['/kl-capture.css?v=20260906popup1'], path)
-   self.assertTrue(all(url.endswith('?v=20260906popup1') for url in capture_assets), path)
+   self.assertEqual(capture_styles, ['/kl-capture.css?v=20260906google1'], path)
+   self.assertTrue(all(url.endswith('?v=20260906google1') for url in capture_assets), path)
 
  def test_booking_privacy_errors_shells_and_redirects_do_not_receive_capture(self):
   for path, html in self.pages.items():
@@ -117,6 +117,9 @@ class PopupBuildTest(unittest.TestCase):
    page = Page(self.pages[path])
    self.assertIn('required', page.inputs.get('kl-capture-phone', {}), path)
    self.assertNotIn('checked', page.inputs.get('kl-capture-marketing', {}), path)
+   self.assertIn('kl-capture-measurement', page.inputs, path)
+   self.assertNotIn('checked', page.inputs['kl-capture-measurement'], path)
+   self.assertNotIn('required', page.inputs['kl-capture-measurement'], path)
    self.assertIn('Usaremos seu número para entregar os modelos que você pedir. Na próxima etapa, envie a mensagem preparada no seu WhatsApp para confirmar.', self.pages[path], path)
    self.assertIn('Também quero receber novidades e dicas da Koisa Linda pelo WhatsApp. Posso cancelar quando quiser.', self.pages[path], path)
    self.assertIn('href="/privacidade/">Como cuidamos dos seus dados</a>', self.pages[path], path)
@@ -129,6 +132,8 @@ class PopupBuildTest(unittest.TestCase):
                    if Path(urlsplit(tag['src']).path).name == asset]
     after_urls = [tag['src'] for tag in page.scripts if Path(urlsplit(tag['src']).path).name == asset]
     expected_urls = before_urls or (['/kl-tracking.js?v=20260906agenda1'] if asset == 'kl-tracking.js' else [])
+    if asset == 'kl-tracking.js':
+     expected_urls = [urlsplit(url).path+'?v=20260906google1' for url in expected_urls]
     self.assertEqual(after_urls, expected_urls, (path, asset))
    script_paths = [urlsplit(tag['src']).path for tag in page.scripts]
    self.assertLess(script_paths.index('/kl-tracking.js'), script_paths.index('/kl-capture.js'), path)
