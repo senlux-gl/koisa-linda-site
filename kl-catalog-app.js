@@ -2254,6 +2254,18 @@
     return getSnapshot();
   }
 
+  // Snapshot of public catalog choices only. Contact identity stays in the capture module.
+  function getCaptureContext() {
+    var saved = favorites ? favorites.items() : [];
+    var selected = saved.length ? saved : (currentDerived ? currentDerived.products : []);
+    return {
+      source: saved.length ? 'favorites' : 'catalog',
+      category: state && state.category || '',
+      unit: state && state.unit || (selected.length && selected.every(function (product) { return product.un === 'sf'; }) ? 'sf' : ''),
+      product_codes: selected.slice(0, 6).map(function (product) { return product.k; }),
+    };
+  }
+
   function getSnapshot() {
     return {
       initialized: Boolean(runtime.initialized),
@@ -2282,6 +2294,7 @@
     gridImageFailurePolicy: gridImageFailurePolicy,
     init: init,
     getSnapshot: getSnapshot,
+    getCaptureContext: getCaptureContext,
     shouldShowFilterRail: shouldShowFilterRail,
   };
 }));
