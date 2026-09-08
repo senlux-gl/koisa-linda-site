@@ -1,0 +1,304 @@
+{
+  "date": "2026-09-08",
+  "base": "161f5bdb17658d45313b260bca1562a9bc8bb694",
+  "raw_findings": 42,
+  "secret_findings": 0,
+  "adjudication": "All raw PII matches are unchanged public store contacts or substrings of the public Pixel ID. Counts match the published base; no customer data added. No content was hidden, altered or excluded to evade the scan. Publication of the reviewed site was explicitly authorized in this thread.",
+  "public_evidence": "https://koisalinda.com.br/noivas/",
+  "matches": [
+    {
+      "file": "catalogo.html",
+      "line": 6,
+      "pattern": "mobile",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "catalogo.html",
+      "line": 6,
+      "pattern": "fixed",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "catalogo.html",
+      "line": 170,
+      "pattern": "mobile",
+      "classification": "public_store_contact_sf",
+      "exists_in_base": true
+    },
+    {
+      "file": "catalogo.html",
+      "line": 196,
+      "pattern": "mobile",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "catalogo.html",
+      "line": 196,
+      "pattern": "fixed",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "debutantes.html",
+      "line": 1,
+      "pattern": "mobile",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "debutantes.html",
+      "line": 1,
+      "pattern": "fixed",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "debutantes.html",
+      "line": 56,
+      "pattern": "mobile",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "debutantes.html",
+      "line": 56,
+      "pattern": "fixed",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "debutantes.html",
+      "line": 60,
+      "pattern": "mobile",
+      "classification": "public_store_contact_sf",
+      "exists_in_base": true
+    },
+    {
+      "file": "debutantes.html",
+      "line": 106,
+      "pattern": "mobile",
+      "classification": "public_store_contact_sf",
+      "exists_in_base": true
+    },
+    {
+      "file": "debutantes.html",
+      "line": 111,
+      "pattern": "mobile",
+      "classification": "public_store_contact_barra",
+      "exists_in_base": true
+    },
+    {
+      "file": "madrinhas.html",
+      "line": 1,
+      "pattern": "mobile",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "madrinhas.html",
+      "line": 1,
+      "pattern": "fixed",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "madrinhas.html",
+      "line": 56,
+      "pattern": "mobile",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "madrinhas.html",
+      "line": 56,
+      "pattern": "fixed",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "madrinhas.html",
+      "line": 60,
+      "pattern": "mobile",
+      "classification": "public_store_contact_sf",
+      "exists_in_base": true
+    },
+    {
+      "file": "madrinhas.html",
+      "line": 105,
+      "pattern": "mobile",
+      "classification": "public_store_contact_sf",
+      "exists_in_base": true
+    },
+    {
+      "file": "madrinhas.html",
+      "line": 110,
+      "pattern": "mobile",
+      "classification": "public_store_contact_barra",
+      "exists_in_base": true
+    },
+    {
+      "file": "noivas.html",
+      "line": 1,
+      "pattern": "mobile",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "noivas.html",
+      "line": 1,
+      "pattern": "fixed",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "noivas.html",
+      "line": 66,
+      "pattern": "mobile",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "noivas.html",
+      "line": 66,
+      "pattern": "fixed",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "noivas.html",
+      "line": 70,
+      "pattern": "mobile",
+      "classification": "public_store_contact_sf",
+      "exists_in_base": true
+    },
+    {
+      "file": "noivas.html",
+      "line": 116,
+      "pattern": "mobile",
+      "classification": "public_store_contact_sf",
+      "exists_in_base": true
+    },
+    {
+      "file": "noivas.html",
+      "line": 121,
+      "pattern": "mobile",
+      "classification": "public_store_contact_barra",
+      "exists_in_base": true
+    },
+    {
+      "file": "peca.html",
+      "line": 2,
+      "pattern": "mobile",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "peca.html",
+      "line": 2,
+      "pattern": "fixed",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "peca.html",
+      "line": 57,
+      "pattern": "mobile",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "peca.html",
+      "line": 57,
+      "pattern": "fixed",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "ternos.html",
+      "line": 1,
+      "pattern": "mobile",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "ternos.html",
+      "line": 1,
+      "pattern": "fixed",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "ternos.html",
+      "line": 56,
+      "pattern": "mobile",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "ternos.html",
+      "line": 56,
+      "pattern": "fixed",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "ternos.html",
+      "line": 60,
+      "pattern": "mobile",
+      "classification": "public_store_contact_sf",
+      "exists_in_base": true
+    },
+    {
+      "file": "ternos.html",
+      "line": 96,
+      "pattern": "mobile",
+      "classification": "public_store_contact_sf",
+      "exists_in_base": true
+    },
+    {
+      "file": "ternos.html",
+      "line": 101,
+      "pattern": "mobile",
+      "classification": "public_store_contact_barra",
+      "exists_in_base": true
+    },
+    {
+      "file": "unidades.html",
+      "line": 5,
+      "pattern": "mobile",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "unidades.html",
+      "line": 5,
+      "pattern": "fixed",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "unidades.html",
+      "line": 155,
+      "pattern": "mobile",
+      "classification": "public_store_contact_sf",
+      "exists_in_base": true
+    },
+    {
+      "file": "unidades.html",
+      "line": 169,
+      "pattern": "mobile",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    },
+    {
+      "file": "unidades.html",
+      "line": 169,
+      "pattern": "fixed",
+      "classification": "public_pixel_id",
+      "exists_in_base": true
+    }
+  ]
+}
