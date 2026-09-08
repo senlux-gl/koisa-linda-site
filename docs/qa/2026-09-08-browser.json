@@ -1,0 +1,23 @@
+{
+  "checks": 84,
+  "routes": 32,
+  "widths": [
+    320,
+    390,
+    768,
+    1440
+  ],
+  "matrix": "32 routes in 320/768; 10 main routes also in390/1440",
+  "overflow_failures": [],
+  "missing_h1": [],
+  "observed_flows": [
+    "Legacy catalog URL with prova=1, model, unit, UTM and fragment reaches /prova-virtual/",
+    "Gallery opens dedicated page with NV-001 selected and visible in first batch",
+    "Close restores landing; submit disabled without photo",
+    "Noiva/SF/model NV-001 and debutante/Barra calendars loaded; no submission",
+    "Madrinhas displays the 8 references from festa-estudio-v2",
+    "WhatsApp invitation dismissed; consent contract covered by directed tests"
+  ],
+  "no_real_submission": true,
+  "viewport_restored": true
+}

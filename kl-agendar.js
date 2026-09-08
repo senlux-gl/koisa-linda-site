@@ -325,8 +325,8 @@
       desc.textContent = 'Escolha quando vir à loja. Nossa equipe acompanha você na escolha e na prova dos vestidos.';
     } else {
       if (eyebrow) eyebrow.textContent = 'Prova com hora marcada';
-      title.textContent = 'Escolha o seu horário';
-      desc.textContent = 'Prove vestidos com o acompanhamento da nossa equipe. Escolha a unidade e o melhor horário para o seu momento.';
+      title.textContent = 'Vamos conhecer seu vestido de perto?';
+      desc.textContent = 'Leve as referências que encantaram você e compare o caimento na prova. Escolha a unidade, a data e o horário para noiva ou debutante.';
     }
     document.body.setAttribute('data-schedule-variant', estado.variante || 'a');
   }

@@ -39,7 +39,7 @@ test('built modules recognize clean paths and generate working product and store
  assert.equal(enhance.initialContext(root).unit,'sf');
  assert.equal(enhance.resolveStickyTargets({page:'noivas',unit:'sf'})[0].href,'/agendar/?ocasiao=noiva&un=sf');
  const actions=require('../_site/kl-catalog-actions.js');
- assert.equal(actions.tryOnHref({k:'NV-001',c:'vestidos-noiva',un:'sf'}),'/catalogo/?prova=1&p=NV-001');
+ assert.equal(actions.tryOnHref({k:'NV-001',c:'vestidos-noiva',un:'sf'}),'/prova-virtual/?p=NV-001');
 });
 
 test('catalog navigation keeps attribution through filter, gallery and try-on changes',()=>{

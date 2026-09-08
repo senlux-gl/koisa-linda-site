@@ -30,11 +30,16 @@ CATEGORIES = {
  'acessorios': ('Acessórios', '/catalogo/', 'acessorios'),
 }
 META = {
+ 'provar.html': ('Prova virtual de vestidos com IA | Koisa Linda', 'Escolha um vestido de noiva, debutante ou festa e crie uma simulação com sua foto. Compare estilos e prepare sua prova presencial na Koisa Linda.', None),
+ 'sobre.html': ('Koisa Linda: ateliê e história desde 1994', 'Conheça a história da Koisa Linda, o ateliê de Jussara Pessanha e o cuidado com a escolha de vestidos e ternos em Niterói e Barra da Tijuca.', None),
+ 'servicos.html': ('Aluguel, venda, sob medida e ateliê | Koisa Linda', 'Entenda as opções de aluguel, venda e sob medida, a avaliação de ajustes e como preparar sua prova ou visita às lojas Koisa Linda.', None),
+ 'noivas-experiencia.html': ('Sua experiência na prova de noiva | Koisa Linda', 'Da primeira referência ao caimento: conheça a prova de noiva e o ateliê Koisa Linda. Prepare sua visita em Niterói ou Barra da Tijuca.', None),
+ 'como-chegar.html': ('Como chegar à Koisa Linda no Downtown, Barra da Tijuca', 'Veja os caminhos até a Koisa Linda no Shopping Downtown: Av. das Américas, 500, Bloco 8, Loja 130. Guia em vídeo e referências para sua visita.', None),
  'index.html': ('Vestidos de noiva e festa em Niterói e Barra | Koisa Linda', 'Aluguel e sob medida de vestidos de noiva, debutante e festa, além de ternos. Conheça o ateliê e as lojas em São Francisco, Niterói, e Barra da Tijuca.', None),
- 'noivas.html': ('Vestidos de noiva em Niterói e Barra da Tijuca | Koisa Linda', 'Encontre seu vestido de noiva para aluguel ou sob medida. Conheça os estilos do acervo e agende sua prova em São Francisco, Niterói, ou Barra da Tijuca.', 'Vestidos de noiva para o seu dia'),
- 'debutantes.html': ('Vestidos de debutante e 15 anos | Koisa Linda Niterói e Barra', 'Vestidos de debutante para a valsa e a recepção, com ajustes no ateliê. Agende sua prova de 15 anos em São Francisco, Niterói, ou Barra da Tijuca.', 'Vestidos de debutante para a sua história'),
- 'madrinhas.html': ('Aluguel de vestidos de festa e madrinha | Koisa Linda', 'Vestidos para madrinhas, convidadas e formandas em Niterói e Barra da Tijuca. Explore o catálogo e visite a loja sem agendamento para provar.', 'Vestidos de festa para estar presente'),
- 'ternos.html': ('Aluguel de ternos em Niterói e Barra da Tijuca | Koisa Linda', 'Ternos para noivos, pais, padrinhos e convidados, com ajustes no ateliê. Visite São Francisco, Niterói, ou Barra da Tijuca; não precisa agendar.', 'Ternos para o seu grande momento'),
+ 'noivas.html': ('Vestidos de noiva em Niterói e Barra da Tijuca | Koisa Linda', 'Encontre seu vestido de noiva para aluguel ou sob medida. Conheça os estilos do acervo e agende sua prova em São Francisco, Niterói, ou Barra da Tijuca.', 'Qual detalhe faz você se imaginar no seu vestido de noiva?'),
+ 'debutantes.html': ('Vestidos de debutante e 15 anos | Koisa Linda Niterói e Barra', 'Compare vestidos de debutante para a entrada, a valsa e a festa. Descubra seu estilo na prova em São Francisco, Niterói, ou Barra da Tijuca.', 'Qual estilo vai entrar na sua festa de 15 anos?'),
+ 'madrinhas.html': ('Aluguel de vestidos de festa e madrinha | Koisa Linda', 'Vestidos para madrinhas, convidadas e formandas em Niterói e Barra da Tijuca. Explore o catálogo e visite a loja sem agendamento para provar.', 'Qual cor combina com o momento que você vai viver?'),
+ 'ternos.html': ('Aluguel de ternos em Niterói e Barra da Tijuca | Koisa Linda', 'Compare cores e cortes de ternos para noivos, pais, padrinhos e convidados. Descubra o caimento em Niterói ou Barra da Tijuca, sem agendar.', 'Seu terno começa pelo caimento.'),
  'catalogo.html': ('Catálogo de vestidos, ternos e acessórios | Koisa Linda', 'Explore vestidos de noiva, debutante e festa, ternos e acessórios. Filtre por unidade, cor e tamanho e confirme a disponibilidade com a loja.', None),
  'agendar.html': ('Agendar prova de noiva ou debutante | Koisa Linda', 'Escolha a unidade, o dia e o horário da prova de noiva ou debutante em Niterói ou Barra da Tijuca. A confirmação final é feita pela equipe da loja.', None),
  'unidades.html': ('Lojas em Niterói e Barra da Tijuca | Koisa Linda', 'Endereços e horários da Koisa Linda em São Francisco, Niterói, e no Shopping Downtown, Barra da Tijuca. Veja onde provar e como chegar.', 'Lojas em Niterói e Barra da Tijuca'),
@@ -109,10 +114,12 @@ def refine(s,source,canonical):
    # The interactive detail uses the current unit routing; historical pages had one old phone.
    s=re.sub(r'<a class="btn" href="https://wa\.me/[^"]*"[^>]*>.*?</a>', '<a class="btn" href="/peca/?codigo='+escape(code,quote=True)+'">Consultar esta peça</a>',s,count=1,flags=re.S)
   else:
+   s=s.replace('</head>', '<meta name="robots" content="noindex,follow"></head>',1)
+   s=re.sub(r'<dl>.*?</dl>', '<p>Esta referência não aparece no catálogo atual. Conheça as opções da coleção ou consulte a equipe.</p>',s,count=1,flags=re.S)
    s=re.sub(r'<a class="btn" href="https://wa\.me/[^"]*"[^>]*>.*?</a>', '<a class="btn" href="/unidades/">Consultar as lojas</a>',s,count=1,flags=re.S)
   category=CATEGORIES.get(item['category'])
   visit='Agende sua prova e confirme a disponibilidade para a sua data.' if item['category'] in ('vestidos-noiva','vestidos-debutante') else 'Confirme a disponibilidade com a equipe e visite a loja no horário de funcionamento. Não precisa agendar.'
-  s=re.sub(r'<p class="nota">.*?</p>', '<p class="nota">O caimento se resolve na prova, com orientação da equipe e ajustes no ateliê. '+visit+'</p>',s,count=1,flags=re.S)
+  s=re.sub(r'<p class="nota">.*?</p>', '<p class="nota">Observe a peça, imagine a ocasião e descubra o caimento na prova. A equipe orienta a escolha e consulta os ajustes possíveis no ateliê. '+visit+'</p>',s,count=1,flags=re.S)
   if category and category[1]!='/catalogo/':crumbs.append((category[0],category[1]))
   s=re.sub(r'<p class="crumb">.*?</p>','',s,flags=re.S)
   similar=[k for k,v in pages.items() if k!=code and item['category'] and v['category']==item['category']][:4]
@@ -128,7 +135,7 @@ def refine(s,source,canonical):
   selected=sorted(k for k,a in attrs.items() if a.get(field) in values and k in pages and products.get(k,{}).get('un')==unit and products[k].get('c')=='vestidos-noiva')
   # These are catalogue associations, never a claim of live stock.
   s=re.sub(r'<h1[^>]*>.*?</h1>','<h1>'+escape(name)+'</h1>',s,count=1,flags=re.S)
-  intro=f'Seleção de modelos vinculados à unidade de {"São Francisco, em Niterói" if unit=="sf" else "Barra da Tijuca"} no catálogo. Confirme com a equipe a disponibilidade para a sua data e agende a prova.'
+  intro=f'Compare os modelos do catálogo da unidade de {"São Francisco, em Niterói" if unit=="sf" else "Barra da Tijuca"} e imagine como cada silhueta acompanha o seu casamento. Confirme com a equipe a disponibilidade para a data e descubra o caimento na prova.'
   s=re.sub(r'<p class="sub">.*?</p>','<p class="sub">'+intro+'</p><p class="kl-seo-intro">'+advice+'</p>',s,count=1,flags=re.S)
   visit='<p class="kl-seo-intro"><a class="btn" href="/agendar/?ocasiao=noiva&amp;un='+unit+'">Agendar nesta unidade</a></p>'
   s=re.sub(r'<div class="grid">.*?</div>',visit+cards(selected[:24],pages),s,count=1,flags=re.S)
@@ -140,15 +147,17 @@ def refine(s,source,canonical):
  elif source=='p/index.html':
   name='Índice de vestidos, ternos e acessórios';title=name+' | Koisa Linda';description='Explore as fichas do acervo Koisa Linda por categoria e código. Veja vestidos, ternos e acessórios e confirme a disponibilidade com a loja.'
   s=re.sub(r'<h1[^>]*>.*?</h1>','<h1>'+name+'</h1>',s,count=1,flags=re.S)
-  def index_label(m):
-   code=Path(m[1]).stem
-   return '<a href="'+m[1]+'">'+escape(pages[code]['name'])+'</a>' if code in pages else m[0]
-  s=re.sub(r'<a href="(/p/[^"/]+\.html)">[^<]*</a>',index_label,s)
+  groups=''.join('<section class="kl-seo-section"><h2>'+label+'</h2><ul class="kl-seo-links">'+''.join('<li><a href="'+pages[k]['path']+'">'+escape(pages[k]['name'])+'</a></li>' for k in sorted(products) if k in pages and products[k].get('c')==cat)+'</ul></section>' for cat,(label,*_) in CATEGORIES.items())
+  s=re.sub(r'(<div class="wrap">).*?(</div>)(?=\s*<section id="kl-capture"|\s*<footer)',lambda m:m[1]+'<h1>'+name+'</h1><p>Qual peça chamou sua atenção? Explore as referências por ocasião, observe os detalhes e confirme o caimento na loja. A equipe consulta disponibilidade e condições para sua data.</p>'+groups+m[2],s,count=1,flags=re.S)
   crumbs.append(('Catálogo','/catalogo/'));page_type='CollectionPage'
  elif source in ['noivas.html','debutantes.html','madrinhas.html','ternos.html']:
   category=next(k for k,v in CATEGORIES.items() if v[1]==canonical)
   by_unit={unit:[k for k,v in pages.items() if v['category']==category and products.get(k,{}).get('un')==unit] for unit in ('sf','barra')}
   selected=[by_unit[unit][i] for i in range(6) for unit in ('sf','barra') if i<len(by_unit[unit])][:6]
+  if source=='madrinhas.html':
+   # References used in the reviewed M13-M16 studio creative direction (08/09).
+   campaign=['MD-G-034','080950','MD-GG-017','080953','MD-M-049','080957','MD-015','080961']
+   selected=[k for k in campaign if k in pages and products.get(k,{}).get('c')==category] or selected
   block='<section class="kl-seo-section kl-collection-preview" id="modelos"><p class="kl-section-label">Uma primeira seleção</p><h2>Encontre suas referências</h2><p>Conheça as peças do acervo. A equipe confirma a disponibilidade para a sua data.</p>'+cards(selected,pages)+'<a class="kl-collection-link" href="/catalogo/?cat='+category+'">Ver toda a coleção <span aria-hidden="true">→</span></a><p class="kl-collection-index"><a href="/p/index.html">Explorar todas as fichas do acervo</a></p></section>'
   s=s.replace('<!-- kl-collection-preview -->',block,1) if '<!-- kl-collection-preview -->' in s else insert_end(s,block)
   page_type='CollectionPage'
@@ -161,7 +170,7 @@ def refine(s,source,canonical):
   for unit,label in [('sf','São Francisco'),('barra','Barra da Tijuca')]:
    s=re.sub(r'(<div class="unit")(>.*?<h3>'+label+'</h3>)',lambda m:m[1]+' id="'+unit+'"'+m[2],s,count=1,flags=re.S)
  if source!='index.html':
-  short={'noivas.html':'Noivas','debutantes.html':'Debutantes','madrinhas.html':'Madrinhas e festa','ternos.html':'Ternos','catalogo.html':'Catálogo','unidades.html':'Lojas','agendar.html':'Agendar prova','p/index.html':'Índice do acervo','noivas-experiencia.html':'Experiência noiva'}.get(source,name)
+  short={'noivas.html':'Noivas','debutantes.html':'Debutantes','madrinhas.html':'Madrinhas e festa','ternos.html':'Ternos','catalogo.html':'Catálogo','unidades.html':'Lojas','agendar.html':'Agendar prova','p/index.html':'Índice do acervo','noivas-experiencia.html':'Experiência noiva','provar.html':'Prova virtual'}.get(source,name)
   if source.startswith('p/') and source!='p/index.html':short='Peça '+Path(source).stem
   if source.startswith('vestido-de-noiva-'):short=label+' '+location
   crumbs.append((short,canonical))

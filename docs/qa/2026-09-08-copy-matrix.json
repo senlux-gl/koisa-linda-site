@@ -1,0 +1,54 @@
+{
+  "noivas": {
+    "h1": "Qual detalhe faz você se imaginar no seu vestido de noiva?",
+    "lead": "Renda, silhueta, movimento. Conheça os modelos, escolha suas referências e descubra na prova o que combina com o seu jeito de viver o casamento.",
+    "interest": "Olhe o vestido além da primeira imagem",
+    "detail": "Compare o desenho da renda, o decote e o volume da saia. No catálogo, salve os códigos que chamarem sua atenção; na prova, observe o tecido de perto e como a peça se move com você.",
+    "desire": "Imagine a entrada. Experimente o movimento.",
+    "benefit": "Caminhar, sentar, abraçar. A prova é a oportunidade de perceber o caimento no seu corpo e conversar sobre os ajustes possíveis, com orientação da equipe e avaliação do ateliê.",
+    "occasion": "noiva",
+    "category": "vestidos-noiva",
+    "cta": "Escolher minha prova de noiva",
+    "question": "Posso alugar, comprar ou fazer sob medida?",
+    "answer": "Converse com a equipe sobre as modalidades disponíveis para o modelo que você gostou. No sob medida, referências, tecido, acabamento, prazo e orçamento são combinados antes da contratação."
+  },
+  "debutantes": {
+    "h1": "Qual estilo vai entrar na sua festa de 15 anos?",
+    "lead": "Volume, brilho ou leveza: a escolha começa pelo seu jeito de viver a festa. Compare os vestidos de debutante e leve suas referências para a prova.",
+    "interest": "Um vestido para cada momento?",
+    "detail": "Entrada, valsa e dança podem pedir movimentos diferentes. Observe o corpete, os detalhes e o volume da saia; converse com a equipe sobre um vestido ou a composição de looks e suas condições.",
+    "desire": "Veja se o encanto da imagem acompanha você na valsa",
+    "benefit": "Na prova, você pode caminhar, girar e comparar os modelos no corpo. A família participa da escolha, e o seu estilo conduz a conversa sobre a festa que você está imaginando.",
+    "occasion": "debutante",
+    "category": "vestidos-debutante",
+    "cta": "Escolher minha prova de debutante",
+    "question": "Posso escolher mais de um vestido para os 15?",
+    "answer": "Sim, você pode conversar sobre looks para momentos diferentes. A equipe confere modelos, disponibilidade, valores e condições de cada composição antes da contratação."
+  },
+  "madrinhas": {
+    "h1": "Qual cor combina com o momento que você vai viver?",
+    "lead": "Vestidos de festa para madrinhas, convidadas e formandas. Compare as cores, observe o movimento e descubra seu caimento na loja, sem agendar.",
+    "interest": "A cor chama. O caimento ajuda a escolher.",
+    "detail": "Observe o decote, o tecido e o movimento da saia. Se o evento tem uma paleta ou um traje definido, leve essa referência para comparar os modelos com a orientação da equipe.",
+    "desire": "Imagine o vestido do primeiro abraço à última dança",
+    "benefit": "Na loja, experimente, caminhe e sinta o tecido. É o momento de descobrir qual modelo combina com a ocasião e com você, e consultar os ajustes possíveis para a peça.",
+    "occasion": null,
+    "category": "vestidos-madrinha",
+    "cta": "Ver lojas para provar sem agendar",
+    "question": "As madrinhas precisam ir todas juntas?",
+    "answer": "Vocês podem levar a mesma referência de cor e estilo em visitas diferentes. Consulte a unidade sobre modelos e disponibilidade para a data do evento; as peças do catálogo podem estar em lojas distintas."
+  },
+  "ternos": {
+    "h1": "Seu terno começa pelo caimento.",
+    "lead": "Para noivos, pais, padrinhos e convidados: compare cores e cortes, e experimente o conjunto na loja. A visita é livre, sem agendamento.",
+    "interest": "O detalhe aparece no conjunto",
+    "detail": "Observe os ombros do paletó, o comprimento das mangas e a linha da calça. Leve o traje pedido para o evento e, se houver, as referências de cor do casamento.",
+    "desire": "Presença para a cerimônia. Movimento para a festa.",
+    "benefit": "Vista o conjunto, caminhe e sente para perceber o conforto. A equipe orienta a escolha e consulta com o ateliê as possibilidades de ajuste para a peça.",
+    "occasion": null,
+    "category": "ternos",
+    "cta": "Ver lojas e provar meu terno",
+    "question": "Posso alugar ou comprar o terno?",
+    "answer": "Consulte as modalidades disponíveis para o modelo escolhido. A equipe esclarece valores, ajustes, disponibilidade e condições antes de você decidir."
+  }
+}

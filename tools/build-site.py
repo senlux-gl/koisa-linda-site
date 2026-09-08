@@ -13,7 +13,7 @@ _seo_spec = importlib.util.spec_from_file_location('kl_seo_site', ROOT/'tools/se
 seo = importlib.util.module_from_spec(_seo_spec)
 _seo_spec.loader.exec_module(seo)
 PUBLIC_ROOT_FILES = frozenset(['2e6a8e0fffab111a0cbe5ae7b36fb00f.txt', 'CNAME', 'apple-touch-icon.png', 'favicon.ico', 'kl-agendar.js', 'kl-schedule-context.js', 'kl-schedule-experience.css', 'kl-capture.js', 'kl-capture.css', 'kl-catalog-actions.js', 'kl-catalog-app.js', 'kl-catalog-atributos.json', 'kl-catalog-core.js', 'kl-catalog-data.js', 'kl-catalog-gallery.js', 'kl-catalog-tryon.css', 'kl-catalog-tryon.js', 'kl-catalog.css', 'kl-fonts.css', 'kl-ga.js', 'kl-redirect.js', 'kl-refine.css', 'kl-seo.css', 'kl-site-enhance.css', 'kl-site-enhance.js', 'kl-tracking.js', 'kl-ui.js', 'robots.txt'])
-PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-capture-popup.js', 'kl-layout.css'}
+PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-capture-popup.js', 'kl-layout.css', 'kl-route-normalize.js', 'kl-prova-virtual.js', 'kl-prova-virtual.css'}
 CAPTURE_VERSION = '20260906google1'
 CAPTURE_EXCLUDED = frozenset(('agendar.html', 'privacidade.html', 'peca.html', 'provar.html', '404.html'))
 CAPTURE_CATEGORIES = {
@@ -26,7 +26,7 @@ BASE_ROUTES = {
  'debutantes.html':'/debutantes/', 'madrinhas.html':'/madrinhas/', 'ternos.html':'/ternos/',
  'sobre.html':'/sobre/', 'servicos.html':'/servicos/', 'unidades.html':'/unidades/',
  'como-chegar.html':'/como-chegar/', 'privacidade.html':'/privacidade/',
- 'peca.html':'/peca/', 'provar.html':'/catalogo/?prova=1',
+ 'peca.html':'/peca/', 'provar.html':'/prova-virtual/',
 }
 ROUTES = dict(BASE_ROUTES)
 for p in sorted(ROOT.glob('vestido-de-noiva-*.html')):
@@ -51,6 +51,10 @@ def public_url(value, source='index.html'):
  resolved=urlsplit(urljoin(ORIGIN+'/'+source,value))
  path=resolved.path
  target=ROUTES.get(path.lstrip('/'),path)
+ if target.rstrip('/')=='/catalogo' and 'prova=1' in resolved.query.split('&'):
+  from urllib.parse import parse_qsl, urlencode
+  target='/prova-virtual/'
+  resolved=resolved._replace(query=urlencode([(k,v) for k,v in parse_qsl(resolved.query,keep_blank_values=True) if k!='prova']))
  t=urlsplit(target)
  query=resolved.query
  if t.query:
@@ -71,7 +75,6 @@ def rewrite_text_urls(s, source):
  s=re.sub(r'url\((\s*[\'"]?)([^\)\'"\s]+)([\'"]?\s*)\)',lambda m:'url('+m[1]+public_url(m[2],source)+m[3]+')',s)
  # JS string builders and structured data also produce links. Use exact known basenames.
  for name,dest in sorted(ROUTES.items(),key=lambda x:-len(x[0])):
-  if name=='provar.html':continue # Its special query must be merged, never concatenated.
   s=re.sub(r'(?P<q>[\'"`])(?:\.\./|/)?'+re.escape(name)+r'(?=[?\#\'"`])',lambda m:m['q']+dest,s)
   s=s.replace(ORIGIN+'/'+name,ORIGIN+dest)
  return s
@@ -121,6 +124,8 @@ def add_capture(s, source):
 
 def render(s, source, canonical, preview=False):
  s=add_capture(s,source)
+ # The tracking fallback is decorative, never a content image.
+ s=re.sub(r'<img(?=[^>]*facebook\.com/tr)(?![^>]*\balt=)', '<img alt=""',s)
  s=rewrite_text_urls(s,source)
  # Font files stay on the same origin and use font-display: swap.
  s=re.sub(r'<link\b[^>]*href=["\'][^"\']*fonts\.(?:googleapis|gstatic)\.com[^>]*>', '', s)
@@ -133,15 +138,16 @@ def render(s, source, canonical, preview=False):
  # Resolve inline fetch/image builders against root while explicit hash links stay local.
  s=s.replace('<head>','<head><base href="/">',1)
  s=re.sub(r'href=(["\'])#([^"\']+)\1',lambda m:'href='+m[1]+urlsplit(canonical).path+'#'+m[2]+m[1],s)
- s=s.replace('<head>','<head><script src="/kl-urls.js"></script>',1)
+ s=s.replace('<head>','<head><script src="/kl-route-normalize.js"></script><script src="/kl-urls.js"></script>',1)
  s=seo.refine(s,source,canonical)
  # One shared, final layout layer for main pages, styles and indexed products.
  family='produto' if source.startswith('p/') and source!='p/index.html' else 'estilo' if source.startswith('vestido-de-noiva-') else Path(source).stem
  s=re.sub(r'<body\b', '<body data-kl-page="'+family+'"', s, count=1)
  if family in ('produto','estilo') or source=='p/index.html':
   s=s.replace('</header>', '<nav class="kl-entry-nav" aria-label="Navegação principal"><a href="/catalogo/">Catálogo</a><a href="/unidades/">Lojas</a></nav></header>', 1)
- s=s.replace('</head>', '<link rel="stylesheet" href="/kl-layout.css?v=20260907"></head>', 1)
- s=re.sub(r'(kl-(?:tracking|agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20260906google1',s)
+ s=s.replace('</head>', '<link rel="stylesheet" href="/kl-layout.css?v=20260908aida"></head>', 1)
+ s=re.sub(r'(kl-(?:catalog-actions|catalog-tryon|agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20260908aida',s)
+ s=re.sub(r'(kl-(?:tracking)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20260906google1',s)
  if preview:
   s=s.replace('<head>', '<head><script src="/qa-metrics.js"></script>',1)
   s=re.sub(r'<script\b[^>]*src=["\'][^"\']*(?:kl-ga\.js|kl-tracking\.js)[^>]*></script>','',s)
@@ -168,8 +174,6 @@ def build(output, preview=False):
  write('.nojekyll','')
  if preview:shutil.copy2(ROOT/'tools/preview-metrics.js',output/'qa-metrics.js')
  for source,dest in ROUTES.items():
-  if source=='provar.html':
-   write(source,redirect_page(dest));continue
   path=urlsplit(dest).path
   rel=path.strip('/')+'/index.html' if path!='/' else 'index.html'
   write(rel,render((ROOT/source).read_text(),source,dest,preview))
@@ -180,7 +184,7 @@ def build(output, preview=False):
  for alias,target in ALIASES.items():
   destination=public_url(target,alias.lstrip('/'))
   write(alias.lstrip('/'),redirect_page(destination))
- write('provar/index.html',redirect_page('/catalogo/?prova=1'))
+ write('provar/index.html',redirect_page('/prova-virtual/'))
  write('404.html',render((ROOT/'404.html').read_text(),'404.html','/404.html',preview))
  # A single redirect module: query + fragment survive, and redirect targets cannot leave the site.
  shutil.copy2(ROOT/'kl-redirect.js',output/'kl-redirect.js')
@@ -196,7 +200,7 @@ def build(output, preview=False):
  urls_js="""(function(root){'use strict';var pages=MAP;root.KLUrls={pageKind:function(path){path=String(path||'/').replace(/\\/index\\.html$/,'/').replace(/\\/$/,'')||'/';return pages[path]||(path.split('/').pop()||'index').replace(/\\.html$/,'');}};}(window));""".replace('MAP',json.dumps(page_ids,ensure_ascii=False))
  write('kl-urls.js',urls_js)
  write('routes.json',json.dumps({'pages':ROUTES,'legacy':ALIASES},ensure_ascii=False,indent=2)+'\n')
- print(json.dumps({'output':str(output),'pages':len(ROUTES)-1,'product_pages':len(list((ROOT/'p').glob('*.html'))),'legacy_aliases':len(ALIASES),'sitemap_urls':len(set(sitemap)),'preview':preview},ensure_ascii=False))
+ print(json.dumps({'output':str(output),'pages':len(ROUTES),'product_pages':len(list((ROOT/'p').glob('*.html'))),'legacy_aliases':len(ALIASES),'sitemap_urls':len(set(sitemap)),'preview':preview},ensure_ascii=False))
  return output
 
 if __name__=='__main__':

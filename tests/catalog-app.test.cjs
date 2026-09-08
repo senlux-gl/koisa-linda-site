@@ -1138,81 +1138,27 @@ test('menu abre Prova Virtual sem peça, preserva filtros e volta ao mesmo link 
   assert.equal(browser.document.activeElement, menuLink);
 });
 
-test('galeria transita para Prova Virtual com uma entrada, um lock e volta à mesma peça', () => {
+test('galeria navega para a página de Prova Virtual preservando código e retorno do navegador', () => {
   const gallery = createGalleryDouble();
   const tryOn = createTryOnDouble();
-  const { browser } = mountBrowser({
-    raw: fixtures,
-    dialogs: true,
-    gallery: gallery.Gallery,
-    tryOn: tryOn.TryOn,
-    tryOnDialog: true,
-    tryOnApis: true,
-    scrollY: 275,
-  });
+  const { browser } = mountBrowser({ raw: fixtures, dialogs: true, gallery: gallery.Gallery,
+    tryOn: tryOn.TryOn, tryOnDialog: true, tryOnApis: true, scrollY: 275 });
   browser.triggerDOMContentLoaded();
   const origin = browser.nodes.grid.children[0].children[0];
   dispatchPrimaryClick(browser.nodes.grid, { target: origin, currentTarget: browser.nodes.grid });
-  const productCode = origin.parentNode.dataset.code;
-  assert.equal(browser.nodes.galleryDialog.open, true);
-  assert.equal(browser.nodes.galleryTryOn.getAttribute('href'), Actions.tryOnHref(
-    fixtures.find(product => product.k === productCode),
-  ));
-
-  const beforeTryOn = browser.historySnapshot();
-  const modified = dispatchPrimaryClick(browser.nodes.galleryTryOn, { button: 1 });
-  assert.equal(modified.prevented(), false);
-  assert.deepEqual(browser.historySnapshot(), beforeTryOn);
-  assert.equal(browser.nodes.galleryDialog.open, true);
-  assert.equal(browser.nodes.tryOnDialog.open, false);
-  const modifiedTracking = browser.trackingCalls.filter(
-    call => call.name === 'KL_Try_On_Click',
-  );
-  assert.equal(modifiedTracking.length, 1);
-  assert.equal(modifiedTracking[0].context.source, 'gallery');
-  assert.equal(modifiedTracking[0].context.productCode, productCode);
-  assert.doesNotMatch(JSON.stringify(modifiedTracking[0].context), /image|base64|file|query/i);
-
+  const code = origin.parentNode.dataset.code;
+  const before = browser.historySnapshot();
+  const href = browser.nodes.galleryTryOn.getAttribute('href');
+  assert.equal(href, '/prova-virtual/?p=' + encodeURIComponent(code));
   const click = dispatchPrimaryClick(browser.nodes.galleryTryOn);
-  assert.equal(click.prevented(), true);
-  assert.equal(browser.historySnapshot().entries.length, beforeTryOn.entries.length + 1);
-  assert.equal(browser.historyOperations.at(-1).type, 'push');
-  assert.deepEqual(browser.window.history.state.klCatalog, { layer: 'tryOn', origin: 'gallery' });
-  assert.equal(browser.nodes.galleryDialog.open, false);
-  assert.equal(browser.nodes.tryOnDialog.open, true);
-  assert.equal(browser.document.body.style.position, 'fixed');
-  assert.deepEqual(browser.scrollCalls, [], 'troca de camada não libera scroll lock');
-  assert.equal(tryOn.controller().getSnapshot().selectedCode, productCode);
-  assert.equal(
-    browser.trackingCalls.filter(call => call.name === 'KL_Try_On_Click').length,
-    2,
-  );
-  const tracking = browser.trackingCalls.find(call => call.name === 'KL_Try_On_Click');
-  assert.equal(tracking.context.productCode, productCode);
-  assert.equal(JSON.stringify(tracking.context).includes('image'), false);
-
-  assert.equal(tryOn.callbacks().onRequestClose(), 'back');
-  const writesBeforePop = browser.historyOperations.length;
-  browser.dispatchWindow('popstate', { state: browser.window.history.state });
-  assert.equal(browser.historyOperations.length, writesBeforePop);
-  assert.equal(browser.nodes.tryOnDialog.open, false);
+  assert.equal(click.prevented(), false, 'o navegador segue o href da experiência própria');
+  assert.deepEqual(browser.historySnapshot(), before, 'a galeria mantém a entrada para o botão Voltar');
   assert.equal(browser.nodes.galleryDialog.open, true);
-  assert.equal(browser.document.body.style.position, 'fixed');
-  assert.deepEqual(browser.scrollCalls, []);
-  assert.equal(browser.document.activeElement, browser.nodes.galleryTryOn);
-  assert.equal(gallery.calls.filter(call => call.type === 'open').at(-1).code, productCode);
-  assert.equal(
-    browser.trackingCalls.filter(call => call.name === 'KL_Try_On_Click').length,
-    2,
-    'reconciliação não duplica tracking',
-  );
-
-  assert.equal(gallery.callbacks().onRequestClose(), 'back');
-  browser.dispatchWindow('popstate', { state: browser.window.history.state });
-  assert.equal(browser.nodes.galleryDialog.open, false);
-  assert.equal(browser.document.body.classList.contains('kl-dialog-open'), false);
-  assert.equal(browser.document.activeElement.parentNode.dataset.code, productCode);
-  assert.deepEqual(browser.scrollCalls, [[0, 275]]);
+  assert.equal(browser.nodes.tryOnDialog.open, false);
+  const calls = browser.trackingCalls.filter(call => call.name === 'KL_Try_On_Click');
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].context.productCode, code);
+  assert.doesNotMatch(JSON.stringify(calls[0].context), /base64|file|query/i);
 });
 
 test('deep-links da Prova Virtual usam base completa, normalizam inelegível e fecham por replace', () => {
@@ -1419,7 +1365,7 @@ test('falha visual em clique simples é interceptada sem push, back ou navegaç�
   );
 });
 
-test('falha ao abrir Prova Virtual pela galeria mantém a peça e o lock sem tocar no history', () => {
+test('galeria segue o link dedicado mesmo se o controlador de simulação local falhar', () => {
   const gallery = createGalleryDouble();
   const tryOn = createTryOnDouble({ openResult: false });
   const { browser } = mountBrowser({
@@ -1439,7 +1385,7 @@ test('falha ao abrir Prova Virtual pela galeria mantém a peça e o lock sem toc
 
   const click = dispatchPrimaryClick(browser.nodes.galleryTryOn);
 
-  assert.equal(click.prevented(), true);
+  assert.equal(click.prevented(), false);
   assert.deepEqual(browser.historySnapshot(), beforeTryOn);
   assert.equal(browser.nodes.galleryDialog.open, true);
   assert.equal(browser.nodes.tryOnDialog.open, false);
