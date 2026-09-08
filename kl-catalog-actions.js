@@ -37,7 +37,7 @@
   function tryOnHref(product) {
     var code = normalizeCode(product && product.k);
     return isTryOnEligible(product) && code
-      ? 'catalogo.html?prova=1&p=' + encodeURIComponent(code)
+      ? '/prova-virtual/?p=' + encodeURIComponent(code)
       : null;
   }
 
@@ -95,7 +95,9 @@
     var code = normalizeCode(product && product.k);
     return 'Olá! Vim pelo catálogo da Koisa Linda e gostei deste ' + categoryIntent(product)
       + ' para provar na unidade ' + unitLabel(unit) + ': ' + code + '.\n'
-      + 'Quero confirmar disponibilidade e ver o melhor horário para prova.';
+      + (scheduleOccasion(product && product.c)
+        ? 'Quero confirmar disponibilidade e consultar uma prova.'
+        : 'Quero confirmar disponibilidade e saber como visitar a loja, sem agendamento.');
   }
 
   function whatsappHref(contact, message) {

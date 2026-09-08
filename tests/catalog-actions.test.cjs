@@ -194,7 +194,7 @@ test('CTA individual e prova virtual seguem a unidade e o código canônico da p
   assert.equal(Actions.productWhatsAppHref({ k: 'X', un: 'invalida' }, contacts), 'unidades.html');
   assert.equal(
     Actions.tryOnHref({ ...fixtures[0], k: ' nv 001/azul ' }),
-    'catalogo.html?prova=1&p=NV%20001%2FAZUL',
+    '/prova-virtual/?p=NV%20001%2FAZUL',
   );
   assert.equal(Actions.tryOnHref(fixtures.find((item) => item.c === 'ternos')), null);
 });

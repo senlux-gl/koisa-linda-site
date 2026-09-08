@@ -20,6 +20,7 @@
       var defaults = new URLSearchParams(next.search);
       next.search = source.search;
       defaults.forEach(function (value, key) { next.searchParams.set(key, value); });
+      if (next.pathname === '/prova-virtual/') next.searchParams.delete('prova');
       if (source.hash) next.hash = source.hash;
       return next.href === source.href ? null : next.href;
     } catch (_) { return null; }

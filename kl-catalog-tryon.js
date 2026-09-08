@@ -136,7 +136,7 @@
 
     var code = normalizeCode(product && product.k);
     var message = 'Oi! Fiz a prova virtual do vestido ' + code
-      + ' e amei. Quero provar de verdade 💜';
+      + '. Quero conhecer a peça na loja e confirmar disponibilidade.';
     return typeof actions.whatsappHref === 'function'
       ? actions.whatsappHref(contact, message)
       : 'https://wa.me/' + contact + '?text=' + encodeURIComponent(message);
@@ -163,6 +163,7 @@
     ) return false;
 
     link = link || event.currentTarget;
+    if (/\/prova-virtual\//.test(attribute(link, 'href'))) return false;
     if (attribute(link, 'target').trim()) return false;
     var hasDownload = link && typeof link.hasAttribute === 'function'
       ? link.hasAttribute('download')
@@ -700,6 +701,12 @@
         page: 1,
         batchSize: Number.MAX_SAFE_INTEGER,
       });
+      // A link from a specific creative or product must show that piece immediately.
+      // Keep search/category filtering intact and never mutate the catalogue array.
+      var selectedIndex = matching.findIndex(function (p) { return normalizeCode(p.k) === selectedCode; });
+      if (selectedIndex > 0) {
+        matching = [matching[selectedIndex]].concat(matching.slice(0, selectedIndex), matching.slice(selectedIndex + 1));
+      }
       var visible = matching.slice(0, page * DEFAULT_BATCH_SIZE);
       visibleCount = visible.length;
       visible.forEach(function (product) {

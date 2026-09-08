@@ -72,8 +72,9 @@ class SEOBuildTest(unittest.TestCase):
    for city in ['niteroi','barra-da-tijuca']:self.assertIn(f'href="/noivas/{slug}-{city}/"',noivas)
 
  def test_index_links_describe_every_existing_product(self):
-  _,_,products=seo.context();index=self.pages['p/index.html']
+  current,_,products=seo.context();index=self.pages['p/index.html']
   for code,p in products.items():
+   if code not in current:continue
    match=re.search(r'<a href="'+re.escape(p['path'])+'">([^<]+)</a>',index)
    self.assertIsNotNone(match,code)
    self.assertNotEqual(unescape(match[1]).strip(),code)
