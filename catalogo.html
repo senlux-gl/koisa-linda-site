@@ -199,8 +199,8 @@ h2,h3{line-height:1.12}
   <section class="catalog-intro">
     <div class="catalog-intro-copy">
       <div class="eyebrow">Catálogo Koisa Linda · duas unidades</div>
-      <h1 id="catalog-title">Encontre a peça que faz parte da sua história.</h1>
-      <p>Escolha a categoria, filtre por loja e salve favoritos. Noiva e debutante podem ir direto para os horários de prova.</p><p class="kl-atelie">Cada peça passa pelo <em>ateliê</em>: manga, decote, comprimento e caimento se ajustam no corpo, na prova.</p>
+      <h1 id="catalog-title">Uma peça para o seu momento.</h1>
+      <p>Explore o acervo, escolha a loja e salve suas referências. O caimento se descobre na prova.</p>
       <form class="catalog-search" role="search" novalidate>
         <label for="catalog-search">Buscar no catálogo</label>
         <input id="catalog-search" name="q" type="search" autocomplete="off" placeholder="Código, categoria, cor ou tamanho">
@@ -243,7 +243,10 @@ h2,h3{line-height:1.12}
         Salvos <span id="catalog-favorite-count">0</span>
       </button>
     </div>
-    <div id="catalog-facets" class="catalog-facets"></div>
+    <details class="catalog-more-filters">
+      <summary>Mais filtros <span>Cor, tamanho e detalhes</span></summary>
+      <div id="catalog-facets" class="catalog-facets"></div>
+    </details>
     <div id="catalog-active-filters" class="catalog-active-filters" aria-label="Filtros ativos"></div>
     <p id="catalog-count" class="catalog-count" aria-live="polite">Carregando catálogo…</p>
     <div id="catalog-filter-sentinel" aria-hidden="true"></div>

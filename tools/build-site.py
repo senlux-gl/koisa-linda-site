@@ -13,7 +13,7 @@ _seo_spec = importlib.util.spec_from_file_location('kl_seo_site', ROOT/'tools/se
 seo = importlib.util.module_from_spec(_seo_spec)
 _seo_spec.loader.exec_module(seo)
 PUBLIC_ROOT_FILES = frozenset(['2e6a8e0fffab111a0cbe5ae7b36fb00f.txt', 'CNAME', 'apple-touch-icon.png', 'favicon.ico', 'kl-agendar.js', 'kl-schedule-context.js', 'kl-schedule-experience.css', 'kl-capture.js', 'kl-capture.css', 'kl-catalog-actions.js', 'kl-catalog-app.js', 'kl-catalog-atributos.json', 'kl-catalog-core.js', 'kl-catalog-data.js', 'kl-catalog-gallery.js', 'kl-catalog-tryon.css', 'kl-catalog-tryon.js', 'kl-catalog.css', 'kl-fonts.css', 'kl-ga.js', 'kl-redirect.js', 'kl-refine.css', 'kl-seo.css', 'kl-site-enhance.css', 'kl-site-enhance.js', 'kl-tracking.js', 'kl-ui.js', 'robots.txt'])
-PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-capture-popup.js'}
+PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-capture-popup.js', 'kl-layout.css'}
 CAPTURE_VERSION = '20260906google1'
 CAPTURE_EXCLUDED = frozenset(('agendar.html', 'privacidade.html', 'peca.html', 'provar.html', '404.html'))
 CAPTURE_CATEGORIES = {
@@ -135,6 +135,12 @@ def render(s, source, canonical, preview=False):
  s=re.sub(r'href=(["\'])#([^"\']+)\1',lambda m:'href='+m[1]+urlsplit(canonical).path+'#'+m[2]+m[1],s)
  s=s.replace('<head>','<head><script src="/kl-urls.js"></script>',1)
  s=seo.refine(s,source,canonical)
+ # One shared, final layout layer for main pages, styles and indexed products.
+ family='produto' if source.startswith('p/') and source!='p/index.html' else 'estilo' if source.startswith('vestido-de-noiva-') else Path(source).stem
+ s=re.sub(r'<body\b', '<body data-kl-page="'+family+'"', s, count=1)
+ if family in ('produto','estilo') or source=='p/index.html':
+  s=s.replace('</header>', '<nav class="kl-entry-nav" aria-label="Navegação principal"><a href="/catalogo/">Catálogo</a><a href="/unidades/">Lojas</a></nav></header>', 1)
+ s=s.replace('</head>', '<link rel="stylesheet" href="/kl-layout.css?v=20260907"></head>', 1)
  s=re.sub(r'(kl-(?:tracking|agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20260906google1',s)
  if preview:
   s=s.replace('<head>', '<head><script src="/qa-metrics.js"></script>',1)

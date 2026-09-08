@@ -1,0 +1,10 @@
+not ok 73 - init inválido valida antes de state, storage e favoritos e rende recuperação
+not ok 87 - URL, busca, categorias e unidades compartilham state canônico sem vazar a query em eventos
+not ok 108 - facetas reais preservam os tamanhos numéricos extremos usados no catálogo
+not ok 180 - ponte da prova descarta query e hash quando não existe p
+not ok 181 - ponte da prova normaliza espaços e caixa de p
+not ok 182 - ponte da prova lê somente o primeiro p e ignora valor vazio
+not ok 183 - ponte da prova rejeita charset inválido
+not ok 184 - ponte da prova rejeita p com mais de 64 caracteres
+not ok 185 - ponte da prova preserva p válido e remove parâmetros extras e hash
+not ok 215 - sticky de noiva e debutante leva para a agenda, e o resto continua no WhatsApp

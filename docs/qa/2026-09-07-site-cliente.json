@@ -1,0 +1,58 @@
+{
+  "date": "2026-09-07",
+  "status": "local_review",
+  "base": "161f5bd",
+  "preview": "http://localhost:4190/",
+  "pages_checked": 32,
+  "widths": [
+    320,
+    390,
+    768,
+    1024,
+    1440,
+    1920
+  ],
+  "layout_checks": 192,
+  "horizontal_overflows": 0,
+  "missing_h1_or_layout": 0,
+  "content_pages_with_layout": 837,
+  "sitemap_urls": 835,
+  "directed_tests": {
+    "python": 23,
+    "javascript": 62,
+    "result": "passed"
+  },
+  "general_suite": {
+    "preexisting_python_failures": 34,
+    "preexisting_javascript_failures_after_build": 10,
+    "new_failure_names": []
+  },
+  "catalog_first_row_y": {
+    "320": {
+      "before": 1435,
+      "after": 1113
+    },
+    "768": {
+      "before": 1922,
+      "after": 887
+    },
+    "1440": {
+      "before": 1402,
+      "after": 834
+    }
+  },
+  "hashes": {
+    "catalogo.html": "0603bfb49b2de7bc17413e2bd56cc5eeb69aee2ce7c10d58611cd77c824a72aa",
+    "debutantes.html": "1e838115cc5e13b724b750e4e760fb718b6c665cc635cfb683a2d0f3334f0231",
+    "madrinhas.html": "6ed26a0d57d5fe176b82d51f124663f04ea47f1e45b2758aad4c3ed700acd884",
+    "noivas.html": "f168c91ef9ef1730b112e7efac0e8add51729d969dcc8ce93a6ba6a987addc58",
+    "peca.html": "e89c5f9b192e8505277f1fbf3d2e53665f6cd24d64120dd8bc108108787b2f1d",
+    "ternos.html": "bce09ecfeb92f57216c23e5528b920335429bc7803551fcc8ca1ce7c250e2475",
+    "tools/build-site.py": "2d50910df471c10c7e4931d6ed69e9282a433223645d70d3438e34f74b548f8d",
+    "tools/seo_site.py": "9d8eb33545c63319669bbc71afc1ce295a42254476f915ab670c9b844c70f0b9",
+    "unidades.html": "5e29242f5fa0f8dd9688bd6b12511a8f2f532345136d87facbc0e0f9d25a9868",
+    "kl-layout.css": "09d638c541a707268f576f0483a9978a61a1a1e220788de9ba1f2002ae3f8099"
+  },
+  "production_mutations": false,
+  "forms_submitted": false
+}

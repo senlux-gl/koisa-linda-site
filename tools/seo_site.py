@@ -111,6 +111,8 @@ def refine(s,source,canonical):
   else:
    s=re.sub(r'<a class="btn" href="https://wa\.me/[^"]*"[^>]*>.*?</a>', '<a class="btn" href="/unidades/">Consultar as lojas</a>',s,count=1,flags=re.S)
   category=CATEGORIES.get(item['category'])
+  visit='Agende sua prova e confirme a disponibilidade para a sua data.' if item['category'] in ('vestidos-noiva','vestidos-debutante') else 'Confirme a disponibilidade com a equipe e visite a loja no horário de funcionamento. Não precisa agendar.'
+  s=re.sub(r'<p class="nota">.*?</p>', '<p class="nota">O caimento se resolve na prova, com orientação da equipe e ajustes no ateliê. '+visit+'</p>',s,count=1,flags=re.S)
   if category and category[1]!='/catalogo/':crumbs.append((category[0],category[1]))
   s=re.sub(r'<p class="crumb">.*?</p>','',s,flags=re.S)
   similar=[k for k,v in pages.items() if k!=code and item['category'] and v['category']==item['category']][:4]
@@ -147,8 +149,9 @@ def refine(s,source,canonical):
   category=next(k for k,v in CATEGORIES.items() if v[1]==canonical)
   by_unit={unit:[k for k,v in pages.items() if v['category']==category and products.get(k,{}).get('un')==unit] for unit in ('sf','barra')}
   selected=[by_unit[unit][i] for i in range(6) for unit in ('sf','barra') if i<len(by_unit[unit])][:6]
-  block='<section class="kl-seo-section"><h2>Explore os modelos do acervo</h2><p>Abra uma ficha para conhecer a peça. A equipe confirma disponibilidade e condições da prova.</p>'+cards(selected,pages)+'<p><a href="/p/index.html">Explorar todas as fichas do acervo</a> · <a href="/catalogo/?cat='+category+'">Filtrar esta coleção no catálogo</a></p></section>'
-  s=insert_end(s,block);page_type='CollectionPage'
+  block='<section class="kl-seo-section kl-collection-preview" id="modelos"><p class="kl-section-label">Uma primeira seleção</p><h2>Encontre suas referências</h2><p>Conheça as peças do acervo. A equipe confirma a disponibilidade para a sua data.</p>'+cards(selected,pages)+'<a class="kl-collection-link" href="/catalogo/?cat='+category+'">Ver toda a coleção <span aria-hidden="true">→</span></a><p class="kl-collection-index"><a href="/p/index.html">Explorar todas as fichas do acervo</a></p></section>'
+  s=s.replace('<!-- kl-collection-preview -->',block,1) if '<!-- kl-collection-preview -->' in s else insert_end(s,block)
+  page_type='CollectionPage'
   if source=='noivas.html':
    s=re.sub(r'<section class="kl-cortes">.*?</section>','<section class="kl-seo-section"><h2>Encontre seu estilo de vestido de noiva</h2><p>Escolha a unidade para conhecer os modelos do catálogo e preparar a sua prova.</p><h3>São Francisco · Niterói</h3>'+style_links('niteroi')+'<h3>Barra da Tijuca</h3>'+style_links('barra-da-tijuca')+'</section>',s,count=1,flags=re.S)
  elif source=='noivas-experiencia.html':crumbs.append(('Noivas','/noivas/'))
