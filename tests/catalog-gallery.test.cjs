@@ -45,10 +45,11 @@ test('galeria atualiza a agenda ao navegar e remove destino antigo em categoria 
   next.click();
   assert.equal(schedule.getAttribute('href'), Actions.productScheduleHref(products[1]));
   next.click();
-  assert.equal(schedule.hidden, true);
-  assert.equal(schedule.getAttribute('href'), null);
-  assert.equal(whatsapp.classList.contains('gallery-primary'), true);
-  assert.equal(whatsapp.classList.contains('gallery-secondary'), false);
+  assert.equal(schedule.hidden, false);
+  assert.equal(schedule.getAttribute('href'), '/agendar/#sem-hora-marcada');
+  assert.equal(schedule.textContent, 'Visitar a loja');
+  assert.equal(whatsapp.classList.contains('gallery-primary'), false);
+  assert.equal(whatsapp.classList.contains('gallery-secondary'), true);
   next.click();
   assert.equal(schedule.hidden, false);
   assert.equal(schedule.getAttribute('href'), Actions.productScheduleHref(products[3]));

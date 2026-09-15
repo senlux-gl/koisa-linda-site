@@ -1957,6 +1957,15 @@
     var list = element('div', 'favorites-list');
     items.forEach(function (product) { list.appendChild(favoriteItem(product)); });
     section.appendChild(list);
+    var appointmentItems = items.filter(function (product) { return Actions.productScheduleHref(product); });
+    var booking = element('a', 'favorites-schedule', appointmentItems.length ? 'Agendar prova' : 'Visitar a loja');
+    var occasions = appointmentItems.map(function (product) { return product.c; });
+    var sameOccasion = occasions.length && occasions.every(function (occasion) { return occasion === occasions[0]; });
+    booking.href = appointmentItems.length === 1 ? Actions.productScheduleHref(appointmentItems[0])
+      : sameOccasion ? Actions.categoryScheduleHref(appointmentItems[0].c, unit)
+        : appointmentItems.length ? '/agendar/?un=' + unit + '&ui_source=catalog_selection'
+          : '/agendar/#sem-hora-marcada';
+    section.appendChild(booking);
 
     var batches = Actions.buildFavoriteBatches(items, Actions.CONTACTS, 1800);
     if (batches.length) {
@@ -1965,7 +1974,7 @@
         var button = element(
           'button',
           'favorites-send',
-          'Enviar lista ' + batch.index + ' de ' + batch.total + ' — ' + label,
+          'Tirar dúvida sobre a seleção' + (batch.total > 1 ? ' (' + batch.index + '/' + batch.total + ')' : ''),
         );
         markManual(button);
         button.type = 'button';

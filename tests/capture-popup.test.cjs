@@ -4,6 +4,7 @@ const {createFakeCatalogBrowser,createStorage}=require('./helpers/fake-browser.c
 const Popup=require('../kl-capture-popup.js');
 function fixture(options={}) {
  const env=createFakeCatalogBrowser(),{window:win,document:doc}=env,frames=[],events=[];
+ win.location.pathname=options.path||'/noivas/';
  const section=doc.createElement('section');section.setAttribute('id','kl-capture');doc.body.appendChild(section);
  const phone=doc.createElement('input');phone.setAttribute('id','kl-capture-phone');section.appendChild(phone);
  const after=doc.createElement('footer');doc.body.appendChild(after);
@@ -17,6 +18,9 @@ function fixture(options={}) {
  const popup=Popup.mount(win,section,{isSuppressed:()=>Boolean(options.suppressed),onOpen:trigger=>events.push(['open',trigger]),onClose:()=>events.push(['close'])});
  return {win,doc,section,phone,after,popup,events,other,flush(){while(frames.length)frames.shift()();}};
 }
+test('catalog stays clean automatically but explicit contact still opens',()=>{
+ for(const path of ['/catalogo/','/catalogo.html']){const f=fixture({path});f.flush();assert.equal(f.popup.isOpen(),false);assert.equal(f.popup.open(true),true);}
+});
 test('opens at first render without scroll or thirty-second wait; does not focus the phone keyboard',()=>{
  const f=fixture();f.flush();const dialog=f.doc.getElementById('kl-capture-dialog');assert.ok(dialog.open);assert.equal(f.section.parentNode,dialog);assert.notEqual(f.doc.activeElement,f.phone);assert.deepEqual(f.events,[['open','page_open']]);
 });

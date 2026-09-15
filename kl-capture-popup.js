@@ -69,7 +69,11 @@
     close.addEventListener('click', dismiss);
     dialog.addEventListener('cancel', function (ev) { ev.preventDefault(); dismiss(); });
     dialog.addEventListener('click', function (ev) { if (ev.target === dialog) dismiss(); });
-    function tryAutomatic() { return open(false); }
+    function tryAutomatic() {
+      // Catalog selection must not be interrupted; explicit capture links still work.
+      if (/\/catalogo(?:\/|\.html|$)/.test(win.location && win.location.pathname || '')) return false;
+      return open(false);
+    }
     function deferAttempt() { (win.requestAnimationFrame || win.setTimeout).call(win, tryAutomatic); }
     doc.addEventListener('visibilitychange', deferAttempt);
     doc.addEventListener('close', function (ev) { if (ev.target !== dialog) deferAttempt(); }, true);

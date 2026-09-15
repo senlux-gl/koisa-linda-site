@@ -193,13 +193,15 @@ h2,h3{line-height:1.12}
 .kl-duas-portas .cta.leve{background:transparent;color:var(--ruby,#722F37);border:1px solid var(--baunilha,#F4E5C4)}
 .kl-duas-portas .cta:hover{opacity:.9}
 @media(max-width:760px){.kl-duas-portas{padding:44px 20px}.kl-duas-portas .par{grid-template-columns:1fr;gap:14px}.kl-duas-portas .cta{align-self:stretch;width:100%}.kl-duas-portas .chamada{margin-bottom:24px}}
-</style><link rel="stylesheet" href="/kl-refine.css?v=20260904"><script defer src="/kl-ui.js?v=20260904"></script></head><body><noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1720591949105146&ev=PageView&noscript=1" decoding="async"></noscript><a class="kl-skip" href="#catalog-app">Pular para o conteúdo</a><header><div class="nav"><a class="logo" href="index.html"><img class="sym" src="img/roma-kl.webp" alt="" width="40" height="42" decoding="async"><img src="img/logo-kl-main.png" alt="KL" decoding="async"><div class="wm">KOISA LINDA<small>DESDE 1994</small></div></a><nav class="menu"><a href="index.html" class="">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="cur">Catálogo</a><a href="catalogo.html?prova=1" class="" data-catalog-tryon-entry>Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav><a class="ig-btn" href="https://www.instagram.com/koisalindakl/" target="_blank" rel="noopener" aria-label="Ver o Instagram da Koisa Linda"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.4"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1.1" fill="currentColor" stroke="none"/></svg><span>Instagram</span></a><button class="mtog" aria-label="Abrir menu" aria-expanded="false"><span class="bars"><span></span><span></span><span></span></span><b class="mtog-lbl">Menu</b></button></div><nav class="mnav"><a href="index.html" class="">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="cur">Catálogo</a><a href="catalogo.html?prova=1" class="" data-catalog-tryon-entry>Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav></header>
+</style><link rel="stylesheet" href="/kl-refine.css?v=20260904"><script defer src="/kl-ui.js?v=20260904"></script><link rel="stylesheet" href="kl-catalog-clean.css?v=20260915">
+<script defer src="kl-catalog-clean.js?v=20260915"></script>
+</head><body><noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1720591949105146&ev=PageView&noscript=1" decoding="async"></noscript><a class="kl-skip" href="#catalog-app">Pular para o conteúdo</a><header><div class="nav"><a class="logo" href="index.html"><img class="sym" src="img/roma-kl.webp" alt="" width="40" height="42" decoding="async"><img src="img/logo-kl-main.png" alt="KL" decoding="async"><div class="wm">KOISA LINDA<small>DESDE 1994</small></div></a><nav class="menu"><a href="index.html" class="">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="cur">Catálogo</a><a href="catalogo.html?prova=1" class="" data-catalog-tryon-entry>Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav><a class="ig-btn" href="https://www.instagram.com/koisalindakl/" target="_blank" rel="noopener" aria-label="Ver o Instagram da Koisa Linda"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.4"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1.1" fill="currentColor" stroke="none"/></svg><span>Instagram</span></a><button class="mtog" aria-label="Abrir menu" aria-expanded="false"><span class="bars"><span></span><span></span><span></span></span><b class="mtog-lbl">Menu</b></button></div><nav class="mnav"><a href="index.html" class="">Início</a><a href="sobre.html" class="">Sobre</a><a href="catalogo.html" class="cur">Catálogo</a><a href="catalogo.html?prova=1" class="" data-catalog-tryon-entry>Prova Virtual ✨</a><a href="unidades.html" class="">Unidades</a><a href="servicos.html" class="">Serviços</a></nav></header>
 
 <main id="catalog-app" aria-labelledby="catalog-title">
   <section class="catalog-intro">
     <div class="catalog-intro-copy">
       <div class="eyebrow">Catálogo Koisa Linda · duas unidades</div>
-      <h1 id="catalog-title">Qual peça faz você se imaginar na sua celebração?</h1>
+      <h1 id="catalog-title">Escolha sua peça</h1>
       <p>Explore o acervo, escolha a loja e salve suas referências. O caimento se descobre na prova.</p>
       <form class="catalog-search" role="search" novalidate>
         <label for="catalog-search">Buscar no catálogo</label>
@@ -296,6 +298,8 @@ h2,h3{line-height:1.12}
   <div class="gallery-layout">
     <figure class="gallery-media">
       <img id="gallery-image" alt="" decoding="async">
+      <button id="gallery-zoom-open" type="button" aria-label="Ampliar foto">Ampliar</button>
+      <button id="gallery-favorite" type="button"></button>
       <button class="gallery-nav gallery-prev" type="button" aria-label="Peça anterior">‹</button>
       <button class="gallery-nav gallery-next" type="button" aria-label="Próxima peça">›</button>
     </figure>
@@ -305,11 +309,12 @@ h2,h3{line-height:1.12}
       <h2 id="gallery-title"></h2>
       <p id="gallery-code"></p>
       <dl id="gallery-specs"></dl>
-      <button id="gallery-favorite" type="button"></button>
-      <a id="gallery-schedule" class="gallery-primary" data-kl-track-manual="true" hidden>Agendar prova na loja</a>
-      <a id="gallery-whatsapp" class="gallery-primary" target="_blank" rel="noopener">Falar no WhatsApp</a>
-      <a id="gallery-try-on" class="gallery-secondary">Provar em mim</a>
-      <p class="gallery-note">Consulte a unidade para confirmar disponibilidade.</p>
+      <a id="gallery-schedule" class="gallery-primary" data-kl-track-manual="true" hidden>Agendar prova</a>
+      <div class="gallery-support">
+        <a id="gallery-whatsapp" class="gallery-secondary" target="_blank" rel="noopener">Tirar dúvida</a>
+        <a id="gallery-try-on" class="gallery-secondary">Provar em mim</a>
+      </div>
+      <p class="gallery-note">Disponibilidade confirmada pela loja.</p>
     </section>
   </div>
 </dialog>

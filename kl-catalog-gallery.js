@@ -230,17 +230,18 @@
       var saved = Boolean(options.isFavorite(product.k));
       favorite.dataset.favoriteCode = product.k;
       favorite.setAttribute('aria-pressed', saved ? 'true' : 'false');
-      favorite.textContent = saved ? 'Peça salva' : 'Salvar peça';
+      favorite.textContent = saved ? '♥ Salvo' : '♡ Salvar';
+      favorite.setAttribute('aria-label', saved ? 'Remover peça da seleção' : 'Salvar peça');
       whatsapp.href = actions.productWhatsAppHref(product, actions.CONTACTS);
       var scheduleHref = schedule && typeof actions.productScheduleHref === 'function'
         ? actions.productScheduleHref(product) : null;
       if (schedule) {
-        schedule.hidden = !scheduleHref;
-        if (scheduleHref) schedule.setAttribute('href', scheduleHref);
-        else schedule.removeAttribute('href');
+        schedule.hidden = false;
+        schedule.textContent = scheduleHref ? 'Agendar prova' : 'Visitar a loja';
+        schedule.setAttribute('href', scheduleHref || '/agendar/#sem-hora-marcada');
       }
-      whatsapp.classList.remove(scheduleHref ? 'gallery-primary' : 'gallery-secondary');
-      whatsapp.classList.add(scheduleHref ? 'gallery-secondary' : 'gallery-primary');
+      whatsapp.classList.remove('gallery-primary');
+      whatsapp.classList.add('gallery-secondary');
       var tryOnHref = actions.tryOnHref(product);
       tryOn.hidden = !tryOnHref;
       if (tryOnHref) tryOn.href = tryOnHref;
