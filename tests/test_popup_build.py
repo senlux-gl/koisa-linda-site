@@ -49,6 +49,15 @@ class PopupBuildTest(unittest.TestCase):
     cls.eligible[source] = path.strip('/')+'/index.html' if path != '/' else 'index.html'
   cls.eligible.update({p.relative_to(ROOT).as_posix():p.relative_to(ROOT).as_posix()
                        for p in (ROOT/'p').glob('*.html')})
+  products, _, historical = build.seo.context()
+  def visit_free(source):
+   if source in ('madrinhas.html', 'ternos.html'):return True
+   if not source.startswith('p/'):return False
+   code=Path(source).stem
+   category=products.get(code,{}).get('c') or historical.get(code,{}).get('category','')
+   return bool(category) and category not in ('vestidos-noiva','vestidos-debutante')
+  cls.eligible={s:p for s,p in cls.eligible.items() if visit_free(s)}
+  assert cls.eligible, 'Capture regression coverage must remain non-empty'
 
  def test_every_discovery_page_has_one_capture_and_ordered_dependencies(self):
   for source, path in self.eligible.items():
@@ -74,13 +83,14 @@ class PopupBuildTest(unittest.TestCase):
    self.assertNotIn('id="kl-capture"', html, path)
    self.assertNotRegex(html, r'(?:src|href)=["\'][^"\']*kl-capture(?:-popup)?\.(?:js|css)', path)
 
- def test_catalog_keeps_capture_position_and_uses_shared_template(self):
+ def test_catalog_removes_competing_capture_but_visit_free_keeps_consent(self):
   source = (ROOT/'catalogo.html').read_text()
   self.assertTrue('<!-- kl-capture -->' in source, 'Catalog must use the shared capture marker')
   self.assertNotIn('id="kl-capture-form"', source)
   catalog = self.pages['catalogo/index.html']
-  self.assertLess(catalog.index('id="catalog-filters"'), catalog.index('id="kl-capture"'))
-  self.assertLess(catalog.index('id="kl-capture"'), catalog.index('id="catalog-results"'))
+  self.assertNotIn('id="kl-capture"', catalog)
+  self.assertNotIn('href="/catalogo/#kl-capture"', catalog)
+  self.assertIn('id="catalog-schedule-link"', catalog)
   for path in self.eligible.values():
    self.assertIn('<h2 id="kl-capture-title">Receba modelos no seu WhatsApp.</h2>', self.pages[path], path)
    self.assertIn('<p>Continue sua escolha com a Koisa Linda.</p>', self.pages[path], path)

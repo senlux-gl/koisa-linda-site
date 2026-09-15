@@ -127,6 +127,10 @@
 
   function resultWhatsAppHref(product, actions, contacts) {
     actions = actions && typeof actions === 'object' ? actions : {};
+    if (typeof actions.categoryScheduleHref === 'function'
+        && actions.categoryScheduleHref(product && product.c, product && product.un)) {
+      return actions.productConversionHref(product);
+    }
     contacts = contacts || actions.CONTACTS || {};
     var unit = typeof actions.unitOf === 'function'
       ? actions.unitOf(product)
@@ -667,6 +671,7 @@
         ? 'Você ainda tem 1 Prova Virtual disponível.'
         : 'Você ainda tem ' + result.remaining + ' Provas Virtuais disponíveis.';
       elements.whatsapp.href = whatsappFor(product);
+      elements.whatsapp.textContent = /agendar/.test(elements.whatsapp.href) ? 'Agendar prova na loja' : 'Falar no WhatsApp';
       showPhase('result');
     }
 
@@ -674,6 +679,9 @@
       elements.errorMessage.textContent = CONTROLLER_ERROR_MESSAGES[kind]
         || CONTROLLER_ERROR_MESSAGES['invalid-response'];
       elements.errorWhatsapp.href = whatsappFor(product);
+      var schedule = /agendar/.test(elements.errorWhatsapp.href);
+      elements.errorWhatsapp.textContent = schedule ? 'Agendar prova na loja' : 'Falar no WhatsApp';
+      if (schedule) elements.errorMessage.textContent = elements.errorMessage.textContent.replace(/fale com nossa equipe pelo WhatsApp|Nossa equipe pode ajudar pelo WhatsApp/g, 'agende uma prova na loja');
       showPhase('error');
     }
 

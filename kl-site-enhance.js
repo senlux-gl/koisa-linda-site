@@ -103,7 +103,7 @@
       }];
     }
     if (PAGINAS_COM_AGENDA[page]) {
-      return [{ href: agendaHref(page, context.unit), label: 'Escolher horário' }];
+      return [{ href: agendaHref(page, context.unit), label: 'Escolher horário', kind: 'schedule' }];
     }
     if (page === 'catalogo') {
       var occasion = scheduleOccasionFromCategory(context.category);
@@ -215,6 +215,12 @@
        de São Francisco (CAMPAIGN_UNITS.madrinhas = 'sf'). */
     var unit = queryValue(root, 'un');
     var category = queryValue(root, 'cat');
+    var body = root.document && root.document.body;
+    var booking = body && body.dataset;
+    if (booking && booking.klBookingOccasion) {
+      page = booking.klBookingOccasion === 'noiva' ? 'noivas' : 'debutantes';
+      unit = booking.klBookingUnit || unit;
+    }
     return {
       page: page,
       unit: unit === 'barra' || unit === 'sf' ? unit : null,
@@ -466,7 +472,7 @@
         // Tracking must never block navigation.
       }
     });
-    document.addEventListener('kl:catalog-state', function (event) {
+    root.addEventListener('kl:catalog-state', function (event) {
       if (context.page !== 'catalogo') return;
       var detail = event.detail || {};
       updateDestination({

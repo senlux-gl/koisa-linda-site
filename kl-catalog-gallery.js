@@ -240,6 +240,7 @@
         schedule.textContent = scheduleHref ? 'Agendar prova' : 'Visitar a loja';
         schedule.setAttribute('href', scheduleHref || '/agendar/#sem-hora-marcada');
       }
+      whatsapp.hidden = Boolean(scheduleHref);
       whatsapp.classList.remove('gallery-primary');
       whatsapp.classList.add('gallery-secondary');
       var tryOnHref = actions.tryOnHref(product);

@@ -12,9 +12,14 @@ ORIGIN = 'https://koisalinda.com.br'
 _seo_spec = importlib.util.spec_from_file_location('kl_seo_site', ROOT/'tools/seo_site.py')
 seo = importlib.util.module_from_spec(_seo_spec)
 _seo_spec.loader.exec_module(seo)
+_cta_spec = importlib.util.spec_from_file_location('kl_cta_agenda', ROOT/'tools/cta_agenda.py')
+assert _cta_spec is not None and _cta_spec.loader is not None
+cta_agenda = importlib.util.module_from_spec(_cta_spec)
+_cta_spec.loader.exec_module(cta_agenda)
 PUBLIC_ROOT_FILES = frozenset(['2e6a8e0fffab111a0cbe5ae7b36fb00f.txt', 'CNAME', 'apple-touch-icon.png', 'favicon.ico', 'kl-agendar.js', 'kl-schedule-context.js', 'kl-schedule-experience.css', 'kl-capture.js', 'kl-capture.css', 'kl-catalog-actions.js', 'kl-catalog-app.js', 'kl-catalog-atributos.json', 'kl-catalog-core.js', 'kl-catalog-data.js', 'kl-catalog-gallery.js', 'kl-catalog-tryon.css', 'kl-catalog-tryon.js', 'kl-catalog.css', 'kl-fonts.css', 'kl-ga.js', 'kl-redirect.js', 'kl-refine.css', 'kl-seo.css', 'kl-site-enhance.css', 'kl-site-enhance.js', 'kl-tracking.js', 'kl-ui.js', 'robots.txt'])
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-catalog-clean.js', 'kl-catalog-clean.css', 'kl-capture-popup.js', 'kl-layout.css', 'kl-route-normalize.js', 'kl-prova-virtual.js', 'kl-prova-virtual.css'}
 CAPTURE_VERSION = '20260906google1'
+PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-booking-links.js'}
 CAPTURE_EXCLUDED = frozenset(('agendar.html', 'privacidade.html', 'peca.html', 'provar.html', '404.html'))
 CAPTURE_CATEGORIES = {
  'noivas.html':'vestidos-noiva', 'noivas-experiencia.html':'vestidos-noiva',
@@ -101,6 +106,15 @@ def add_capture(s, source):
  elif source.startswith('p/'):
   product=seo.context()[0].get(Path(source).stem,{})
   category=product.get('c','');unit=product.get('un','')
+ invitation=cta_agenda.capture_invitation(source,seo)
+ if invitation is not None:
+  s=re.sub(r'<script\b[^>]*src=["\'][^"\']*\bkl-capture(?:-popup)?\.js(?:\?[^"\']*)?["\'][^>]*>\s*</script>','',s)
+  s=re.sub(r'<link\b[^>]*href=["\'][^"\']*\bkl-capture\.css(?:\?[^"\']*)?["\'][^>]*>','',s)
+  s=s.replace('<!-- kl-capture -->',invitation,1) if '<!-- kl-capture -->' in s else seo.insert_end(s,invitation)
+  # Booking replaces capture, not attribution: preserve the existing tracking dependency.
+  if not re.search(r'<script\b[^>]*src=["\'][^"\']*\bkl-tracking\.js(?:\?[^"\']*)?["\']',s):
+   s=s.replace('</head>','<script defer src="/kl-tracking.js?v=20260906google1"></script></head>',1)
+  return s
  template=(ROOT/'tools/partials/capture.html').read_text()
  template=template.replace('{{category}}',escape(category,quote=True)).replace('{{unit}}',escape(unit,quote=True))
  if '<!-- kl-capture -->' in s:
@@ -140,14 +154,19 @@ def render(s, source, canonical, preview=False):
  s=re.sub(r'href=(["\'])#([^"\']+)\1',lambda m:'href='+m[1]+urlsplit(canonical).path+'#'+m[2]+m[1],s)
  s=s.replace('<head>','<head><script src="/kl-route-normalize.js"></script><script src="/kl-urls.js"></script>',1)
  s=seo.refine(s,source,canonical)
+ s=cta_agenda.refine(s,source,seo)
+ s=s.replace('</head>','<script defer src="/kl-booking-links.js?v=20260915agenda"></script></head>',1)
  # One shared, final layout layer for main pages, styles and indexed products.
  family='produto' if source.startswith('p/') and source!='p/index.html' else 'estilo' if source.startswith('vestido-de-noiva-') else Path(source).stem
- s=re.sub(r'<body\b', '<body data-kl-page="'+family+'"', s, count=1)
+ booking_context=cta_agenda.context(source,seo)
+ booking_attrs=''.join(' data-kl-booking-'+k+'="'+escape(v,quote=True)+'"' for k,v in booking_context.items() if v)
+ s=re.sub(r'<body\b', '<body data-kl-page="'+family+'"'+booking_attrs, s, count=1)
  if family in ('produto','estilo') or source=='p/index.html':
   s=s.replace('</header>', '<nav class="kl-entry-nav" aria-label="Navegação principal"><a href="/catalogo/">Catálogo</a><a href="/unidades/">Lojas</a></nav></header>', 1)
  s=s.replace('</head>', '<link rel="stylesheet" href="/kl-layout.css?v=20260908aida"></head>', 1)
- s=re.sub(r'(kl-(?:catalog-actions|catalog-tryon|agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20260908aida',s)
+ s=re.sub(r'(kl-(?:catalog-actions|catalog-tryon|catalog-gallery|catalog-app|site-enhance|schedule-context|agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20260915agenda',s)
  s=re.sub(r'(kl-(?:tracking)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20260906google1',s)
+ s=re.sub(r'(kl-catalog\.css)(?:\?[^"\'<>\s]*)?',r'\1?v=20260915agenda',s)
  if preview:
   s=s.replace('<head>', '<head><script src="/qa-metrics.js"></script>',1)
   s=re.sub(r'<script\b[^>]*src=["\'][^"\']*(?:kl-ga\.js|kl-tracking\.js)[^>]*></script>','',s)

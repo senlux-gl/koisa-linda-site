@@ -925,6 +925,7 @@
         + (root.location.search || '') + '#kl-capture');
     }
     var href = Actions.categoryScheduleHref(state.category, state.unit);
+    if (dom.scheduleCapture) dom.scheduleCapture.hidden = Boolean(href);
     dom.scheduleInvite.hidden = !href;
     if (!href) {
       dom.scheduleLink.removeAttribute('href');
@@ -1967,7 +1968,9 @@
           : '/agendar/#sem-hora-marcada';
     section.appendChild(booking);
 
-    var batches = Actions.buildFavoriteBatches(items, Actions.CONTACTS, 1800);
+    var batches = Actions.buildFavoriteBatches(items.filter(function (product) {
+      return !Actions.categoryScheduleHref(product.c, unit);
+    }), Actions.CONTACTS, 1800);
     if (batches.length) {
       var actions = element('div', 'favorites-batches');
       batches.forEach(function (batch) {

@@ -1,3 +1,4 @@
+#gallery-whatsapp[hidden], #catalog-schedule-capture[hidden]{display:none!important;}
 #catalog-app{
   min-width:0;
   background:var(--cream);

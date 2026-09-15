@@ -91,10 +91,17 @@ class SEOBuildTest(unittest.TestCase):
    s=self.pages['p/'+code+'.html']
    self.assertNotIn('https://wa.me/',s,code)
    if code in products:
-    self.assertIn('href="/peca/?codigo='+code+'"',s,code)
+    if products[code]['c'] in ('vestidos-noiva','vestidos-debutante'):
+     occasion='noiva' if products[code]['c']=='vestidos-noiva' else 'debutante'
+     self.assertIn('href="/agendar/?ocasiao='+occasion,s,code)
+     self.assertIn('&amp;modelo='+code+'"',s,code)
+    else:self.assertIn('href="/peca/?codigo='+code+'"',s,code)
     self.assertIn('<dt>Unidade no catálogo</dt><dd><a href="/unidades/#'+products[code]['un']+'">',s,code)
     if products[code].get('t'):
      self.assertEqual(unescape(re.search(r'<dt>Tamanho</dt>\s*<dd>(.*?)</dd>',s,re.S)[1]),str(products[code]['t']))
+   elif pages[code]['category'] in ('vestidos-noiva','vestidos-debutante'):
+    self.assertIn('Agendar prova',s)
+    self.assertNotIn('modelo='+code,s)
    else:self.assertIn('Consultar as lojas',s)
 
  def test_changes_add_no_browser_runtime_or_tracking_work(self):

@@ -2239,7 +2239,7 @@ test('gallery and favorites provide the clicked href to the shared contact track
   const galleryEvent = browser.trackingCalls.find(call => call.name === 'KL_WhatsApp_Click');
   assert.equal(galleryEvent.context.href, href);
 
-  const second = mountBrowser({ raw: fixtures, dialogs: true });
+  const second = mountBrowser({ raw: fixtures.filter(p => p.c === 'vestidos-madrinha'), dialogs: true });
   second.browser.triggerDOMContentLoaded();
   second.browser.nodes.grid.children[0].children[1].children[2].click();
   second.browser.nodes.favoritesOpen.click();

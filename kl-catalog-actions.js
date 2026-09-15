@@ -104,6 +104,12 @@
     return 'https://wa.me/' + contact + '?text=' + encodeURIComponent(message);
   }
 
+  function productConversionHref(product, contacts) {
+    return productScheduleHref(product)
+      || categoryScheduleHref(product && product.c, unitOf(product))
+      || productWhatsAppHref(product, contacts);
+  }
+
   function productWhatsAppHref(product, contacts) {
     contacts = contacts || CONTACTS;
     var unit = unitOf(product);
@@ -338,6 +344,7 @@
     createFavorites: createFavorites,
     isTryOnEligible: isTryOnEligible,
     productMessage: productMessage,
+    productConversionHref: productConversionHref,
     productScheduleHref: productScheduleHref,
     productWhatsAppHref: productWhatsAppHref,
     resolveSharedCta: resolveSharedCta,
