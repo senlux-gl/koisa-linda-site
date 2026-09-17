@@ -170,7 +170,7 @@ def refine(s,source,canonical):
   for unit,label in [('sf','São Francisco'),('barra','Barra da Tijuca')]:
    s=re.sub(r'(<div class="unit")(>.*?<h3>'+label+'</h3>)',lambda m:m[1]+' id="'+unit+'"'+m[2],s,count=1,flags=re.S)
  if source!='index.html':
-  short={'noivas.html':'Noivas','debutantes.html':'Debutantes','madrinhas.html':'Madrinhas e festa','ternos.html':'Ternos','catalogo.html':'Catálogo','unidades.html':'Lojas','agendar.html':'Agendar prova','p/index.html':'Índice do acervo','noivas-experiencia.html':'Experiência noiva','provar.html':'Prova virtual'}.get(source,name)
+  short={'consultoria.html':'Consultoria','noivas.html':'Noivas','debutantes.html':'Debutantes','madrinhas.html':'Madrinhas e festa','ternos.html':'Ternos','catalogo.html':'Catálogo','unidades.html':'Lojas','agendar.html':'Agendar prova','p/index.html':'Índice do acervo','noivas-experiencia.html':'Experiência noiva','provar.html':'Prova virtual'}.get(source,name)
   if source.startswith('p/') and source!='p/index.html':short='Peça '+Path(source).stem
   if source.startswith('vestido-de-noiva-'):short=label+' '+location
   crumbs.append((short,canonical))
