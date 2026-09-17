@@ -13,6 +13,14 @@
       if (!config.checkoutVerified || config.priceBRL !== 2997 || !config.checkoutUrl) return;
       var url = new URL(config.checkoutUrl);
       if (url.protocol !== 'https:' || url.username || url.password) return;
+      // Preserve campaign attribution without forwarding arbitrary form/personal data.
+      if (typeof window !== 'undefined') {
+        var incoming = new URLSearchParams(window.location.search);
+        ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'utm_id', 'adset_id', 'ad_id', 'fbclid'].forEach(function (key) {
+          var value = incoming.get(key);
+          if (value && value.length <= 512) url.searchParams.set(key, value);
+        });
+      }
       link.href = url.href;
       link.removeAttribute('aria-disabled');
       link.removeAttribute('role');

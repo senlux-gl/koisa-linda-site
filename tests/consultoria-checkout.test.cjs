@@ -4,13 +4,13 @@ const vm = require('node:vm');
 const fs = require('node:fs');
 const source = fs.readFileSync(require('node:path').join(__dirname, '../kl-consultoria.js'), 'utf8');
 
-async function render(config, fail = false) {
+async function render(config, fail = false, search = '') {
   const attributes = {'aria-disabled': 'true', role: 'link', tabindex: '0'};
   const link = {textContent: 'Inscrições em breve', getAttribute: key => attributes[key],
     removeAttribute: key => delete attributes[key], addEventListener() {}};
   const status = {textContent: 'O pagamento ainda não está disponível.'};
   const terms = {textContent: 'Previsão de parcelamento'};
-  vm.runInNewContext(source, {URL, document: {
+  vm.runInNewContext(source, {URL, URLSearchParams, window: {location: {search}}, document: {
     getElementById: id => id === 'checkout-status' ? status : link,
     querySelector: () => terms
   }, fetch: () => fail ? Promise.reject(new Error('network')) : Promise.resolve({ok: true, json: () => Promise.resolve(config)})});
@@ -44,4 +44,16 @@ test('only confirmed installment text is displayed', async () => {
   const state = await render({checkoutUrl: 'https://example.com/checkout', checkoutVerified: true,
     priceBRL: 2997, installmentsConfirmed: true, installmentDisclosure: 'Condições conferidas no provedor.'});
   assert.equal(state.terms.textContent, 'Condições conferidas no provedor.');
+});
+
+test('campaign attribution survives purchase navigation without forwarding unrelated visitor data', async () => {
+  const state = await render({checkoutUrl: 'https://pay.kiwify.com.br/xhG4geU', checkoutVerified: true, priceBRL: 2997}, false,
+    '?utm_source=meta&utm_campaign=kl_consultoria&utm_content=primeiro_cliente&ad_id=123&email=private%40example.test&redirect=https%3A%2F%2Fevil.test');
+  const url = new URL(state.link.href);
+  assert.equal(url.origin, 'https://pay.kiwify.com.br');
+  assert.equal(url.searchParams.get('utm_source'), 'meta');
+  assert.equal(url.searchParams.get('utm_content'), 'primeiro_cliente');
+  assert.equal(url.searchParams.get('ad_id'), '123');
+  assert.equal(url.searchParams.has('email'), false);
+  assert.equal(url.searchParams.has('redirect'), false);
 });
