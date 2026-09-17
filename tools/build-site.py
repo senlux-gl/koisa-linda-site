@@ -19,14 +19,14 @@ _cta_spec.loader.exec_module(cta_agenda)
 PUBLIC_ROOT_FILES = frozenset(['2e6a8e0fffab111a0cbe5ae7b36fb00f.txt', 'CNAME', 'apple-touch-icon.png', 'favicon.ico', 'kl-agendar.js', 'kl-schedule-context.js', 'kl-schedule-experience.css', 'kl-capture.js', 'kl-capture.css', 'kl-catalog-actions.js', 'kl-catalog-app.js', 'kl-catalog-atributos.json', 'kl-catalog-core.js', 'kl-catalog-data.js', 'kl-catalog-gallery.js', 'kl-catalog-tryon.css', 'kl-catalog-tryon.js', 'kl-catalog.css', 'kl-fonts.css', 'kl-ga.js', 'kl-redirect.js', 'kl-refine.css', 'kl-seo.css', 'kl-site-enhance.css', 'kl-site-enhance.js', 'kl-tracking.js', 'kl-ui.js', 'robots.txt'])
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-catalog-clean.js', 'kl-catalog-clean.css', 'kl-capture-popup.js', 'kl-layout.css', 'kl-route-normalize.js', 'kl-prova-virtual.js', 'kl-prova-virtual.css'}
 CAPTURE_VERSION = '20260906google1'
-PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-booking-links.js'}
-CAPTURE_EXCLUDED = frozenset(('agendar.html', 'privacidade.html', 'peca.html', 'provar.html', '404.html'))
+PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-booking-links.js', 'kl-consultoria.css', 'kl-consultoria.js', 'kl-consultoria-config.json'}
+CAPTURE_EXCLUDED = frozenset(('consultoria.html', 'agendar.html', 'privacidade.html', 'peca.html', 'provar.html', '404.html'))
 CAPTURE_CATEGORIES = {
  'noivas.html':'vestidos-noiva', 'noivas-experiencia.html':'vestidos-noiva',
  'debutantes.html':'vestidos-debutante', 'madrinhas.html':'vestidos-madrinha', 'ternos.html':'ternos',
 }
 BASE_ROUTES = {
- 'index.html':'/', 'catalogo.html':'/catalogo/', 'agendar.html':'/agendar/',
+ 'consultoria.html':'/consultoria/', 'index.html':'/', 'catalogo.html':'/catalogo/', 'agendar.html':'/agendar/',
  'noivas.html':'/noivas/', 'noivas-experiencia.html':'/noivas/experiencia/',
  'debutantes.html':'/debutantes/', 'madrinhas.html':'/madrinhas/', 'ternos.html':'/ternos/',
  'sobre.html':'/sobre/', 'servicos.html':'/servicos/', 'unidades.html':'/unidades/',
@@ -136,7 +136,17 @@ def add_capture(s, source):
  assets+=''.join(f'<script defer src="/{asset}?v={CAPTURE_VERSION}"></script>' for asset in ('kl-capture-popup.js','kl-capture.js'))
  return s.replace('</head>',assets+'</head>',1)
 
+def add_consultoria_navigation(s, source):
+ # Integrate the new tab into existing full navigation without changing store routes.
+ def add(m):
+  body=m[2]
+  if re.search(r'href=["\'][^"\']*(?:/consultoria/|consultoria\.html)', body):return m[0]
+  current=' class="cur" aria-current="page"' if source=='consultoria.html' else ''
+  return m[1]+body+'<a href="/consultoria/"'+current+'>Consultoria</a>'+m[3]
+ return re.sub(r'(<nav\b[^>]*class=["\'](?:menu|mnav)["\'][^>]*>)(.*?)(</nav>)',add,s,flags=re.S)
+
 def render(s, source, canonical, preview=False):
+ s=add_consultoria_navigation(s,source)
  s=add_capture(s,source)
  # The tracking fallback is decorative, never a content image.
  s=re.sub(r'<img(?=[^>]*facebook\.com/tr)(?![^>]*\balt=)', '<img alt=""',s)
@@ -164,6 +174,8 @@ def render(s, source, canonical, preview=False):
  if family in ('produto','estilo') or source=='p/index.html':
   s=s.replace('</header>', '<nav class="kl-entry-nav" aria-label="Navegação principal"><a href="/catalogo/">Catálogo</a><a href="/unidades/">Lojas</a></nav></header>', 1)
  s=s.replace('</head>', '<link rel="stylesheet" href="/kl-layout.css?v=20260908aida"></head>', 1)
+ if source=='consultoria.html':
+  s=s.replace('</head>', '<link rel="stylesheet" href="/kl-consultoria.css"></head>', 1)
  s=re.sub(r'(kl-(?:catalog-actions|catalog-tryon|catalog-gallery|catalog-app|site-enhance|schedule-context|agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20260915agenda',s)
  s=re.sub(r'(kl-(?:tracking)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20260906google1',s)
  s=re.sub(r'(kl-catalog\.css)(?:\?[^"\'<>\s]*)?',r'\1?v=20260915agenda',s)
