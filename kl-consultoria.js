@@ -16,9 +16,21 @@
       // Preserve campaign attribution without forwarding arbitrary form/personal data.
       if (typeof window !== 'undefined') {
         var incoming = new URLSearchParams(window.location.search);
-        ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'utm_id', 'adset_id', 'ad_id', 'fbclid'].forEach(function (key) {
+        var keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'utm_id', 'adset_id', 'ad_id', 'fbclid'];
+        var saved = {}, current = {};
+        try { saved = JSON.parse(window.sessionStorage.getItem('kl_consultoria_attribution') || '{}') || {}; } catch (_) {}
+        if (typeof saved !== 'object' || Array.isArray(saved)) saved = {};
+        keys.forEach(function (key) {
           var value = incoming.get(key);
-          if (value && value.length <= 512) url.searchParams.set(key, value);
+          if (value && value.length <= 512) current[key] = value;
+        });
+        var attribution = Object.keys(current).length ? current : saved;
+        if (Object.keys(current).length) {
+          try { window.sessionStorage.setItem('kl_consultoria_attribution', JSON.stringify(current)); } catch (_) {}
+        }
+        keys.forEach(function (key) {
+          var value = attribution[key];
+          if (typeof value === 'string' && value && value.length <= 512) url.searchParams.set(key, value);
         });
       }
       link.href = url.href;
