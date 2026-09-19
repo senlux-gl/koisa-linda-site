@@ -18,6 +18,7 @@ cta_agenda = importlib.util.module_from_spec(_cta_spec)
 _cta_spec.loader.exec_module(cta_agenda)
 PUBLIC_ROOT_FILES = frozenset(['2e6a8e0fffab111a0cbe5ae7b36fb00f.txt', 'CNAME', 'apple-touch-icon.png', 'favicon.ico', 'kl-agendar.js', 'kl-schedule-context.js', 'kl-schedule-experience.css', 'kl-capture.js', 'kl-capture.css', 'kl-catalog-actions.js', 'kl-catalog-app.js', 'kl-catalog-atributos.json', 'kl-catalog-core.js', 'kl-catalog-data.js', 'kl-catalog-gallery.js', 'kl-catalog-tryon.css', 'kl-catalog-tryon.js', 'kl-catalog.css', 'kl-fonts.css', 'kl-ga.js', 'kl-redirect.js', 'kl-refine.css', 'kl-seo.css', 'kl-site-enhance.css', 'kl-site-enhance.js', 'kl-tracking.js', 'kl-ui.js', 'robots.txt'])
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-catalog-clean.js', 'kl-catalog-clean.css', 'kl-capture-popup.js', 'kl-layout.css', 'kl-route-normalize.js', 'kl-prova-virtual.js', 'kl-prova-virtual.css'}
+PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-ficha-noiva.js', 'kl-ficha-noiva.css'}
 CAPTURE_VERSION = '20260906google1'
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-booking-links.js', 'kl-consultoria.css', 'kl-consultoria.js', 'kl-consultoria-config.json'}
 CAPTURE_EXCLUDED = frozenset(('consultoria.html', 'agendar.html', 'privacidade.html', 'peca.html', 'provar.html', '404.html'))
@@ -219,6 +220,8 @@ def build(output, preview=False):
  write('404.html',render((ROOT/'404.html').read_text(),'404.html','/404.html',preview))
  # A single redirect module: query + fragment survive, and redirect targets cannot leave the site.
  shutil.copy2(ROOT/'kl-redirect.js',output/'kl-redirect.js')
+ # Private post-booking page: no SEO enrichment, capture popup or analytics.
+ write('noivas/sua-prova/index.html',(ROOT/'ficha-noiva.html').read_text())
  sitemap=[]
  for p in sorted(output.rglob('*.html')):
   s=p.read_text()

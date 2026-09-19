@@ -24,6 +24,8 @@ jobs:
           python3 -m unittest discover -s tests -p test_popup_build.py
           node --test tests/url-redirects.test.cjs
           node --test tests/capture-popup.test.cjs tests/site-capture.test.cjs
+          node --test tests/bridal-profile.test.cjs
+          node --check kl-ficha-noiva.js
           node --check kl-ui.js
           node --check kl-site-enhance.js
           node --check kl-tracking.js
