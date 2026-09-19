@@ -890,6 +890,14 @@
       '</div>';
     estado.passo = 4;
     marcarTrilha();
+    var fichaUrl = String(corpo.ficha_url || '');
+    if (confirmed && estado.ocasiao === 'noiva' && /^https:\/\/koisalinda\.com\.br\/noivas\/sua-prova\/#[a-f0-9]{64}$/.test(fichaUrl)) {
+      var ficha = document.createElement('div');
+      ficha.className = 'resumo';
+      ficha.innerHTML = '<p>Conte suas preferências para a equipe preparar sua prova. A ficha é opcional.</p><a id="kl-bridal-profile" class="btn forte" rel="noreferrer" referrerpolicy="no-referrer">Preparar minha prova</a>';
+      ficha.querySelector('a').href = fichaUrl;
+      cartao.querySelector('.pronto').appendChild(ficha);
+    }
     var appointmentId = String(corpo.appointment_id || '');
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(appointmentId)) return;
     var eventKey = status + ':' + appointmentId;
