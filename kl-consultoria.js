@@ -5,7 +5,9 @@
   var status = document.getElementById('checkout-status');
   if (!link || !status) return;
   link.addEventListener('click', function (event) {
-    if (link.getAttribute('aria-disabled') === 'true') event.preventDefault();
+    if (link.getAttribute('aria-disabled') === 'true') { event.preventDefault(); return; }
+    // Clique real no botão de contratar: evento próprio, sem duplicar o InitiateCheckout que a Kiwify dispara no checkout.
+    try { if (window.fbq) window.fbq('trackCustom', 'KLEDU_CheckoutClick', { content_name: 'consultoria-koisa-linda' }); } catch (_) {}
   });
   fetch('/kl-consultoria-config.json', { cache: 'no-store' })
     .then(function (response) { if (!response.ok) throw new Error('Unavailable'); return response.json(); })
