@@ -16,9 +16,13 @@ _cta_spec = importlib.util.spec_from_file_location('kl_cta_agenda', ROOT/'tools/
 assert _cta_spec is not None and _cta_spec.loader is not None
 cta_agenda = importlib.util.module_from_spec(_cta_spec)
 _cta_spec.loader.exec_module(cta_agenda)
+_visit_spec = importlib.util.spec_from_file_location('kl_festa_visita', ROOT/'tools/festa_visita.py')
+festa_visita = importlib.util.module_from_spec(_visit_spec)
+_visit_spec.loader.exec_module(festa_visita)
 PUBLIC_ROOT_FILES = frozenset(['2e6a8e0fffab111a0cbe5ae7b36fb00f.txt', 'CNAME', 'apple-touch-icon.png', 'favicon.ico', 'kl-agendar.js', 'kl-schedule-context.js', 'kl-schedule-experience.css', 'kl-capture.js', 'kl-capture.css', 'kl-catalog-actions.js', 'kl-catalog-app.js', 'kl-catalog-atributos.json', 'kl-catalog-core.js', 'kl-catalog-data.js', 'kl-catalog-gallery.js', 'kl-catalog-tryon.css', 'kl-catalog-tryon.js', 'kl-catalog.css', 'kl-fonts.css', 'kl-ga.js', 'kl-redirect.js', 'kl-refine.css', 'kl-seo.css', 'kl-site-enhance.css', 'kl-site-enhance.js', 'kl-tracking.js', 'kl-ui.js', 'robots.txt'])
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-catalog-clean.js', 'kl-catalog-clean.css', 'kl-capture-popup.js', 'kl-layout.css', 'kl-route-normalize.js', 'kl-prova-virtual.js', 'kl-prova-virtual.css'}
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-ficha-noiva.js', 'kl-ficha-noiva.css'}
+PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-visit-free.js', 'kl-visit-free.css'}
 CAPTURE_VERSION = '20260906google1'
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-booking-links.js', 'kl-consultoria.css', 'kl-consultoria.js', 'kl-consultoria-config.json'}
 CAPTURE_EXCLUDED = frozenset(('consultoria.html', 'agendar.html', 'privacidade.html', 'peca.html', 'provar.html', '404.html'))
@@ -170,6 +174,7 @@ def render(s, source, canonical, preview=False):
  # One shared, final layout layer for main pages, styles and indexed products.
  family='produto' if source.startswith('p/') and source!='p/index.html' else 'estilo' if source.startswith('vestido-de-noiva-') else Path(source).stem
  booking_context=cta_agenda.context(source,seo)
+ s=festa_visita.refine(s,source,booking_context)
  booking_attrs=''.join(' data-kl-booking-'+k+'="'+escape(v,quote=True)+'"' for k,v in booking_context.items() if v)
  s=re.sub(r'<body\b', '<body data-kl-page="'+family+'"'+booking_attrs, s, count=1)
  if family in ('produto','estilo') or source=='p/index.html':
@@ -177,7 +182,7 @@ def render(s, source, canonical, preview=False):
  s=s.replace('</head>', '<link rel="stylesheet" href="/kl-layout.css?v=20260908aida"></head>', 1)
  if source=='consultoria.html':
   s=s.replace('</head>', '<link rel="stylesheet" href="/kl-consultoria.css"></head>', 1)
- s=re.sub(r'(kl-(?:catalog-actions|catalog-tryon|catalog-gallery|catalog-app|site-enhance|schedule-context|agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20260915agenda',s)
+ s=re.sub(r'(kl-(?:catalog-actions|catalog-tryon|catalog-gallery|catalog-app|catalog-clean|site-enhance|schedule-context|agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20260928visita',s)
  s=re.sub(r'(kl-(?:tracking)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20260906google1',s)
  s=re.sub(r'(kl-catalog\.css)(?:\?[^"\'<>\s]*)?',r'\1?v=20260915agenda',s)
  if preview:

@@ -31,8 +31,9 @@
       var state = event.detail || {}, actions = window.KLCatalog && window.KLCatalog.Actions;
       var href = actions && actions.categoryScheduleHref(state.category, state.unit);
       var freeVisit = ['vestidos-madrinha','ternos','bolsas','calcados','acessorios'].indexOf(state.category) !== -1;
-      footer.lastElementChild.href = href || (freeVisit ? '/agendar/#sem-hora-marcada' : '/agendar/?ui_source=catalog_clean');
-      footer.lastElementChild.textContent = freeVisit ? 'Visitar a loja' : 'Agendar prova';
+      var visitAnchor = state.unit === 'barra' || state.unit === 'sf' ? '#kl-visit-'+state.unit : '#kl-festa-visita';
+      footer.lastElementChild.href = href || (freeVisit ? window.location.pathname + window.location.search + visitAnchor : '/agendar/?ui_source=catalog_clean');
+      footer.lastElementChild.textContent = freeVisit ? 'Lojas · sem agendar' : 'Agendar prova';
     }
     window.addEventListener('kl:catalog-state', syncDestination);
     var initial = new URLSearchParams(window.location.search);
