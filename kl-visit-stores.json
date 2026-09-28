@@ -1,0 +1,14 @@
+{
+  "barra": {
+    "name": "Barra da Tijuca · Rio de Janeiro",
+    "address": "Av. das Américas, 500 · Shopping Downtown · Bloco 8, Loja 130",
+    "hours": "Segunda a sábado, 9h–19h",
+    "map_query": "Koisa Linda Shopping Downtown Avenida das Américas 500 Bloco 8 Loja 130 Rio de Janeiro"
+  },
+  "sf": {
+    "name": "São Francisco · Niterói",
+    "address": "Av. Presidente Roosevelt, 37 · São Francisco, Niterói",
+    "hours": "Segunda a sexta, 9h–18h · Sábado, 9h–14h",
+    "map_query": "Koisa Linda Avenida Presidente Roosevelt 37 São Francisco Niterói"
+  }
+}
