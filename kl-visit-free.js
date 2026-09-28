@@ -11,6 +11,8 @@
       if(!box){box=doc.createElement('aside');box.className='kl-visit-inline';host.appendChild(box);}
       box.hidden=false;box.replaceChildren();
       var title=doc.createElement('strong');title.textContent='Venha provar sem agendar.';box.appendChild(title);
+      var offer=doc.createElement('p');offer.className='kl-festa-offer-inline';offer.textContent='No aluguel do vestido de festa, bolsa, brinco e sandália ficam incluídos, sem custo adicional no aluguel.';box.appendChild(offer);
+      var terms=doc.createElement('small');terms.textContent='Acessórios com devolução ao final do aluguel. Consulte modelos e tamanhos disponíveis na loja.';box.appendChild(terms);
       var store=stores[p.un];
       var address=doc.createElement('p');address.textContent=store?store.name+' — '+store.address:'Consulte a unidade desta peça antes de visitar.';box.appendChild(address);
       if(store){var hours=doc.createElement('small');hours.textContent=store.hours;box.appendChild(hours);}

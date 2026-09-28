@@ -6,6 +6,9 @@ import json, re
 
 ROOT = Path(__file__).resolve().parent.parent
 STORES = json.loads((ROOT / 'kl-visit-stores.json').read_text())
+OFFER = ('<aside class="kl-festa-offer"><strong>3 acessórios incluídos no aluguel de festa</strong>'
+         '<p>Bolsa, brinco e sandália, sem custo adicional no aluguel do vestido.</p>'
+         '<small>Devolução ao final do aluguel. Modelos e tamanhos conforme disponibilidade na loja.</small></aside>')
 
 def maps_href(unit):
     return 'https://www.google.com/maps/dir/?' + urlencode({'api':'1', 'destination':STORES[unit]['map_query']})
@@ -30,7 +33,7 @@ def refine(s, source, ctx):
     block=('<section class="kl-visit-free" id="kl-festa-visita" aria-labelledby="kl-visit-title">'
            '<div class="kl-visit-intro"><span>Festa · madrinhas · convidadas</span>'
            '<h2 id="kl-visit-title">Venha à loja. Não precisa agendar.</h2>'
-           '<p>Veja os modelos e venha provar. Confira na peça a unidade e consulte a disponibilidade para sua data.</p></div>'
+           '<p>Confira a unidade de cada peça e venha provar.</p></div>'+OFFER+
            '<details class="kl-visit-details"'+('' if source=='catalogo.html' else ' open')+'><summary>'+('Endereço e horário da loja' if len(units)==1 else 'Endereços e horários · Barra e Niterói')+'</summary>'
            '<div class="kl-visit-stores">'+''.join(store_card(u) for u in units)+'</div></details></section>')
     if source=='catalogo.html':s=s.replace('<section id="catalog-filters"',block+'<section id="catalog-filters"',1)
@@ -38,7 +41,7 @@ def refine(s, source, ctx):
     elif source != 'peca.html':
         s=s.replace('</main>',block+'</main>',1) if '</main>' in s else s.replace('</header>','</header>'+block,1)
     stores=json.dumps(STORES,ensure_ascii=False).replace('<','\\u003c')
-    tags=('<link rel="stylesheet" href="/kl-visit-free.css?v=20260928">'
+    tags=('<link rel="stylesheet" href="/kl-visit-free.css?v=20260928b">'
           '<script>window.KL_VISIT_STORES='+stores+';</script>'
-          '<script defer src="/kl-visit-free.js?v=20260928"></script>')
+          '<script defer src="/kl-visit-free.js?v=20260928b"></script>')
     return s.replace('</head>',tags+'</head>',1)
