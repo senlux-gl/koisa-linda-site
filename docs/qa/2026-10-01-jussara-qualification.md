@@ -1,0 +1,7 @@
+# Direção e perfil antes do agendamento
+
+A entrada /agendar/ apresenta o valor da orientação para noivas/debutantes e recebe perfil em duas etapas. Equipe: registro com recibo antes de mostrar o link /agendar/prova/. Jussara: envio para análise humana, sem reserva ou confirmação automática. Modalidade, data, investimento de referência, estilo e expectativa seguem no campo notas/source_detail do endpoint vigente, sem modificar o backend. Nenhum preço fixo, tempo de consultoria ou número de provas prometido.
+
+Verificação: 27 testes Python do build e 23 testes Node existentes aprovados; sintaxe, diff, build produção/prévia; navegação 320/375/768/1440 sem overflow; duas rotas na prévia sem envio; cinco respostas de captura simuladas (equipe/Jussara/erro HTTP/recibo ausente/duplicidade), UTMs preservadas; normalizador de produção executado offline aceita ambas as rotas. Nenhum perfil real enviado nos testes. Scan commit-seguro v2 limpo.
+
+Limitações: /agendar/prova/ conserva o widget existente e ainda pede dados de contato; acesso direto não exige recibo no servidor. Isso é uma mudança de entrada e qualificação, sem enforcement de limite de contratos no banco. O teto comunicado é de até 15 novos projetos em 2026, definido pelo usuário; disponibilidade de projetos restantes não é calculada. Horários e recurso separado de Jussara, quantidade de provas, escopo/preço contratual e atribuição operacional da análise precisam de definição. Pedidos anteriores de clientes e agenda geral preservados. Nenhuma alteração no workflow da Lara, anúncios ou Instagram.
