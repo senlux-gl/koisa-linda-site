@@ -6,7 +6,7 @@
   if (!video || !button || !status) return;
   // Keep campaign parameters when the public build expands fragment links.
   document.querySelectorAll('a[href$="#seu-perfil"]').forEach(function (link) {
-    link.setAttribute('href', '#seu-perfil');
+    link.setAttribute('href', window.location.pathname + window.location.search + '#seu-perfil');
   });
   let heard = false;
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
