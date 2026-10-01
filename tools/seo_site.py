@@ -41,7 +41,8 @@ META = {
  'madrinhas.html': ('Aluguel de vestidos de festa e madrinha | Koisa Linda', 'Vestidos para madrinhas, convidadas e formandas em Niterói e Barra da Tijuca. Explore o catálogo e visite a loja sem agendamento para provar.', 'Qual cor combina com o momento que você vai viver?'),
  'ternos.html': ('Aluguel de ternos em Niterói e Barra da Tijuca | Koisa Linda', 'Compare cores e cortes de ternos para noivos, pais, padrinhos e convidados. Descubra o caimento em Niterói ou Barra da Tijuca, sem agendar.', 'Seu terno começa pelo caimento.'),
  'catalogo.html': ('Catálogo de vestidos, ternos e acessórios | Koisa Linda', 'Explore vestidos de noiva, debutante e festa, ternos e acessórios. Filtre por unidade, cor e tamanho e confirme a disponibilidade com a loja.', None),
- 'agendar.html': ('Agendar prova de noiva ou debutante | Koisa Linda', 'Escolha a unidade, o dia e o horário da prova de noiva ou debutante em Niterói ou Barra da Tijuca. A confirmação final é feita pela equipe da loja.', None),
+ 'agendar.html': ('Seu vestido começa com direção | Koisa Linda', 'Conte sobre seu momento antes da prova. Atendimento com a equipe e análise de projetos de noiva e debutante com Jussara Pessanha.', None),
+ 'agendar-prova.html': ('Consultar horários de prova | Koisa Linda', 'Escolha o dia e horário de uma prova com a equipe da sua unidade. Projeto com Jussara tem análise e agenda próprias.', None),
  'unidades.html': ('Lojas em Niterói e Barra da Tijuca | Koisa Linda', 'Endereços e horários da Koisa Linda em São Francisco, Niterói, e no Shopping Downtown, Barra da Tijuca. Veja onde provar e como chegar.', 'Lojas em Niterói e Barra da Tijuca'),
 }
 

@@ -23,15 +23,16 @@ PUBLIC_ROOT_FILES = frozenset(['2e6a8e0fffab111a0cbe5ae7b36fb00f.txt', 'CNAME', 
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-catalog-clean.js', 'kl-catalog-clean.css', 'kl-capture-popup.js', 'kl-layout.css', 'kl-route-normalize.js', 'kl-prova-virtual.js', 'kl-prova-virtual.css'}
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-ficha-noiva.js', 'kl-ficha-noiva.css'}
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-visit-free.js', 'kl-visit-free.css'}
+PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-qualification.js', 'kl-qualification.css'}
 CAPTURE_VERSION = '20260906google1'
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-booking-links.js', 'kl-consultoria.css', 'kl-consultoria.js', 'kl-consultoria-config.json'}
-CAPTURE_EXCLUDED = frozenset(('consultoria.html', 'agendar.html', 'privacidade.html', 'peca.html', 'provar.html', '404.html'))
+CAPTURE_EXCLUDED = frozenset(('consultoria.html', 'agendar.html', 'agendar-prova.html', 'privacidade.html', 'peca.html', 'provar.html', '404.html'))
 CAPTURE_CATEGORIES = {
  'noivas.html':'vestidos-noiva', 'noivas-experiencia.html':'vestidos-noiva',
  'debutantes.html':'vestidos-debutante', 'madrinhas.html':'vestidos-madrinha', 'ternos.html':'ternos',
 }
 BASE_ROUTES = {
- 'consultoria.html':'/consultoria/', 'index.html':'/', 'catalogo.html':'/catalogo/', 'agendar.html':'/agendar/',
+ 'consultoria.html':'/consultoria/', 'index.html':'/', 'catalogo.html':'/catalogo/', 'agendar.html':'/agendar/', 'agendar-prova.html':'/agendar/prova/',
  'noivas.html':'/noivas/', 'noivas-experiencia.html':'/noivas/experiencia/',
  'debutantes.html':'/debutantes/', 'madrinhas.html':'/madrinhas/', 'ternos.html':'/ternos/',
  'sobre.html':'/sobre/', 'servicos.html':'/servicos/', 'unidades.html':'/unidades/',
