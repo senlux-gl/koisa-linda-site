@@ -687,7 +687,7 @@
     var ocasiao = OCASIOES[estado.ocasiao];
     var rotuloEvento = estado.ocasiao === 'noiva' ? 'Data do casamento' : 'Data da festa';
 
-    cartao.innerHTML = '<h2>Só falta saber quem esperar</h2>' + resumo() +
+    cartao.innerHTML = '<h2>' + (fromProfile ? 'Confira seu perfil e o horário' : 'Só falta saber quem esperar') + '</h2>' + resumo() +
       '<p class="sub">Ao finalizar, você verá se a prova está confirmada ou se o pedido aguarda confirmação da equipe.</p>' +
       (referenciaModelo() ? '<p class="schedule-reference-note">O modelo é uma referência. A equipe confere a disponibilidade da peça para a data do seu evento.</p>' : '') +
       '<form id="form" novalidate>' +
@@ -867,6 +867,7 @@
   }
 
   function pronto(corpo) {
+    if (profileBridge && qualifiedCalendar) profileBridge.clear(profileBridge.storage(window));
     var loja = LOJAS[estado.loja];
     var status = String(corpo.status || '').toLowerCase();
     var confirmed = status === 'confirmed';
@@ -947,7 +948,24 @@
     }
   }
 
+  var profileBridge = window.KLProfileHandoff;
+  var fromProfile = profileBridge && profileBridge.read(profileBridge.storage(window));
+  var qualifiedCalendar = /^(?:\/agendar\/prova\/?|\/agendar-prova\.html)$/.test(location.pathname);
+  if (qualifiedCalendar && profileBridge && !fromProfile) {
+    location.replace(profileBridge.qualificationUrl(location.search));
+    return;
+  }
   pularOQueJaSeSabe();
+  if (fromProfile && qualifiedCalendar) {
+    estado.variante = 'a';
+    estado.ocasiao = fromProfile.occasion; estado.loja = fromProfile.store;
+    estado.lead = {nome:fromProfile.name, telefone:fromProfile.phone.replace(/^\+55/,''), data_evento:fromProfile.event, notas:fromProfile.notes, preferencia:''};
+    estado.aceite = true; estado.measurementAllowed = fromProfile.measurement;
+    estado.lead_id = fromProfile.id; estado.leadSalvo = true;
+    estado.leadContext = JSON.stringify([estado.ocasiao, estado.loja, referenciaModelo()]);
+    estado.passo = 2;
+    aplicarCopyVariante();
+  }
   document.querySelectorAll('.schedule-guide a').forEach(function (a) {
     var id = String(a.getAttribute('href') || '').split('#')[1];
     if (id === 'duvidas-agendamento' || id === 'sem-hora-marcada') a.setAttribute('href', ancoraDaPagina(id));

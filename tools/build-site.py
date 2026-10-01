@@ -23,7 +23,7 @@ PUBLIC_ROOT_FILES = frozenset(['2e6a8e0fffab111a0cbe5ae7b36fb00f.txt', 'CNAME', 
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-catalog-clean.js', 'kl-catalog-clean.css', 'kl-capture-popup.js', 'kl-layout.css', 'kl-route-normalize.js', 'kl-prova-virtual.js', 'kl-prova-virtual.css'}
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-ficha-noiva.js', 'kl-ficha-noiva.css'}
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-visit-free.js', 'kl-visit-free.css'}
-PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-qualification.js', 'kl-qualification.css'}
+PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-qualification.js', 'kl-qualification.css', 'kl-profile-handoff.js'}
 CAPTURE_VERSION = '20260906google1'
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-booking-links.js', 'kl-consultoria.css', 'kl-consultoria.js', 'kl-consultoria-config.json'}
 CAPTURE_EXCLUDED = frozenset(('consultoria.html', 'agendar.html', 'agendar-prova.html', 'privacidade.html', 'peca.html', 'provar.html', '404.html'))
@@ -146,13 +146,17 @@ def add_consultoria_navigation(s, source):
  # Integrate the new tab into existing full navigation without changing store routes.
  def add(m):
   body=m[2]
-  if re.search(r'href=["\'][^"\']*(?:/consultoria/|consultoria\.html)', body):return m[0]
+  if re.search(r'href=["\'][^"\']*(?:/consultoria/|consultoria\.html)', body):
+   body=re.sub(r'(<a\b[^>]*href=["\'][^"\']*(?:/consultoria/|consultoria\.html)[^>]*>)Consultoria(</a>)',r'\1Para lojistas\2',body)
+   return m[1]+body+m[3]
   current=' class="cur" aria-current="page"' if source=='consultoria.html' else ''
-  return m[1]+body+'<a href="/consultoria/"'+current+'>Consultoria</a>'+m[3]
+  return m[1]+body+'<a href="/consultoria/"'+current+'>Para lojistas</a>'+m[3]
  return re.sub(r'(<nav\b[^>]*class=["\'](?:menu|mnav)["\'][^>]*>)(.*?)(</nav>)',add,s,flags=re.S)
 
 def render(s, source, canonical, preview=False):
  s=add_consultoria_navigation(s,source)
+ if source in ('agendar.html','agendar-prova.html'):
+  s=s.replace('<head>', '<head><script src="/kl-profile-handoff.js?v=20261001perfil"></script>',1)
  s=add_capture(s,source)
  # The tracking fallback is decorative, never a content image.
  s=re.sub(r'<img(?=[^>]*facebook\.com/tr)(?![^>]*\balt=)', '<img alt=""',s)
@@ -176,6 +180,8 @@ def render(s, source, canonical, preview=False):
  family='produto' if source.startswith('p/') and source!='p/index.html' else 'estilo' if source.startswith('vestido-de-noiva-') else Path(source).stem
  booking_context=cta_agenda.context(source,seo)
  s=festa_visita.refine(s,source,booking_context)
+ # The qualification page comes before the calendar.
+ s=re.sub(r'(<a\b[^>]*href=["\'][^"\']*(?:/agendar/|agendar\.html)[^>]*>)(Escolher (?:meu )?horário|Ver horários)(</a>)',r'\1Preencher meu perfil\3',s)
  booking_attrs=''.join(' data-kl-booking-'+k+'="'+escape(v,quote=True)+'"' for k,v in booking_context.items() if v)
  s=re.sub(r'<body\b', '<body data-kl-page="'+family+'"'+booking_attrs, s, count=1)
  if family in ('produto','estilo') or source=='p/index.html':
@@ -184,8 +190,12 @@ def render(s, source, canonical, preview=False):
  if source=='consultoria.html':
   s=s.replace('</head>', '<link rel="stylesheet" href="/kl-consultoria.css"></head>', 1)
  s=re.sub(r'(kl-(?:catalog-actions|catalog-tryon|catalog-gallery|catalog-app|catalog-clean|site-enhance|schedule-context|agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20260928visita',s)
+ s=re.sub(r'(kl-(?:agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261001perfil2',s)
+ s=re.sub(r'(kl-(?:site-enhance)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261001perfil2',s)
+ s=re.sub(r'(kl-(?:qualification)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261001perfil2',s)
  s=re.sub(r'(kl-(?:tracking)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20260906google1',s)
  s=re.sub(r'(kl-catalog\.css)(?:\?[^"\'<>\s]*)?',r'\1?v=20260915agenda',s)
+ s=re.sub(r'(kl-catalog-data\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261001curadoria',s)
  if preview:
   s=s.replace('<head>', '<head><script src="/qa-metrics.js"></script>',1)
   s=re.sub(r'<script\b[^>]*src=["\'][^"\']*(?:kl-ga\.js|kl-tracking\.js)[^>]*></script>','',s)
@@ -207,7 +217,7 @@ def build(output, preview=False):
  for p in ROOT.iterdir():
   if p.is_file() and p.name in PUBLIC_ROOT_FILES:
    if p.suffix in ('.css','.js','.txt','.json'):
-    write(p.name,rewrite_text_urls(p.read_text(),p.name))
+    write(p.name,seo.safety.public_source(p.read_text()) if p.name=='kl-catalog-data.js' else rewrite_text_urls(p.read_text(),p.name))
    else:shutil.copy2(p,output/p.name)
  write('.nojekyll','')
  if preview:shutil.copy2(ROOT/'tools/preview-metrics.js',output/'qa-metrics.js')

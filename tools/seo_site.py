@@ -4,12 +4,15 @@ Does not change catalogue data, inventory, tracking, booking or existing URLs.
 The old page generators remain historical inputs; this is the publication layer.
 """
 import json
+import importlib.util
 import re
 from functools import lru_cache
 from html import escape, unescape
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+_safety_spec=importlib.util.spec_from_file_location('kl_catalogue_safety', ROOT/'tools/catalogue_safety.py')
+safety=importlib.util.module_from_spec(_safety_spec);_safety_spec.loader.exec_module(safety)
 ORIGIN = 'https://koisalinda.com.br'
 STYLES = {
  'princesa': ('princesa', 'corte', ('princesa',), 'O volume da saia e a estrutura do corpo são os pontos para observar durante a prova.'),
@@ -58,7 +61,7 @@ def schemas(s):
 @lru_cache(maxsize=1)
 def context():
  data=json.loads(re.search(r'\[\s*\{.*\}\s*\]', (ROOT/'kl-catalog-data.js').read_text(),re.S)[0])
- products={p['k']:p for p in data}
+ products={p['k']:p for p in safety.normalize(data)}
  attrs={a['k']:a for a in json.loads((ROOT/'kl-catalog-atributos.json').read_text())}
  pages={}
  for p in sorted((ROOT/'p').glob('*.html')):
@@ -171,7 +174,7 @@ def refine(s,source,canonical):
   for unit,label in [('sf','São Francisco'),('barra','Barra da Tijuca')]:
    s=re.sub(r'(<div class="unit")(>.*?<h3>'+label+'</h3>)',lambda m:m[1]+' id="'+unit+'"'+m[2],s,count=1,flags=re.S)
  if source!='index.html':
-  short={'consultoria.html':'Consultoria','noivas.html':'Noivas','debutantes.html':'Debutantes','madrinhas.html':'Madrinhas e festa','ternos.html':'Ternos','catalogo.html':'Catálogo','unidades.html':'Lojas','agendar.html':'Agendar prova','p/index.html':'Índice do acervo','noivas-experiencia.html':'Experiência noiva','provar.html':'Prova virtual'}.get(source,name)
+  short={'sobre.html':'Sobre a Koisa Linda','servicos.html':'Serviços','privacidade.html':'Privacidade','agendar-prova.html':'Horários com a equipe','consultoria.html':'Para lojistas','noivas.html':'Noivas','debutantes.html':'Debutantes','madrinhas.html':'Madrinhas e festa','ternos.html':'Ternos','catalogo.html':'Catálogo','unidades.html':'Lojas','agendar.html':'Agendar prova','p/index.html':'Índice do acervo','noivas-experiencia.html':'Experiência noiva','provar.html':'Prova virtual'}.get(source,name)
   if source.startswith('p/') and source!='p/index.html':short='Peça '+Path(source).stem
   if source.startswith('vestido-de-noiva-'):short=label+' '+location
   crumbs.append((short,canonical))
