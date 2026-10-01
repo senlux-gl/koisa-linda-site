@@ -1,0 +1,9 @@
+(function(root,factory){'use strict';var api=factory();if(typeof module==='object'&&module.exports)module.exports=api;if(root)root.KLProfileHandoff=api;})(typeof window!=='undefined'?window:null,function(){
+ 'use strict';var KEY='kl_profile_handoff_v1',TTL=30*60*1000;
+ function storage(win){try{return win.sessionStorage;}catch(e){return null;}}
+ function clear(storage){try{storage.removeItem(KEY);}catch(e){}}
+ function read(storage,now){try{var d=JSON.parse(storage.getItem(KEY)||'null');now=now||Date.now();if(!d||d.route!=='equipe'||!Number.isFinite(d.expires)||d.expires<=now||d.expires>now+TTL||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(d.id||'')||!['noiva','debutante'].includes(d.occasion)||!['barra','saofrancisco'].includes(d.store)||typeof d.name!=='string'||d.name.length<2||d.name.length>100||!/^\+55[1-9][0-9]9\d{8}$/.test(d.phone||'')||d.consent!==true){clear(storage);return null;}return d;}catch(e){clear(storage);return null;}}
+ function save(storage,v,id,notes,now){if(v.rota!=='equipe')return false;try{var phone=String(v.telefone||'').replace(/\D/g,'');if(phone.length===11)phone='55'+phone;storage.setItem(KEY,JSON.stringify({route:'equipe',id:id,expires:(now||Date.now())+TTL,name:String(v.nome||'').trim().slice(0,100),phone:'+'+phone,occasion:v.ocasiao,store:v.loja,event:v.data_indefinida?'':v.data_evento||'',notes:String(notes||'').slice(0,400),consent:v.consentimento===true,measurement:v.measurement===true}));return !!read(storage,now);}catch(e){return false;}}
+ function qualificationUrl(search){var p=new URLSearchParams(search||'');['variant','ab','fluxo','flow'].forEach(function(k){p.delete(k);});return '/agendar/'+(p.toString()?'?'+p.toString():'');}
+ return {storage:storage,read:read,save:save,clear:clear,qualificationUrl:qualificationUrl,KEY:KEY,TTL:TTL};
+});

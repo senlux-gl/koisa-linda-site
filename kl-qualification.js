@@ -19,14 +19,15 @@
   if(!v.consentimento)return 'Autorize o uso dos dados para este atendimento.';
   return '';
  }
+ function modelReference(params){var v=clean(params.get('modelo')||params.get('codigo')||params.get('p')||params.get('ref'),33);return /^[A-Za-z0-9][A-Za-z0-9-]{0,31}$/.test(v)?v:'';}
  function payload(v,ctx){
   var t=ctx.attribution||{first:{},last:{}},last=t.last||{},date=v.data_indefinida?'':v.data_evento;
-  var details=['Atendimento: '+v.rota,'Modalidade: '+v.modalidade,'Investimento informado: '+v.investimento,'Data: '+(date||'a definir'),'Estilo: '+clean(v.estilo,70),'Expectativa: '+clean(v.expectativa,250)].join('\n').slice(0,600);
+  var details=[ctx.model?'Modelo de referência: '+ctx.model:'','Atendimento: '+v.rota,'Modalidade: '+v.modalidade,'Investimento informado: '+v.investimento,'Data: '+(date||'a definir'),'Estilo: '+clean(v.estilo,70),'Expectativa: '+clean(v.expectativa,250)].filter(Boolean).join('\n').slice(0,600);
   var p={schema_version:'2026-08-27.site_lead.v1',source:'site',source_detail:'qualificacao_'+v.rota+'_20261001',variant:'perfil-'+v.rota,stage:'lead_form_completed',nome:clean(v.nome,100),telefone:phone(v.telefone),ocasiao:v.ocasiao,loja:v.loja,data_evento:date,preferencia:'sem_preferencia',notas:details,consentimento:v.consentimento===true,sobrenome_confirmacao:clean(v.sobrenome_confirmacao,100),session_id:ctx.session,attribution:t,analytics:ctx.analytics||{consent:false,version:'2026-09-06.measurement.v1'},landing_page:ctx.path,page_path:ctx.path,referrer:ctx.referrer||'',created_at_client:new Date().toISOString()};
   ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','utm_id','gclid','fbclid','gbraid','wbraid'].forEach(function(k){p[k]=last[k]||'';});return p;
  }
  function accepted(d){return !!d&&d.ok===true&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(d.lead_id||'');}
- function bookingUrl(v,params){var p=new URLSearchParams();['utm_source','utm_medium','utm_campaign','utm_content','utm_term','utm_id','gclid','fbclid','gbraid','wbraid'].forEach(function(k){if(params.get(k))p.set(k,params.get(k));});p.set('ocasiao',v.ocasiao);p.set('un',v.loja==='saofrancisco'?'sf':'barra');return '/agendar/prova/?'+p.toString();}
+ function bookingUrl(v,params){var p=new URLSearchParams();['utm_source','utm_medium','utm_campaign','utm_content','utm_term','utm_id','gclid','fbclid','gbraid','wbraid'].forEach(function(k){if(params.get(k))p.set(k,params.get(k));});var model=modelReference(params);if(model)p.set('modelo',model);p.set('ocasiao',v.ocasiao);p.set('un',v.loja==='saofrancisco'?'sf':'barra');return '/agendar/prova/?'+p.toString();}
  function init(win){
   var doc=win.document,form=doc.getElementById('perfil');if(!form)return;
   var preview=!/^(www\.)?koisalinda\.com\.br$/.test(win.location.hostname),params=new URLSearchParams(win.location.search),busy=false,session=win.crypto.randomUUID();
@@ -48,11 +49,11 @@
      var track=win.KLTracking,identity=track&&track.getGoogleIdentity?await track.getGoogleIdentity(v.measurement):{consent:false,version:'2026-09-06.measurement.v1'};
      var attribution=track&&track.getAttribution?track.getAttribution():{first:{},last:{}};
      var controller=new AbortController(),timer=win.setTimeout(function(){controller.abort();},15000),response,data;
-     try{response=await win.fetch('https://n8n.janotattec.com.br/webhook/kl-agenda/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload(v,{session:session,attribution:attribution,analytics:identity,path:win.location.pathname,referrer:doc.referrer?new URL(doc.referrer).origin:''})),credentials:'omit',signal:controller.signal});data=await response.json();}finally{win.clearTimeout(timer);}
+     try{response=await win.fetch('https://n8n.janotattec.com.br/webhook/kl-agenda/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload(v,{model:modelReference(params),session:session,attribution:attribution,analytics:identity,path:win.location.pathname,referrer:doc.referrer?new URL(doc.referrer).origin:''})),credentials:'omit',signal:controller.signal});data=await response.json();}finally{win.clearTimeout(timer);}
      if(!response.ok||!accepted(data))throw Error('unconfirmed');
      doc.getElementById('success-title').textContent=v.rota==='jussara'?'Seu perfil foi enviado para análise.':'Seu perfil ficou registrado.';
-     doc.getElementById('success-copy').textContent=v.rota==='jussara'?'A equipe avaliará data, referências, modalidade e investimento. Se houver encaixe no projeto e na agenda, entrará em contato pelo WhatsApp. Isso ainda não confirma um atendimento com Jussara nem reserva um projeto.':'Agora você pode escolher um horário para provar com a equipe. A página de agenda informará se a prova está confirmada ou se o pedido aguarda confirmação.';
-     if(v.rota==='equipe'){var link=doc.getElementById('booking');link.href=bookingUrl(v,params);link.hidden=false;}
+     doc.getElementById('success-copy').textContent=v.rota==='jussara'?'A equipe avaliará data, referências, modalidade e investimento. Se houver encaixe no projeto e na agenda, entrará em contato pelo WhatsApp. O encontro só é reservado após aprovação do perfil, escolha do horário e pagamento do sinal, com valor e condições informados antes. Enviar a ficha não reserva um projeto.':'Agora você pode escolher um horário para provar com a equipe. A página de agenda informará se a prova está confirmada ou se o pedido aguarda confirmação.';
+     if(v.rota==='equipe'){var bridge=win.KLProfileHandoff,notes=payload(v,{model:modelReference(params)}).notas;var saved=bridge&&bridge.save(bridge.storage(win),v,data.lead_id,notes);var link=doc.getElementById('booking');if(saved){link.href=bookingUrl(v,params);link.hidden=false;}else{doc.getElementById('success-copy').textContent='Seu perfil foi registrado, mas o navegador não conseguiu manter seus dados para a próxima etapa. Fale com a unidade para consultar um horário sem preencher tudo novamente.';}}
      if(track&&track.gaEvent)track.gaEvent('KL_Qualification_Saved',{route:v.rota,occasion:v.ocasiao,store_id:v.loja,duplicate:data.duplicate===true?'yes':'no'});
     }
     form.hidden=true;doc.getElementById('success').hidden=false;doc.getElementById('success-title').focus();
@@ -60,5 +61,5 @@
    finally{busy=false;button.disabled=false;}
   };
  }
- return {phone:phone,validDate:validDate,validate:validate,payload:payload,accepted:accepted,bookingUrl:bookingUrl,init:init};
+ return {modelReference:modelReference,phone:phone,validDate:validDate,validate:validate,payload:payload,accepted:accepted,bookingUrl:bookingUrl,init:init};
 });
