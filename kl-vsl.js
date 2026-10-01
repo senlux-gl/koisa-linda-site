@@ -4,6 +4,10 @@
   const button = document.getElementById('kl-vsl-sound');
   const status = document.getElementById('kl-vsl-status');
   if (!video || !button || !status) return;
+  // Keep campaign parameters when the public build expands fragment links.
+  document.querySelectorAll('a[href$="#seu-perfil"]').forEach(function (link) {
+    link.setAttribute('href', '#seu-perfil');
+  });
   let heard = false;
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const saveData = navigator.connection && navigator.connection.saveData;
