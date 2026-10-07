@@ -21,7 +21,7 @@ class VisitBuildTest(unittest.TestCase):
         self.assertIn('/kl-visit-free.js', page)
 
     def test_static_festa_piece_exposes_its_own_store(self):
-        for code, unit in [('MD-001', 'barra'), ('020008', 'sf')]:
+        for code, unit in [('MD-001', 'barra'), ('080950', 'sf')]:
             with self.subTest(code=code):
                 page = self.page('p/' + code + '.html')
                 self.assertIn('id="kl-visit-' + unit + '"', page)

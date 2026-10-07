@@ -191,13 +191,13 @@ def render(s, source, canonical, preview=False):
  s=s.replace('</head>', '<link rel="stylesheet" href="/kl-layout.css?v=20260908aida"></head>', 1)
  if source=='consultoria.html':
   s=s.replace('</head>', '<link rel="stylesheet" href="/kl-consultoria.css"></head>', 1)
- s=re.sub(r'(kl-(?:catalog-actions|catalog-tryon|catalog-gallery|catalog-app|catalog-clean|site-enhance|schedule-context|agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20260928visita',s)
+ s=re.sub(r'(kl-(?:catalog-actions|catalog-tryon|catalog-gallery|catalog-app|catalog-clean|site-enhance|schedule-context|agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261007festa',s)
  s=re.sub(r'(kl-(?:agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261001perfil2',s)
  s=re.sub(r'(kl-(?:site-enhance)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261001perfil2',s)
  s=re.sub(r'(kl-(?:qualification)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261001perfil2',s)
  s=re.sub(r'(kl-(?:tracking)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20260906google1',s)
  s=re.sub(r'(kl-catalog\.css)(?:\?[^"\'<>\s]*)?',r'\1?v=20260915agenda',s)
- s=re.sub(r'(kl-catalog-data\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261001curadoria',s)
+ s=re.sub(r'(kl-catalog-data\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261007festa',s)
  if preview:
   s=s.replace('<head>', '<head><script src="/qa-metrics.js"></script>',1)
   s=re.sub(r'<script\b[^>]*src=["\'][^"\']*(?:kl-ga\.js|kl-tracking\.js)[^>]*></script>','',s)

@@ -48,11 +48,23 @@ test('galeria atualiza a agenda ao navegar e remove destino antigo em categoria 
   assert.equal(schedule.hidden, false);
   assert.equal(schedule.getAttribute('href'), '/agendar/#sem-hora-marcada');
   assert.equal(schedule.textContent, 'Visitar a loja');
-  assert.equal(whatsapp.classList.contains('gallery-primary'), false);
-  assert.equal(whatsapp.classList.contains('gallery-secondary'), true);
+  // Festa: WhatsApp é o botão principal e a visita vira link secundário.
+  assert.equal(whatsapp.hidden, false);
+  assert.equal(whatsapp.textContent, 'Quero provar esse vestido');
+  assert.equal(whatsapp.classList.contains('gallery-primary'), true);
+  assert.equal(whatsapp.classList.contains('gallery-secondary'), false);
+  assert.equal(schedule.classList.contains('gallery-primary'), false);
+  assert.equal(schedule.classList.contains('gallery-secondary'), true);
+  assert.equal(whatsapp.href, Actions.productWhatsAppHref(products[2], Actions.CONTACTS));
   next.click();
   assert.equal(schedule.hidden, false);
   assert.equal(schedule.getAttribute('href'), Actions.productScheduleHref(products[3]));
+  // Noiva volta ao padrão: agenda principal, WhatsApp secundário e oculto.
+  assert.equal(schedule.classList.contains('gallery-primary'), true);
+  assert.equal(schedule.classList.contains('gallery-secondary'), false);
+  assert.equal(whatsapp.classList.contains('gallery-primary'), false);
+  assert.equal(whatsapp.textContent, 'Tirar dúvida');
+  assert.equal(whatsapp.hidden, true);
 });
 
 test('intercepta somente clique primário simples com galeria pronta', () => {
