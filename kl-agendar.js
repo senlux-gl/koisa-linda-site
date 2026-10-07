@@ -3,6 +3,13 @@
  * Fluxos A/B: ocasião e unidade → dia e horário → quem é você.
  * Variante D: seus dados → ocasião/unidade → dia/horário → envio.
  *
+ * 07/10/2026: /agendar/ volta a abrir a agenda. A ficha de qualificação
+ * (30/09) pedia 6 campos antes do calendário e derrubou a passagem para a
+ * prova (22 de 22 fichas viravam prova até 27/09; 3 de 10 depois). As
+ * perguntas úteis à equipe (o que procura, investimento, estilo) ficam no
+ * passo "quem é você", opcionais, e vão nas notas do pedido. O projeto com
+ * Jussara (rota=jussara) segue na ficha própria, em /agendar/perfil/.
+ *
  * A agenda vem da loja de verdade: os horários oferecidos aqui já descontam o
  * que está no calendário da unidade e o que está esperando confirmação no CRM.
  * A resposta da agenda distingue prova confirmada de pedido que ainda espera
@@ -35,6 +42,46 @@
     debutante: { nome: 'Debutante', detalhe: '15 anos' },
   };
 
+  /* Perguntas da antiga ficha, agora opcionais e depois do horário. */
+  var PERFIL = {
+    modalidade: { rotulo: 'Aluguel, criação ou compra', nota: 'Procura', opcoes: [['acervo', 'Aluguel de um modelo do acervo'], ['primeiro_aluguel', 'Primeiro aluguel de uma criação'], ['compra', 'Compra de vestido'], ['orientacao', 'Quero orientação para decidir']] },
+    investimento: { rotulo: 'Que investimento está planejando', nota: 'Investimento informado', opcoes: [['ate_5', 'Até R$ 5 mil'], ['5_10', 'De R$ 5 mil a R$ 10 mil'], ['10_15', 'De R$ 10 mil a R$ 15 mil'], ['15_25', 'De R$ 15 mil a R$ 25 mil'], ['25_mais', 'Acima de R$ 25 mil'], ['a_definir', 'Quero entender as opções para definir']] },
+    estilo: { rotulo: 'Qual estilo chama sua atenção', nota: 'Estilo', opcoes: [['descobrir', 'Quero descobrir com orientação'], ['classico', 'Clássico'], ['romantico', 'Romântico'], ['minimalista', 'Minimalista'], ['moderno', 'Moderno'], ['varias', 'Tenho referências diferentes']] },
+  };
+
+  function perfilLido() {
+    var out = {};
+    Object.keys(PERFIL).forEach(function (k) {
+      var v = valor('perfil-' + k);
+      if (PERFIL[k].opcoes.some(function (o) { return o[0] === v; })) out[k] = v;
+    });
+    return out;
+  }
+
+  function textoPerfil(perfil) {
+    perfil = perfil || {};
+    return Object.keys(PERFIL).map(function (k) {
+      var o = PERFIL[k].opcoes.filter(function (x) { return x[0] === perfil[k]; })[0];
+      return o ? PERFIL[k].nota + ': ' + o[1] : '';
+    }).filter(Boolean).join(' · ');
+  }
+
+  /* As respostas do perfil vão primeiro (são curtas) e o texto livre depois. */
+  function notasComPerfil(notas, perfil) {
+    var p = textoPerfil(perfil);
+    notas = String(notas || '').trim();
+    return p ? p + (notas ? '\n' + notas : '') : notas;
+  }
+
+  function camposPerfil() {
+    return Object.keys(PERFIL).map(function (k) {
+      return '<div class="campo"><label for="perfil-' + k + '">' + PERFIL[k].rotulo + '</label>' +
+        '<select id="perfil-' + k + '" name="perfil_' + k + '"><option value="">Escolha se quiser</option>' +
+        PERFIL[k].opcoes.map(function (o) { return '<option value="' + o[0] + '">' + esc(o[1]) + '</option>'; }).join('') +
+        '</select></div>';
+    }).join('');
+  }
+
   var estado = {
     passo: 1,
     ocasiao: '',
@@ -45,7 +92,7 @@
     abertoEm: Date.now(),
     enviando: false,
     variante: '',
-    lead: { nome: '', telefone: '', data_evento: '', notas: '', preferencia: '' },
+    lead: { nome: '', telefone: '', data_evento: '', notas: '', preferencia: '', perfil: {} },
     aceite: false,
     opcionaisAbertos: false,
     lead_id: '',
@@ -179,7 +226,8 @@
     if (!document.getElementById('nome')) return;
     var next = {
       nome: valor('nome'), telefone: valor('telefone'), data_evento: valor('evento'),
-      notas: valor('notas'), preferencia: document.getElementById('preferencia') ? valor('preferencia') : estado.lead.preferencia
+      notas: valor('notas'), preferencia: document.getElementById('preferencia') ? valor('preferencia') : estado.lead.preferencia,
+      perfil: document.getElementById('perfil-modalidade') ? perfilLido() : (estado.lead.perfil || {})
     };
     if (JSON.stringify(next) !== JSON.stringify(estado.lead)) estado.leadSalvo = false;
     estado.lead = next;
@@ -194,11 +242,15 @@
       var node = document.getElementById(id);
       if (node) node.value = estado.lead[id === 'evento' ? 'data_evento' : id] || '';
     });
+    Object.keys(PERFIL).forEach(function (k) {
+      var node = document.getElementById('perfil-' + k);
+      if (node) node.value = (estado.lead.perfil || {})[k] || '';
+    });
     document.getElementById('aceite').checked = estado.aceite;
     var measurement = document.getElementById('kl-schedule-measurement');
     if (measurement) measurement.checked = estado.measurementAllowed === true;
     var details = document.getElementById('schedule-optional');
-    if (details) details.open = estado.opcionaisAbertos || Boolean(estado.lead.data_evento || estado.lead.notas || estado.lead.preferencia);
+    if (details) details.open = estado.opcionaisAbertos || Boolean(estado.lead.data_evento || estado.lead.notas || estado.lead.preferencia || textoPerfil(estado.lead.perfil));
   }
 
   function ajudaDaProva() {
@@ -225,7 +277,7 @@
       loja: estado.loja || 'saofrancisco',
       data_evento: estado.lead.data_evento || '',
       preferencia: estado.lead.preferencia || '',
-      notas: notasDoPedido(estado.lead.notas),
+      notas: notasDoPedido(notasComPerfil(estado.lead.notas, estado.lead.perfil)),
       consentimento: true,
       analytics: estado.googleIdentity || {consent:false,version:'2026-09-06.measurement.v1'},
       aberto_em: estado.abertoEm,
@@ -699,7 +751,8 @@
       '<input id="telefone" name="telefone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(21) 90000-0000" required>' +
       '<span class="mini">Confira o número com DDD.</span></div>' +
 
-      '<details class="schedule-optional" id="schedule-optional"><summary>Conte mais sobre seu momento (opcional)</summary>' +
+      '<details class="schedule-optional" id="schedule-optional"><summary>' + (fromProfile ? 'Conte mais sobre seu momento (opcional)' : 'Conte mais sobre seu momento (opcional, ajuda a equipe a separar os modelos)') + '</summary>' +
+      (fromProfile ? '' : camposPerfil()) +
       '<div class="campo"><label for="evento">' + rotuloEvento +
       '<span class="dica">Se já souber, ajuda a equipe a preparar seu atendimento.</span></label>' +
       '<input id="evento" name="evento" type="date"></div>' +
@@ -751,7 +804,7 @@
       data: estado.data,
       hora: estado.hora,
       data_evento: dataEvento || '',
-      notas: notasDoPedido(notas),
+      notas: notasDoPedido(notasComPerfil(notas, extras.perfil)),
       consentimento: true,
       aberto_em: estado.abertoEm,
       origem: origem(),
@@ -767,7 +820,7 @@
   function enviarPayload(payload, botao, nomeFallback) {
     marcarEnvio(true);
     if (botao) { botao.disabled = true; botao.textContent = 'Enviando…'; }
-    trackSchedule('KL_Schedule_Request_Submit', { selected_day: estado.data, selected_time: estado.hora, form_first: estado.variante === 'd' ? 'yes' : 'no' });
+    trackSchedule('KL_Schedule_Request_Submit', { selected_day: estado.data, selected_time: estado.hora, form_first: estado.variante === 'd' ? 'yes' : 'no', has_profile: textoPerfil(estado.lead.perfil) ? 'yes' : 'no' });
     fetch(API + '/pedido', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -830,13 +883,14 @@
     // Grava o cadastro com utm/fbclid/gclid antes do pedido, para o agendamento
     // poder ser ligado ao anúncio que o pagou. O pedido é o que importa: se o
     // cadastro falhar ou demorar, ele sai assim mesmo.
-    estado.lead = { nome: nome, telefone: tel, data_evento: dataEvento, notas: notas, preferencia: '' };
+    var perfil = document.getElementById('perfil-modalidade') ? perfilLido() : {};
+    estado.lead = { nome: nome, telefone: tel, data_evento: dataEvento, notas: notas, preferencia: '', perfil: perfil };
     estado.leadSalvo = false;
     marcarEnvio(true);
     if (botao) { botao.disabled = true; botao.textContent = 'Enviando…'; }
     var semEsperarDemais = new Promise(function (pronto) { setTimeout(function () { pronto(null); }, 3000); });
     Promise.race([registrarLeadDoSite(), semEsperarDemais]).then(function () {
-      enviarPayload(payloadPedido(nome, tel, dataEvento, notas, { honeypot: honeypot }), botao, nome);
+      enviarPayload(payloadPedido(nome, tel, dataEvento, notas, { honeypot: honeypot, perfil: perfil }), botao, nome);
     });
   }
 
@@ -951,6 +1005,11 @@
   var profileBridge = window.KLProfileHandoff;
   var fromProfile = profileBridge && profileBridge.read(profileBridge.storage(window));
   var qualifiedCalendar = /^(?:\/agendar\/prova\/?|\/agendar-prova\.html)$/.test(location.pathname);
+  // O projeto com Jussara não é uma prova de agenda: tem análise própria.
+  if (!qualifiedCalendar && qsParam('rota') === 'jussara') {
+    location.replace('/agendar/perfil/' + location.search + location.hash);
+    return;
+  }
   if (qualifiedCalendar && profileBridge && !fromProfile) {
     location.replace(profileBridge.qualificationUrl(location.search));
     return;

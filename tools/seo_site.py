@@ -44,7 +44,8 @@ META = {
  'madrinhas.html': ('Aluguel de vestidos de festa e madrinha | Koisa Linda', 'Vestidos para madrinhas, convidadas e formandas em Niterói e Barra da Tijuca. Explore o catálogo e visite a loja sem agendamento para provar.', 'Qual cor combina com o momento que você vai viver?'),
  'ternos.html': ('Aluguel de ternos em Niterói e Barra da Tijuca | Koisa Linda', 'Compare cores e cortes de ternos para noivos, pais, padrinhos e convidados. Descubra o caimento em Niterói ou Barra da Tijuca, sem agendar.', 'Seu terno começa pelo caimento.'),
  'catalogo.html': ('Catálogo de vestidos, ternos e acessórios | Koisa Linda', 'Explore vestidos de noiva, debutante e festa, ternos e acessórios. Filtre por unidade, cor e tamanho e confirme a disponibilidade com a loja.', None),
- 'agendar.html': ('Seu vestido começa com direção | Koisa Linda', 'Conte sobre seu momento antes da prova. Atendimento com a equipe e análise de projetos de noiva e debutante com Jussara Pessanha.', None),
+ 'agendar.html': ('Agendar prova de noiva ou debutante | Koisa Linda', 'Escolha a unidade, o dia e o horário da prova de noiva ou debutante em Niterói ou Barra da Tijuca. A confirmação final é feita pela equipe da loja.', None),
+ 'agendar-perfil.html': ('Projeto de noiva ou debutante com Jussara | Koisa Linda', 'Conte sobre seu momento e solicite a análise de um projeto de noiva ou debutante com Jussara Pessanha. A prova com a equipe tem agenda própria.', None),
  'agendar-prova.html': ('Consultar horários de prova | Koisa Linda', 'Escolha o dia e horário de uma prova com a equipe da sua unidade. Projeto com Jussara tem análise e agenda próprias.', None),
  'unidades.html': ('Lojas em Niterói e Barra da Tijuca | Koisa Linda', 'Endereços e horários da Koisa Linda em São Francisco, Niterói, e no Shopping Downtown, Barra da Tijuca. Veja onde provar e como chegar.', 'Lojas em Niterói e Barra da Tijuca'),
 }
@@ -174,7 +175,7 @@ def refine(s,source,canonical):
   for unit,label in [('sf','São Francisco'),('barra','Barra da Tijuca')]:
    s=re.sub(r'(<div class="unit")(>.*?<h3>'+label+'</h3>)',lambda m:m[1]+' id="'+unit+'"'+m[2],s,count=1,flags=re.S)
  if source!='index.html':
-  short={'sobre.html':'Sobre a Koisa Linda','servicos.html':'Serviços','privacidade.html':'Privacidade','agendar-prova.html':'Horários com a equipe','consultoria.html':'Para lojistas','noivas.html':'Noivas','debutantes.html':'Debutantes','madrinhas.html':'Madrinhas e festa','ternos.html':'Ternos','catalogo.html':'Catálogo','unidades.html':'Lojas','agendar.html':'Agendar prova','p/index.html':'Índice do acervo','noivas-experiencia.html':'Experiência noiva','provar.html':'Prova virtual'}.get(source,name)
+  short={'sobre.html':'Sobre a Koisa Linda','servicos.html':'Serviços','privacidade.html':'Privacidade','agendar-prova.html':'Horários com a equipe','agendar-perfil.html':'Projeto com Jussara','consultoria.html':'Para lojistas','noivas.html':'Noivas','debutantes.html':'Debutantes','madrinhas.html':'Madrinhas e festa','ternos.html':'Ternos','catalogo.html':'Catálogo','unidades.html':'Lojas','agendar.html':'Agendar prova','p/index.html':'Índice do acervo','noivas-experiencia.html':'Experiência noiva','provar.html':'Prova virtual'}.get(source,name)
   if source.startswith('p/') and source!='p/index.html':short='Peça '+Path(source).stem
   if source.startswith('vestido-de-noiva-'):short=label+' '+location
   crumbs.append((short,canonical))

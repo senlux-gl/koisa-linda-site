@@ -27,13 +27,13 @@ PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-qualification.js', 'kl-qualificatio
 CAPTURE_VERSION = '20260906google1'
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-guia-noiva.js', 'kl-guia-noiva.css'}
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-booking-links.js', 'kl-consultoria.css', 'kl-consultoria.js', 'kl-consultoria-config.json'}
-CAPTURE_EXCLUDED = frozenset(('consultoria.html', 'agendar.html', 'agendar-prova.html', 'privacidade.html', 'peca.html', 'provar.html', '404.html', 'guia-da-noiva.html'))
+CAPTURE_EXCLUDED = frozenset(('consultoria.html', 'agendar.html', 'agendar-prova.html', 'agendar-perfil.html', 'privacidade.html', 'peca.html', 'provar.html', '404.html', 'guia-da-noiva.html'))
 CAPTURE_CATEGORIES = {
  'noivas.html':'vestidos-noiva', 'noivas-experiencia.html':'vestidos-noiva',
  'debutantes.html':'vestidos-debutante', 'madrinhas.html':'vestidos-madrinha', 'ternos.html':'ternos',
 }
 BASE_ROUTES = {
- 'consultoria.html':'/consultoria/', 'index.html':'/', 'catalogo.html':'/catalogo/', 'agendar.html':'/agendar/', 'agendar-prova.html':'/agendar/prova/',
+ 'consultoria.html':'/consultoria/', 'index.html':'/', 'catalogo.html':'/catalogo/', 'agendar.html':'/agendar/', 'agendar-prova.html':'/agendar/prova/', 'agendar-perfil.html':'/agendar/perfil/',
  'noivas.html':'/noivas/', 'noivas-experiencia.html':'/noivas/experiencia/',
  'debutantes.html':'/debutantes/', 'madrinhas.html':'/madrinhas/', 'ternos.html':'/ternos/',
  'sobre.html':'/sobre/', 'servicos.html':'/servicos/', 'unidades.html':'/unidades/',
@@ -157,7 +157,7 @@ def add_consultoria_navigation(s, source):
 
 def render(s, source, canonical, preview=False):
  s=add_consultoria_navigation(s,source)
- if source in ('agendar.html','agendar-prova.html'):
+ if source in ('agendar.html','agendar-prova.html','agendar-perfil.html'):
   s=s.replace('<head>', '<head><script src="/kl-profile-handoff.js?v=20261001perfil"></script>',1)
  s=add_capture(s,source)
  # The tracking fallback is decorative, never a content image.
@@ -182,8 +182,7 @@ def render(s, source, canonical, preview=False):
  family='produto' if source.startswith('p/') and source!='p/index.html' else 'estilo' if source.startswith('vestido-de-noiva-') else Path(source).stem
  booking_context=cta_agenda.context(source,seo)
  s=festa_visita.refine(s,source,booking_context)
- # The qualification page comes before the calendar.
- s=re.sub(r'(<a\b[^>]*href=["\'][^"\']*(?:/agendar/|agendar\.html)[^>]*>)(Escolher (?:meu )?horário|Ver horários)(</a>)',r'\1Preencher meu perfil\3',s)
+ # 07/10/2026: the calendar comes first again; the profile questions are optional after the time.
  booking_attrs=''.join(' data-kl-booking-'+k+'="'+escape(v,quote=True)+'"' for k,v in booking_context.items() if v)
  s=re.sub(r'<body\b', '<body data-kl-page="'+family+'"'+booking_attrs, s, count=1)
  if family in ('produto','estilo') or source=='p/index.html':
@@ -192,8 +191,9 @@ def render(s, source, canonical, preview=False):
  if source=='consultoria.html':
   s=s.replace('</head>', '<link rel="stylesheet" href="/kl-consultoria.css"></head>', 1)
  s=re.sub(r'(kl-(?:catalog-actions|catalog-tryon|catalog-gallery|catalog-app|catalog-clean|site-enhance|schedule-context|agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261007festa',s)
- s=re.sub(r'(kl-(?:agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261001perfil2',s)
- s=re.sub(r'(kl-(?:site-enhance)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261001perfil2',s)
+ s=re.sub(r'(kl-(?:agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261007agenda1',s)
+ s=re.sub(r'(kl-(?:site-enhance)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261007agenda1',s)
+ s=re.sub(r'(kl-vsl\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261007agenda1',s)
  s=re.sub(r'(kl-(?:qualification)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261001perfil2',s)
  s=re.sub(r'(kl-(?:tracking)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20260906google1',s)
  s=re.sub(r'(kl-catalog\.css)(?:\?[^"\'<>\s]*)?',r'\1?v=20260915agenda',s)

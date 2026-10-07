@@ -98,19 +98,19 @@
     if (page === 'index' || page === 'home') {
       return [{
         href: 'agendar.html?ab=auto&ui_source=home_sticky_schedule',
-        label: 'Preencher meu perfil',
+        label: 'Ver horários',
         kind: 'schedule',
       }];
     }
     if (PAGINAS_COM_AGENDA[page]) {
-      return [{ href: agendaHref(page, context.unit), label: 'Preencher meu perfil', kind: 'schedule' }];
+      return [{ href: agendaHref(page, context.unit), label: 'Escolher horário', kind: 'schedule' }];
     }
     if (page === 'catalogo') {
       var occasion = scheduleOccasionFromCategory(context.category);
       if (occasion) {
         return [{
           href: scheduleHrefFromOccasion(occasion, context.unit, 'catalog_sticky_' + occasion, context.openProduct),
-          label: 'Preencher meu perfil',
+          label: context.unit === 'barra' || context.unit === 'sf' ? 'Ver horários' : 'Agendar prova',
           kind: 'schedule',
         }];
       }
@@ -121,7 +121,7 @@
       if (productOccasion) {
         return [{
           href: scheduleHrefFromOccasion(productOccasion, productUnit, page + '_sticky_' + productOccasion, context.product),
-          label: 'Preencher meu perfil',
+          label: productUnit ? 'Ver horários' : 'Agendar prova',
           kind: 'schedule',
         }];
       }
@@ -247,14 +247,14 @@
       id: 'noiva',
       label: 'Sou noiva',
       answer: 'Para noiva, a prova é com hora marcada. A equipe separa os modelos antes de você chegar e o provador fica reservado para você.',
-      primary: { label: 'Preencher meu perfil', href: 'agendar.html?ocasiao=noiva&ab=auto&ui_source=lara_web_noiva' },
+      primary: { label: 'Ver horários', href: 'agendar.html?ocasiao=noiva&ab=auto&ui_source=lara_web_noiva' },
       secondary: { label: 'Ver vestidos de noiva', href: 'catalogo.html?cat=vestidos-noiva&ui_source=lara_web_noiva' },
     },
     {
       id: 'debutante',
       label: 'Sou debutante',
       answer: 'Para debutante, também é melhor vir com hora marcada. Assim a consultora prepara a prova para vestidos de valsa, recepção e fotos.',
-      primary: { label: 'Preencher meu perfil', href: 'agendar.html?ocasiao=debutante&ab=auto&ui_source=lara_web_debutante' },
+      primary: { label: 'Ver horários', href: 'agendar.html?ocasiao=debutante&ab=auto&ui_source=lara_web_debutante' },
       secondary: { label: 'Ver debutantes', href: 'catalogo.html?cat=vestidos-debutante&ui_source=lara_web_debutante' },
     },
     {
