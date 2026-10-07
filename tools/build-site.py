@@ -25,8 +25,9 @@ PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-ficha-noiva.js', 'kl-ficha-noiva.cs
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-visit-free.js', 'kl-visit-free.css'}
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-qualification.js', 'kl-qualification.css', 'kl-profile-handoff.js', 'kl-vsl.js'}
 CAPTURE_VERSION = '20260906google1'
+PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-guia-noiva.js', 'kl-guia-noiva.css'}
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-booking-links.js', 'kl-consultoria.css', 'kl-consultoria.js', 'kl-consultoria-config.json'}
-CAPTURE_EXCLUDED = frozenset(('consultoria.html', 'agendar.html', 'agendar-prova.html', 'privacidade.html', 'peca.html', 'provar.html', '404.html'))
+CAPTURE_EXCLUDED = frozenset(('consultoria.html', 'agendar.html', 'agendar-prova.html', 'privacidade.html', 'peca.html', 'provar.html', '404.html', 'guia-da-noiva.html'))
 CAPTURE_CATEGORIES = {
  'noivas.html':'vestidos-noiva', 'noivas-experiencia.html':'vestidos-noiva',
  'debutantes.html':'vestidos-debutante', 'madrinhas.html':'vestidos-madrinha', 'ternos.html':'ternos',
@@ -38,6 +39,7 @@ BASE_ROUTES = {
  'sobre.html':'/sobre/', 'servicos.html':'/servicos/', 'unidades.html':'/unidades/',
  'como-chegar.html':'/como-chegar/', 'privacidade.html':'/privacidade/',
  'peca.html':'/peca/', 'provar.html':'/prova-virtual/',
+ 'guia-da-noiva.html':'/guia-da-noiva/',
 }
 ROUTES = dict(BASE_ROUTES)
 for p in sorted(ROOT.glob('vestido-de-noiva-*.html')):
