@@ -14,7 +14,7 @@
       var offer=doc.createElement('p');offer.className='kl-festa-offer-inline';offer.textContent='No aluguel do vestido de festa, bolsa, brinco e sandália ficam incluídos, sem custo adicional no aluguel.';box.appendChild(offer);
       var terms=doc.createElement('small');terms.textContent='Acessórios com devolução ao final do aluguel. Consulte modelos e tamanhos disponíveis na loja.';box.appendChild(terms);
       var store=stores[p.un];
-      var address=doc.createElement('p');address.textContent=store?store.name+' — '+store.address:'Consulte a unidade desta peça antes de visitar.';box.appendChild(address);
+      var address=doc.createElement('p');address.textContent=store?store.name+' · '+store.address:'Consulte a unidade desta peça antes de visitar.';box.appendChild(address);
       if(store){var hours=doc.createElement('small');hours.textContent=store.hours;box.appendChild(hours);}
       var link=doc.createElement('a');link.className='kl-visit-route';link.href=route(p.un);link.textContent=store?'Abrir rota para esta loja':'Ver as unidades';
       if(store){link.target='_blank';link.rel='noopener';}box.appendChild(link);
@@ -27,7 +27,7 @@
       inline(gallery,p);
       if(p&&p.c==='vestidos-madrinha'){
         var action=doc.getElementById('gallery-schedule');
-        if(action){action.href=route(p.un);action.textContent='Como chegar · sem agendar';if(stores[p.un]){action.target='_blank';action.rel='noopener';}}
+        if(action){action.href=route(p.un);action.textContent='Como chegar';if(stores[p.un]){action.target='_blank';action.rel='noopener';}}
       }else{
         var old=doc.getElementById('gallery-schedule');if(old){old.removeAttribute('target');old.removeAttribute('rel');}
       }

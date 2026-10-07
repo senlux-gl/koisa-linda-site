@@ -43,5 +43,5 @@ def refine(s, source, ctx):
     stores=json.dumps(STORES,ensure_ascii=False).replace('<','\\u003c')
     tags=('<link rel="stylesheet" href="/kl-visit-free.css?v=20260928b">'
           '<script>window.KL_VISIT_STORES='+stores+';</script>'
-          '<script defer src="/kl-visit-free.js?v=20260928b"></script>')
+          '<script defer src="/kl-visit-free.js?v=20261007festa"></script>')
     return s.replace('</head>',tags+'</head>',1)

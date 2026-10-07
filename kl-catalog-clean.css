@@ -42,6 +42,8 @@
 .catalog-clean #gallery-specs>div{display:flex;gap:6px;align-items:baseline}
 .catalog-clean #gallery-specs dt,.catalog-clean #gallery-specs dd{font-size:13px}
 .catalog-clean #gallery-schedule{min-height:46px;padding:12px 18px;font-size:14px;margin:0;border-radius:5px}
+.catalog-clean #gallery-whatsapp.gallery-primary{min-height:46px;padding:12px 18px;font-size:14px;margin:0;border-radius:5px;width:100%}
+.catalog-clean .gallery-support #gallery-schedule{min-height:44px;padding:8px 0;font-size:13px;border-radius:0;width:auto}
 .catalog-clean .gallery-support{display:flex;gap:16px;margin-top:6px;align-items:center}
 .catalog-clean .gallery-support a{background:transparent;border:0;min-height:44px;display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1.2;padding:8px 0;margin:0;flex:1;color:#7d303d;text-decoration:underline;border-radius:0}
 .catalog-clean .gallery-note{font-size:11px;margin:4px 0 0}

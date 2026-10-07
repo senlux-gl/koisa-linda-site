@@ -154,6 +154,31 @@
       return inert;
     }
 
+    // Peça de festa: o WhatsApp vira o botão principal e a rota vira link
+    // secundário (07/10/2026). Noiva e debutante seguem com prova agendada.
+    var FESTA_WHATSAPP_TEXT = 'Quero provar esse vestido';
+    var DEFAULT_WHATSAPP_TEXT = whatsapp.textContent || 'Tirar dúvida';
+    var supportBox = whatsapp.parentNode;
+
+    function setClass(node, name, on) {
+      if (on) node.classList.add(name);
+      else node.classList.remove(name);
+    }
+
+    function placeFestaActions(festa) {
+      if (!schedule || !supportBox || !schedule.parentNode
+          || typeof supportBox.insertBefore !== 'function'
+          || typeof schedule.parentNode.insertBefore !== 'function') return;
+      if (festa) {
+        if (whatsapp.parentNode === supportBox) schedule.parentNode.insertBefore(whatsapp, schedule);
+        if (schedule.parentNode !== supportBox) supportBox.insertBefore(schedule, supportBox.firstChild);
+      } else {
+        var panel = whatsapp.parentNode !== supportBox ? whatsapp.parentNode : null;
+        if (panel && schedule.parentNode === supportBox) panel.insertBefore(schedule, whatsapp);
+        if (whatsapp.parentNode !== supportBox) supportBox.insertBefore(whatsapp, supportBox.firstChild);
+      }
+    }
+
     var documentRef = dialog.ownerDocument;
     var activeIndex = -1;
     var activeCode = '';
@@ -240,9 +265,16 @@
         schedule.textContent = scheduleHref ? 'Agendar prova' : 'Visitar a loja';
         schedule.setAttribute('href', scheduleHref || '/agendar/#sem-hora-marcada');
       }
+      var festa = !scheduleHref && product.c === 'vestidos-madrinha';
       whatsapp.hidden = Boolean(scheduleHref);
-      whatsapp.classList.remove('gallery-primary');
-      whatsapp.classList.add('gallery-secondary');
+      setClass(whatsapp, 'gallery-primary', festa);
+      setClass(whatsapp, 'gallery-secondary', !festa);
+      whatsapp.textContent = festa ? FESTA_WHATSAPP_TEXT : DEFAULT_WHATSAPP_TEXT;
+      if (schedule) {
+        setClass(schedule, 'gallery-primary', !festa);
+        setClass(schedule, 'gallery-secondary', festa);
+      }
+      placeFestaActions(festa);
       var tryOnHref = actions.tryOnHref(product);
       tryOn.hidden = !tryOnHref;
       if (tryOnHref) tryOn.href = tryOnHref;
