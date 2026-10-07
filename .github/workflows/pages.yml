@@ -32,6 +32,7 @@ jobs:
           node --check kl-ui.js
           node --check kl-site-enhance.js
           node --check kl-tracking.js
+          node --check kl-guia-noiva.js
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site

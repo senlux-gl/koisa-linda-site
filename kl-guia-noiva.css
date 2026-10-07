@@ -1,0 +1,113 @@
+/* Koisa Linda · Guia da Noiva (landing). Paleta e tipografia canônicas: Ruby, creme, Baunilha, dourado só em filete. */
+@font-face{font-family:'GN Playfair';font-style:italic;font-weight:400 600;font-display:swap;src:url(/fonts/playfair-display-italic.woff2) format('woff2')}
+@font-face{font-family:'GN Arapey';font-display:swap;src:url(/fonts/arapey-normal.woff2) format('woff2')}
+@font-face{font-family:'GN Questrial';font-display:swap;src:url(/fonts/questrial-normal.woff2) format('woff2')}
+:root{--ruby:#722F37;--ruby-deep:#5e252c;--creme:#FBF7EF;--baunilha:#F4E5C4;--ouro:#C89F3C;--tinta:#2c2326;--muted:#6b5d57;--linha:#e9e0d2;--erro:#9b2c2c;
+ --serif:'GN Playfair','Playfair Display',Georgia,serif;--body:'GN Arapey',Arapey,Georgia,serif;--ui:'GN Questrial',Questrial,system-ui,sans-serif}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--creme);color:var(--tinta);font:19px/1.55 var(--body);-webkit-text-size-adjust:100%}
+img{max-width:100%;height:auto;display:block}
+a{color:var(--ruby)}
+[hidden]{display:none!important}
+button,input,select{font:inherit;color:inherit}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--ouro);outline-offset:3px}
+.skip{position:absolute;left:16px;top:-100px;background:var(--creme);padding:12px;z-index:20}.skip:focus{top:12px}
+.preview{padding:9px 16px;background:var(--baunilha);font:13px var(--ui);text-align:center}
+.gn-eyebrow{font:13px/1.4 var(--ui);letter-spacing:.18em;text-transform:uppercase;color:var(--ruby);margin:0 0 10px}
+h1,h2,h3{font-family:var(--serif);font-style:italic;font-weight:500;color:var(--ruby);line-height:1.12;margin:0}
+
+.gn-top{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--linha);max-width:1180px;margin:0 auto}
+.gn-top img{width:72px}
+.gn-top-link{font:14px var(--ui);letter-spacing:.06em;text-decoration:none;padding:12px 4px}
+
+.gn-hero{max-width:1180px;margin:0 auto;display:grid;gap:0}
+.gn-hero-photo{margin:0;border-bottom:4px solid var(--ouro)}
+.gn-hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;object-position:50% 20%}
+.gn-hero-text{background:var(--ruby);color:var(--baunilha);padding:28px 16px 34px}
+.gn-hero-text .gn-eyebrow{color:var(--baunilha)}
+.gn-hero-text h1{color:var(--baunilha);font-size:clamp(46px,13vw,84px);margin-bottom:10px}
+.gn-hero-text h1 em{font-style:italic}
+.gn-lead{font-size:22px;margin:0 0 14px}
+.gn-by{font:13px/1.5 var(--ui);letter-spacing:.14em;text-transform:uppercase;margin:0 0 16px;padding-top:14px;border-top:1px solid var(--ouro)}
+.gn-hero-text p{margin:0 0 18px}
+.gn-hero-text .gn-btn{background:var(--baunilha);color:var(--ruby)}
+.gn-note{font:14px var(--ui);opacity:.9;margin:12px 0 0!important}
+
+.gn-btn{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:14px 26px;border:0;border-radius:2px;background:var(--ruby);color:var(--baunilha);font:16px/1.2 var(--ui);letter-spacing:.06em;text-decoration:none;cursor:pointer;text-align:center}
+.gn-btn:hover{background:var(--ruby-deep)}
+.gn-hero-text .gn-btn:hover{background:#efdcb2}
+.gn-btn[disabled]{opacity:.6;cursor:progress}
+.gn-btn-full{width:100%}
+.gn-btn-big{min-height:64px;font-size:18px}
+.gn-link{background:none;border:0;padding:12px 4px;color:var(--ruby);text-decoration:underline;cursor:pointer;font:16px var(--ui)}
+
+.gn-inside{max-width:1180px;margin:0 auto;padding:44px 16px 20px}
+.gn-inside h2{font-size:clamp(30px,7.5vw,44px);margin-bottom:24px}
+.gn-pages{list-style:none;margin:0 -16px 28px;padding:4px 16px 12px;display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory}
+.gn-pages li{flex:0 0 42%;scroll-snap-align:start}
+.gn-pages img{border:1px solid var(--linha);box-shadow:0 10px 24px rgba(44,35,38,.12)}
+.gn-list{list-style:none;margin:0;padding:0;display:grid;gap:0;counter-reset:gn}
+.gn-list li{counter-increment:gn;padding:18px 0 18px 46px;border-top:1px solid var(--linha);position:relative}
+.gn-list li::before{content:counter(gn);position:absolute;left:0;top:14px;font:italic 500 30px var(--serif);color:var(--ruby)}
+.gn-list h3{font-size:24px;margin-bottom:4px}
+.gn-list p{margin:0;color:var(--muted)}
+
+.gn-form-area{padding:28px 16px 48px;background:linear-gradient(var(--creme) 0 40px,var(--baunilha) 40px)}
+.gn-form-card{max-width:560px;margin:0 auto;background:var(--creme);border:1px solid var(--linha);border-top:3px solid var(--ouro);padding:26px 18px 28px;box-shadow:0 14px 34px rgba(44,35,38,.10)}
+.gn-form-card h2{font-size:clamp(30px,8vw,40px);margin-bottom:6px}
+.gn-form-sub{margin:0 0 20px;color:var(--muted)}
+.gn-field{display:block;font:15px var(--ui);letter-spacing:.02em;margin:0 0 16px}
+.gn-field input{display:block;width:100%;margin-top:6px;min-height:52px;padding:12px 14px;border:1px solid #cdbfae;border-radius:2px;background:#fffdf8;font:19px var(--body)}
+.gn-field input:focus{border-color:var(--ruby)}
+.gn-check{display:flex;gap:10px;align-items:flex-start;font:15px/1.45 var(--ui);margin:0 0 16px;cursor:pointer}
+.gn-check input{width:22px;height:22px;flex:0 0 22px;margin:1px 0 0;accent-color:var(--ruby)}
+.gn-check-small{margin-top:-6px}
+.gn-stores{border:0;margin:0 0 18px;padding:0}
+.gn-stores legend{font:15px var(--ui);margin-bottom:8px;padding:0}
+.gn-stores label{display:flex;align-items:center;gap:10px;min-height:52px;padding:10px 14px;margin-bottom:8px;border:1px solid #cdbfae;border-radius:2px;background:#fffdf8;font:17px var(--body);cursor:pointer}
+.gn-stores label:has(input:checked){border-color:var(--ruby);box-shadow:inset 0 0 0 1px var(--ruby)}
+.gn-stores input{width:20px;height:20px;accent-color:var(--ruby)}
+.gn-honeypot{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.gn-error{background:#f8e9e6;color:var(--erro);border-left:3px solid var(--erro);padding:10px 12px;font:15px var(--ui);margin:0 0 14px}
+.gn-success{text-align:center}
+.gn-success h2{font-size:clamp(32px,8vw,42px);margin-bottom:10px}
+.gn-success p{margin:0 0 20px}
+.gn-after{margin:14px 0 0!important}
+
+.gn-quote{padding:40px 16px;background:var(--creme)}
+.gn-quote blockquote{max-width:720px;margin:0 auto;text-align:center}
+.gn-quote p{font:italic 500 clamp(24px,6vw,32px)/1.3 var(--serif);color:var(--ruby);margin:0 0 12px}
+.gn-quote cite{display:block;font-style:normal;font:13px var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+.gn-foot{background:var(--ruby);color:var(--baunilha);padding:36px 16px 30px;border-top:4px solid var(--ouro)}
+.gn-foot>img{width:80px;margin:0 auto 22px}
+.gn-foot-stores{max-width:960px;margin:0 auto;display:grid;gap:24px}
+.gn-foot h3{color:var(--baunilha);font-size:24px;margin-bottom:6px}
+.gn-foot p{margin:0 0 4px;font-size:17px}
+.gn-foot a{color:var(--baunilha);display:inline-block;padding:6px 0}
+.gn-foot-sign{text-align:center;margin-top:24px!important;font:13px var(--ui)!important;letter-spacing:.08em}
+.gn-noscript{text-align:center;padding:16px}
+
+.gn-dialog{border:0;border-top:3px solid var(--ouro);padding:28px 20px 18px;max-width:min(440px,calc(100vw - 32px));width:100%;background:var(--creme);color:var(--tinta);box-shadow:0 24px 60px rgba(44,35,38,.35);text-align:center}
+.gn-dialog::backdrop{background:rgba(44,35,38,.55)}
+.gn-dialog h2{font-size:32px;margin-bottom:10px}
+.gn-dialog p{margin:0 0 18px}
+.gn-dialog-close{position:absolute;right:6px;top:4px}
+.gn-dialog-close button{background:none;border:0;font-size:30px;line-height:1;color:var(--ruby);width:44px;height:44px;cursor:pointer}
+
+@media (min-width:860px){
+ body{font-size:20px}
+ .gn-top{padding:16px 32px}.gn-top img{width:90px}
+ .gn-hero{grid-template-columns:1fr 1fr;align-items:stretch;padding:32px 32px 0}
+ .gn-hero-photo{border-bottom:0;border-right:4px solid var(--ouro)}
+ .gn-hero-photo img{height:100%;aspect-ratio:auto;min-height:560px}
+ .gn-hero-text{padding:56px 48px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start}
+ .gn-inside{padding:72px 32px 40px}
+ .gn-pages{margin:0 0 36px;padding:0;overflow:visible;display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+ .gn-list{grid-template-columns:1fr 1fr;column-gap:40px}
+ .gn-form-area{padding:48px 32px 72px}
+ .gn-form-card{padding:36px 40px}
+ .gn-foot-stores{grid-template-columns:1fr 1fr}
+}
