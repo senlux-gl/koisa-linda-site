@@ -39,8 +39,8 @@ META = {
  'noivas-experiencia.html': ('Sua experiência na prova de noiva | Koisa Linda', 'Da primeira referência ao caimento: conheça a prova de noiva e o ateliê Koisa Linda. Prepare sua visita em Niterói ou Barra da Tijuca.', None),
  'como-chegar.html': ('Como chegar à Koisa Linda no Downtown, Barra da Tijuca', 'Veja os caminhos até a Koisa Linda no Shopping Downtown: Av. das Américas, 500, Bloco 8, Loja 130. Guia em vídeo e referências para sua visita.', None),
  'index.html': ('Vestidos de noiva e festa em Niterói e Barra | Koisa Linda', 'Aluguel e sob medida de vestidos de noiva, debutante e festa, além de ternos. Conheça o ateliê e as lojas em São Francisco, Niterói, e Barra da Tijuca.', None),
- 'noivas.html': ('Vestidos de noiva em Niterói e Barra da Tijuca | Koisa Linda', 'Encontre seu vestido de noiva para aluguel ou sob medida. Conheça os estilos do acervo e agende sua prova em São Francisco, Niterói, ou Barra da Tijuca.', 'Qual detalhe faz você se imaginar no seu vestido de noiva?'),
- 'debutantes.html': ('Vestidos de debutante e 15 anos | Koisa Linda Niterói e Barra', 'Compare vestidos de debutante para a entrada, a valsa e a festa. Descubra seu estilo na prova em São Francisco, Niterói, ou Barra da Tijuca.', 'Qual estilo vai entrar na sua festa de 15 anos?'),
+ 'noivas.html': ('Aluguel de vestido de noiva em Niterói e Barra | Koisa Linda', 'Aluguel de noiva do acervo a partir de R$ 2.900 e primeiro aluguel a partir de R$ 5.900. Conheça as inclusões e agende em Niterói ou Barra da Tijuca.', 'Aluguel de vestido de noiva em Niterói e Barra da Tijuca'),
+ 'debutantes.html': ('Aluguel de vestido de debutante em Niterói e Barra | Koisa Linda', 'Vestidos de 15 anos para aluguel ou compra. Fechando entrada, valsa e dança, 25% em cada vestido. Agende a prova em Niterói ou Barra da Tijuca.', 'Aluguel de vestido de debutante em Niterói e Barra da Tijuca'),
  'madrinhas.html': ('Aluguel de vestidos de festa e madrinha | Koisa Linda', 'Vestidos para madrinhas, convidadas e formandas em Niterói e Barra da Tijuca. Explore o catálogo e visite a loja sem agendamento para provar.', 'Qual cor combina com o momento que você vai viver?'),
  'ternos.html': ('Aluguel de ternos em Niterói e Barra da Tijuca | Koisa Linda', 'Compare cores e cortes de ternos para noivos, pais, padrinhos e convidados. Descubra o caimento em Niterói ou Barra da Tijuca, sem agendar.', 'Seu terno começa pelo caimento.'),
  'catalogo.html': ('Catálogo de vestidos, ternos e acessórios | Koisa Linda', 'Explore vestidos de noiva, debutante e festa, ternos e acessórios. Filtre por unidade, cor e tamanho e confirme a disponibilidade com a loja.', None),
@@ -91,6 +91,25 @@ def metadata(s,title,description,image):
  s=re.sub(r'<meta\b(?=[^>]*(?:name|property)=["\'](?:description|og:title|og:description|og:image|og:image:alt|twitter:card|twitter:title|twitter:description|twitter:image)["\'])[^>]*>','',s)
  tags=[('name','description',description),('property','og:title',title),('property','og:description',description),('property','og:image',image),('property','og:image:alt',title),('name','twitter:card','summary_large_image'),('name','twitter:title',title),('name','twitter:description',description),('name','twitter:image',image)]
  return s.replace('</head>',''.join(f'<meta {kind}="{key}" content="{escape(value,quote=True)}">' for kind,key,value in tags)+'</head>',1)
+
+
+def rental_offer(source):
+ # Approved commercial terms: memory/lara/ofertas-ativas.json, 06/10/2026.
+ # Prices are floors, not product prices or promises of availability.
+ bridal=source=='noivas.html'
+ occasion='noiva' if bridal else 'debutante'
+ title='Do acervo ao primeiro aluguel: o que está incluído' if bridal else 'Entrada, valsa e dança: 25% em cada vestido'
+ body=('<p><strong>Aluguel do acervo a partir de R$ 2.900.</strong> Compare os vestidos prontos do nosso acervo e descubra o caimento na prova.</p>'
+       '<p><strong>Primeiro aluguel a partir de R$ 5.900.</strong> Nesse caminho, você é a primeira a usar o vestido.</p>'
+       '<p>Nos dois caminhos estão incluídos ajuste no nosso ateliê, provas quantas forem necessárias, véu, acessórios e o penteado do grande dia. O valor final depende do vestido escolhido e é confirmado na prova. Para compra, consulte o valor com a equipe.</p>') if bridal else (
+       '<p>Fechando os três vestidos da festa de 15 anos, <strong>o desconto de 25% vale em cada um</strong>: entrada, valsa e dança. A condição vale para aluguel ou compra dos três vestidos.</p>'
+       '<p>Estão incluídos acessórios, penteado do grande dia, ajuste no nosso ateliê e provas quantas forem necessárias. Cada vestido tem seu valor; na prova, a consultora apresenta as opções e a conta com o desconto.</p>')
+ local=''
+ for unit,city,address,detail in [
+  ('sf','São Francisco, Niterói','Av. Presidente Roosevelt, 37, São Francisco, Niterói/RJ.','Atendimento de segunda a sexta, 9h às 18h, e sábado, 9h às 14h.'),
+  ('barra','Barra da Tijuca','Av. das Américas, 500, Shopping Downtown, Bloco 8, Loja 130, Rio de Janeiro/RJ.','A loja fica na parte interna do Downtown. Atendimento de segunda a sábado, 9h às 19h.')]:
+  local+=f'<article class="kl-rental-unit" id="aluguel-{unit}"><h3>Aluguel de vestido de {occasion} em {city}</h3><p>{address}</p><p>{detail}</p><p>Prova com hora marcada. Consulte os modelos e a disponibilidade para a data da sua celebração nesta unidade.</p><a class="btn-pri" href="/agendar/?ocasiao={occasion}&amp;un={unit}">Agendar prova em {city}</a><p><a href="/unidades/#{unit}">Ver informações da unidade</a></p></article>'
+ return f'<section class="section kl-rental-offer" id="aluguel-e-condicoes"><p class="kl-section-label">Aluguel e condições</p><h2>{title}</h2>{body}<p>Atendimento com a direção da estilista Jussara Pessanha. Escolha a unidade para preparar sua prova.</p><div class="kl-rental-units">{local}</div></section>'
 
 def refine(s,source,canonical):
  products,attrs,pages=context()
@@ -169,6 +188,16 @@ def refine(s,source,canonical):
   if source=='noivas.html':
    s=re.sub(r'<section class="kl-cortes">.*?</section>','<section class="kl-seo-section"><h2>Encontre seu estilo de vestido de noiva</h2><p>Escolha a unidade para conhecer os modelos do catálogo e preparar a sua prova.</p><h3>São Francisco · Niterói</h3>'+style_links('niteroi')+'<h3>Barra da Tijuca</h3>'+style_links('barra-da-tijuca')+'</section>',s,count=1,flags=re.S)
  elif source=='noivas-experiencia.html':crumbs.append(('Noivas','/noivas/'))
+ if source in ('noivas.html','debutantes.html'):
+  offer=rental_offer(source)
+  marker='<section class="kl-seo-section kl-collection-preview"'
+  s=s.replace(marker,offer+marker,1) if marker in s else insert_end(s,offer)
+  style='<style>.kl-rental-offer{scroll-margin-top:90px}.kl-rental-offer>p{max-width:760px}.kl-rental-units{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px;margin-top:36px}.kl-rental-unit{border-top:1px solid #C89F3C;padding-top:24px;scroll-margin-top:90px}.kl-rental-unit .btn-pri{display:inline-block;background:#722F37;color:#FBF7EF;padding:14px 20px;border-radius:3px;text-decoration:none;font-family:Questrial,sans-serif;font-size:14px;white-space:normal;max-width:100%;box-sizing:border-box;text-align:center}.kl-rental-unit .btn-pri:hover{background:#5a242b}.kl-rental-unit .btn-pri:focus-visible{outline:2px solid #722F37;outline-offset:4px}.kl-rental-unit h3{line-height:1.25}@media(max-width:640px){.kl-rental-units{grid-template-columns:1fr;gap:36px}}</style>'
+  s=s.replace('</head>',style+'</head>',1)
+ if source=='agendar.html':
+  # Keep the calendar first. Context comes after it; no new step or booking logic.
+  block='<section class="kl-seo-section" id="condicoes-da-prova"><h2>O que você pode conhecer na prova</h2><p><strong>Noivas:</strong> aluguel do acervo a partir de R$ 2.900 e primeiro aluguel a partir de R$ 5.900. Nos dois, ajuste no ateliê, provas quantas forem necessárias, véu, acessórios e penteado do grande dia incluídos. O valor final depende do vestido escolhido.</p><p><strong>Debutantes:</strong> fechando entrada, valsa e dança, 25% de desconto em cada um dos três vestidos, para aluguel ou compra. Acessórios, penteado, ajuste e provas incluídos. Valores apresentados na prova.</p><p>Condições nas unidades São Francisco, Niterói, e Barra da Tijuca. Confira <a href="/noivas/#aluguel-e-condicoes">as opções para noivas</a> e <a href="/debutantes/#aluguel-e-condicoes">os vestidos de debutante</a>.</p></section>'
+  s=insert_end(s,block)
  if source in ('index.html','catalogo.html','unidades.html'):s=insert_end(s,category_links())
  if source=='catalogo.html':page_type='CollectionPage'
  if source=='unidades.html':
