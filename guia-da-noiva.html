@@ -19,7 +19,7 @@
 <script src="/kl-profile-handoff.js?v=20261001perfil"></script>
 <script defer src="/kl-tracking.js?v=20260906google1"></script>
 <script defer src="/kl-guia-noiva.js?v=20261007"></script>
-</head><body>
+<link rel="preconnect" href="https://n8n.janotattec.com.br"><style>[hidden]{display:none!important}</style></head><body>
 <a class="skip" href="#receber">Ir para o formulário</a>
 <div id="preview" class="preview" hidden>Prévia para revisão. Nenhum dado preenchido será enviado.</div>
 <header class="gn-top"><a href="/" aria-label="Koisa Linda, início"><img src="/img/guia-noiva/logo-ruby.png" alt="Koisa Linda" width="90" height="60"></a><a class="gn-top-link" href="#lojas">Nossas lojas</a></header>
@@ -59,11 +59,11 @@
   <form id="gn-form" novalidate>
    <p class="gn-eyebrow">Receba agora</p>
    <h2 id="gn-form-title" tabindex="-1">Seu Guia da Noiva, grátis.</h2>
-   <p class="gn-form-sub">Preencha e baixe o PDF na hora.</p>
+   <p class="gn-form-sub">Informe nome, WhatsApp e a loja mais perto. A data do casamento fica para depois.</p>
    <label class="gn-field" for="gn-nome">Seu nome<input id="gn-nome" name="nome" autocomplete="name" maxlength="100" required></label>
    <label class="gn-field" for="gn-telefone">WhatsApp com DDD<input id="gn-telefone" name="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="16" placeholder="(21) 99999-9999" required></label>
-   <label class="gn-field" for="gn-data">Data do casamento<input id="gn-data" name="data_evento" type="date"></label>
-   <label class="gn-check gn-check-small"><input id="gn-sem-data" name="data_indefinida" type="checkbox">Ainda estamos definindo a data</label>
+   <label hidden class="gn-field" for="gn-data">Data do casamento<input id="gn-data" name="data_evento" type="date"></label>
+   <label hidden class="gn-check gn-check-small"><input id="gn-sem-data" name="data_indefinida" type="checkbox" checked>Ainda estamos definindo a data</label>
    <fieldset class="gn-stores"><legend>Loja mais perto de você</legend>
     <label><input name="loja" type="radio" value="barra" required><span>Barra da Tijuca</span></label>
     <label><input name="loja" type="radio" value="saofrancisco" required><span>São Francisco, Niterói</span></label>

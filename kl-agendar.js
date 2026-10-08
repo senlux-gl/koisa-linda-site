@@ -446,7 +446,7 @@
   function passoLeadD() {
     trackSchedule('KL_Lead_Form_Start', { source_detail: 'formulario_primeiro' }, 'leadstart:' + nomeVariante());
     cartao.innerHTML = '<h2>Antes da prova, queremos conhecer seu momento</h2>' + resumo() +
-      '<p class="sub">Preencha seu nome e WhatsApp. Se quiser, conte também a data do evento e os estilos que você gosta.</p>' +
+      '<p class="sub">Preencha apenas nome e WhatsApp. Os detalhes do evento ficam para depois do agendamento.</p>' +
       '<form id="lead-d" novalidate>' +
       '<div class="campo" id="c-nome"><label for="nome">Seu nome</label>' +
       '<input id="nome" name="nome" type="text" autocomplete="name" maxlength="80" required value="' + esc(estado.lead.nome) + '">' +
@@ -454,7 +454,7 @@
       '<div class="campo" id="c-tel"><label for="telefone">WhatsApp com DDD<span class="dica">Para a equipe falar com você sobre a prova.</span></label>' +
       '<input id="telefone" name="telefone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(21) 90000-0000" required value="' + esc(estado.lead.telefone) + '">' +
       '<span class="mini">Confira o número com DDD.</span></div>' +
-      '<details class="schedule-optional" id="schedule-optional"><summary>Conte mais sobre seu momento (opcional)</summary>' +
+      '<details class="schedule-optional" id="schedule-optional" hidden><summary>Conte mais sobre seu momento (opcional)</summary>' +
       '<div class="campo"><label for="evento">Data do evento<span class="dica">Se já tiver. Ajuda a entender urgência e preparação.</span></label>' +
       '<input id="evento" name="evento" type="date" value="' + esc(estado.lead.data_evento) + '"></div>' +
       '<div class="campo"><label for="preferencia">Preferência de atendimento<span class="dica">Opcional, para orientar a equipe.</span></label>' +
@@ -467,7 +467,7 @@
       '<label class="aceite"><input id="aceite" type="checkbox" required><span>Autorizo a Koisa Linda a usar meu nome e WhatsApp para confirmar e organizar esta prova. <a href="privacidade.html" target="_blank" rel="noopener">Como cuidamos dos seus dados</a>.</span></label>' +
       '<label class="aceite"><input id="kl-schedule-measurement" type="checkbox"><span>Permito relacionar esta visita ao meu atendimento e às compras para medir os resultados dos anúncios no Google. Opcional; posso retirar essa autorização.</span></label>' +
       '<span class="mini" id="mini-aceite" style="margin:-14px 0 16px;display:none">Precisamos do seu aceite para continuar.</span>' +
-      '<div class="acoes"><button type="submit" class="btn forte" id="ir-dados">Contar meu momento e escolher horário</button></div>' +
+      '<div class="acoes"><button type="submit" class="btn forte" id="ir-dados">Escolher horário</button></div>' +
       '</form>';
     restaurarDados();
     var pref = document.getElementById('preferencia');
@@ -535,6 +535,7 @@
         estado.data = ''; estado.hora = '';   // trocar de loja muda a agenda
         trackSchedule(campo === 'loja' ? 'KL_Schedule_Unit_Select' : 'KL_Schedule_Occasion_Select', { field: campo, value: estado[campo] });
         passo1();
+        if (estado.loja && estado.ocasiao) consultarAgenda(estado.loja, estado.ocasiao).catch(function () {});
       });
     });
     var ir2 = document.getElementById('ir2');
@@ -548,16 +549,30 @@
     buscarHorarios();
   }
 
+  // Cache curto apenas de consulta; o servidor revalida a vaga ao reservar.
+  var consultasAgenda = {};
+  var consultaVisivel = 0;
+  function consultarAgenda(loja, ocasiao, renovar) {
+    var chave = loja + ':' + ocasiao;
+    var existente = consultasAgenda[chave];
+    if (!renovar && existente && Date.now() - existente.em < 30000) return existente.promise;
+    var entrada = { em: Date.now() };
+    entrada.promise = fetch(API + '/horarios?loja=' + encodeURIComponent(loja) + '&ocasiao=' + encodeURIComponent(ocasiao),
+      { method: 'GET', headers: { Accept: 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error('agenda indisponível')); })
+      .catch(function (e) { if (consultasAgenda[chave] === entrada) delete consultasAgenda[chave]; throw e; });
+    consultasAgenda[chave] = entrada;
+    return entrada.promise;
+  }
+
   function buscarHorarios() {
-    var url = API + '/horarios?loja=' + encodeURIComponent(estado.loja) +
-      '&ocasiao=' + encodeURIComponent(estado.ocasiao);
-
-    var expirou = setTimeout(function () { desenharFalhaAgenda(); }, 12000);
-
-    fetch(url, { method: 'GET', headers: { Accept: 'application/json' } })
-      .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error('http ' + r.status)); })
+    var loja = estado.loja, ocasiao = estado.ocasiao, chamada = ++consultaVisivel;
+    function atual() { return chamada === consultaVisivel && loja === estado.loja && ocasiao === estado.ocasiao && estado.passo === (estado.variante === 'd' ? 3 : 2); }
+    var expirou = setTimeout(function () { if (atual()) { consultaVisivel++; delete consultasAgenda[loja + ':' + ocasiao]; desenharFalhaAgenda(); } }, 12000);
+    consultarAgenda(loja, ocasiao)
       .then(function (d) {
         clearTimeout(expirou);
+        if (!atual()) return;
         if (!d || d.ok !== true || !Array.isArray(d.dias) || !d.dias.length) return desenharAgendaVazia();
         estado.dias = d.dias;
         trackSchedule('KL_Schedule_Slots_Loaded', { days_count: String(d.dias.length) }, 'slots:' + estado.loja + ':' + estado.ocasiao);
@@ -566,7 +581,7 @@
         if (!estado.data) estado.data = d.dias[0].data;
         desenharDias();
       })
-      .catch(function () { clearTimeout(expirou); desenharFalhaAgenda(); });
+      .catch(function () { clearTimeout(expirou); if (atual()) desenharFalhaAgenda(); });
   }
 
 
@@ -730,7 +745,7 @@
       '<a class="btn forte" target="_blank" rel="noopener" href="' +
       linkWhats('Olá! Vim pelo site e quero agendar uma prova de ' + OCASIOES[estado.ocasiao].detalhe +
         ' na unidade ' + LOJAS[estado.loja].nome + '.') + '">Marcar pelo WhatsApp</a></div>';
-    document.getElementById('tentar').addEventListener('click', passo2);
+    document.getElementById('tentar').addEventListener('click', function () { delete consultasAgenda[estado.loja + ':' + estado.ocasiao]; passo2(); });
   }
 
   /* ── passo 3 ─────────────────────────────────────────────────────────────── */
@@ -751,7 +766,7 @@
       '<input id="telefone" name="telefone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(21) 90000-0000" required>' +
       '<span class="mini">Confira o número com DDD.</span></div>' +
 
-      '<details class="schedule-optional" id="schedule-optional"><summary>' + (fromProfile ? 'Conte mais sobre seu momento (opcional)' : 'Conte mais sobre seu momento (opcional, ajuda a equipe a separar os modelos)') + '</summary>' +
+      '<details class="schedule-optional" id="schedule-optional" hidden><summary>' + (fromProfile ? 'Conte mais sobre seu momento (opcional)' : 'Conte mais sobre seu momento (opcional, ajuda a equipe a separar os modelos)') + '</summary>' +
       (fromProfile ? '' : camposPerfil()) +
       '<div class="campo"><label for="evento">' + rotuloEvento +
       '<span class="dica">Se já souber, ajuda a equipe a preparar seu atendimento.</span></label>' +
@@ -830,7 +845,7 @@
       .then(function (r) {
         marcarEnvio(false);
         if (r.corpo && r.corpo.ok === true) { trackSchedule('KL_Schedule_Request_Success', { status: String(r.status) }); return pronto(r.corpo); }
-        if (r.status === 409) { trackSchedule('KL_Schedule_Request_Conflict', { status: String(r.status) }); alerta(r.corpo.mensagem); return ir(estado.variante === 'd' ? 3 : 2); }
+        if (r.status === 409) { delete consultasAgenda[estado.loja + ':' + estado.ocasiao]; trackSchedule('KL_Schedule_Request_Conflict', { status: String(r.status) }); alerta(r.corpo.mensagem); return ir(estado.variante === 'd' ? 3 : 2); }
         if (botao) { botao.disabled = false; botao.textContent = estado.variante === 'd' ? 'Pedir este horário' : 'Pedir este horário'; }
         trackSchedule('KL_Schedule_Request_Error', { status: String(r.status) });
         alerta((r.corpo && r.corpo.mensagem) || 'Não consegui registrar agora. Tente de novo em instantes.');
@@ -952,6 +967,21 @@
       ficha.innerHTML = '<p>Conte suas preferências para a equipe preparar sua prova. A ficha é opcional.</p><a id="kl-bridal-profile" class="btn forte" rel="noreferrer" referrerpolicy="no-referrer">Preparar minha prova</a>';
       ficha.querySelector('a').href = fichaUrl;
       cartao.querySelector('.pronto').appendChild(ficha);
+    }
+    if (!(confirmed && cartao.querySelector('#kl-bridal-profile'))) {
+      var detalhes = document.createElement('details');
+      detalhes.className = 'schedule-optional';
+      detalhes.innerHTML = '<summary>Preparar minha prova (opcional)</summary><p>Seu pedido já foi enviado. Se quiser, conte os detalhes para a equipe pelo WhatsApp.</p>' + camposPerfil() +
+        '<div class="campo"><label for="evento-depois">Data do evento, se já souber</label><input id="evento-depois" type="date"></div>' +
+        '<div class="campo"><label for="notas-depois">Modelos, tamanho ou referências</label><textarea id="notas-depois" maxlength="400"></textarea></div>' +
+        '<a id="enviar-detalhes" class="btn" target="_blank" rel="noopener">Enviar detalhes pelo WhatsApp</a>';
+      cartao.querySelector('.pronto').appendChild(detalhes);
+      var enviarDetalhes = document.getElementById('enviar-detalhes');
+      enviarDetalhes.href = linkWhats(textoDuvida);
+      enviarDetalhes.addEventListener('click', function () {
+        enviarDetalhes.href = linkWhats('Olá! Sou ' + estado.lead.nome + '. Meu pedido de prova é para ' + quando + '. ' +
+          (valor('evento-depois') ? 'Data do evento: ' + valor('evento-depois') + '. ' : '') + notasComPerfil(valor('notas-depois'), perfilLido()));
+      });
     }
     var appointmentId = String(corpo.appointment_id || '');
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(appointmentId)) return;
