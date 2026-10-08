@@ -195,9 +195,14 @@ def render(s, source, canonical, preview=False):
  s=re.sub(r'(kl-(?:site-enhance)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261007agenda1',s)
  s=re.sub(r'(kl-vsl\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261007agenda1',s)
  s=re.sub(r'(kl-(?:qualification)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261001perfil2',s)
- s=re.sub(r'(kl-(?:tracking)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20260906google1',s)
+ s=re.sub(r'(kl-(?:tracking)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261008perf1',s)
  s=re.sub(r'(kl-catalog\.css)(?:\?[^"\'<>\s]*)?',r'\1?v=20260915agenda',s)
  s=re.sub(r'(kl-catalog-data\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261007festa',s)
+ # Tiny synchronous routing helpers must run before page scripts, but need no extra round-trip.
+ for asset in ('kl-route-normalize.js', 'kl-profile-handoff.js'):
+  pattern=r'<script\b[^>]*src=[\"\'][^\"\']*'+re.escape(asset)+r'(?:\?[^\"\']*)?[\"\'][^>]*></script>'
+  script=(ROOT/asset).read_text().replace('</script', '<\\/script')
+  s=re.sub(pattern,lambda m:'<script data-kl-inline="'+asset+'">'+script+'</script>',s)
  if preview:
   s=s.replace('<head>', '<head><script src="/qa-metrics.js"></script>',1)
   s=re.sub(r'<script\b[^>]*src=["\'][^"\']*(?:kl-ga\.js|kl-tracking\.js)[^>]*></script>','',s)
