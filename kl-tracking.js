@@ -553,11 +553,16 @@
     window.__klGA4Ready = true;
     window.dataLayer = window.dataLayer || [];
     window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
-    var g = document.createElement('script');
-    g.async = true;
-    g.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA4_ID;
-    (document.head || document.documentElement).appendChild(g);
-    window.gtag('js', new Date());
+    // Google Ads and GA4 share one loader and the same dataLayer.
+    // Keep the standalone fallback for pages without kl-ga.js.
+    var existing = document.querySelector('script[src^="https://www.googletagmanager.com/gtag/js"]');
+    if (!existing) {
+      var g = document.createElement('script');
+      g.async = true;
+      g.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA4_ID;
+      (document.head || document.documentElement).appendChild(g);
+      window.gtag('js', new Date());
+    }
     window.gtag('config', GA4_ID);
     var queue = window.__klGA4EventQueue || [];
     window.__klGA4EventQueue = [];

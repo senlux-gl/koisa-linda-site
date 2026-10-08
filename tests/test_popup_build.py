@@ -143,7 +143,7 @@ class PopupBuildTest(unittest.TestCase):
     after_urls = [tag['src'] for tag in page.scripts if Path(urlsplit(tag['src']).path).name == asset]
     expected_urls = before_urls or (['/kl-tracking.js?v=20260906agenda1'] if asset == 'kl-tracking.js' else [])
     if asset == 'kl-tracking.js':
-     expected_urls = [urlsplit(url).path+'?v=20260906google1' for url in expected_urls]
+     expected_urls = [urlsplit(url).path+'?v=20261008perf1' for url in expected_urls]
     self.assertEqual(after_urls, expected_urls, (path, asset))
    script_paths = [urlsplit(tag['src']).path for tag in page.scripts]
    self.assertLess(script_paths.index('/kl-tracking.js'), script_paths.index('/kl-capture.js'), path)
