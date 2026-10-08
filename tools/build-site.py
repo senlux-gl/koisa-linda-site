@@ -97,8 +97,8 @@ def redirect_page(destination):
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Este endereço mudou | Koisa Linda</title>
 <link rel="canonical" href="'''+escape(ORIGIN+destination,quote=True)+'''">
-<meta name="robots" content="noindex,follow">
-<script src="/kl-redirect.js" defer></script>
+<meta http-equiv="refresh" content="0; url='''+escape(destination,quote=True)+'''">
+<script src="/kl-redirect.js"></script>
 <style>body{margin:0;padding:15vh 24px;background:#fbf7ef;color:#2c2326;font:20px/1.6 Georgia,serif;text-align:center}a{display:inline-block;padding:14px 24px;color:#722f37}a:focus-visible{outline:2px solid #722f37}</style>
 </head><body><h1>Seu momento continua por aqui.</h1><p>O endereço desta página mudou.</p>
 <a id="kl-redirect" href="'''+escape(destination,quote=True)+'''">Continuar para a Koisa Linda</a></body></html>'''
@@ -191,7 +191,7 @@ def render(s, source, canonical, preview=False):
  if source=='consultoria.html':
   s=s.replace('</head>', '<link rel="stylesheet" href="/kl-consultoria.css"></head>', 1)
  s=re.sub(r'(kl-(?:catalog-actions|catalog-tryon|catalog-gallery|catalog-app|catalog-clean|site-enhance|schedule-context|agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261007festa',s)
- s=re.sub(r'(kl-(?:agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261007agenda1',s)
+ s=re.sub(r'(kl-(?:agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261008seo1',s)
  s=re.sub(r'(kl-(?:site-enhance)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261007agenda1',s)
  s=re.sub(r'(kl-vsl\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261007agenda1',s)
  s=re.sub(r'(kl-(?:qualification)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261001perfil2',s)
@@ -243,6 +243,7 @@ def build(output, preview=False):
  sitemap=[]
  for p in sorted(output.rglob('*.html')):
   s=p.read_text()
+  if 'id="kl-redirect"' in s:continue
   if re.search(r'<meta\b[^>]*name=["\']robots["\'][^>]*noindex',s,re.I):continue
   m=re.search(r'<link rel="canonical" href="([^"]+)"',s)
   if m:sitemap.append(m[1])

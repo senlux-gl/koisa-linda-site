@@ -15,7 +15,14 @@ class SEOBuildTest(unittest.TestCase):
  @classmethod
  def setUpClass(cls):
   cls.pages={p.relative_to(ROOT/'_site').as_posix():p.read_text() for p in (ROOT/'_site').rglob('*.html')}
-  cls.indexable={p:s for p,s in cls.pages.items() if not re.search(r'<meta[^>]+name=["\']robots["\'][^>]+noindex',s)}
+  cls.indexable={p:s for p,s in cls.pages.items() if 'id="kl-redirect"' not in s and not re.search(r'<meta[^>]+name=["\']robots["\'][^>]+noindex',s)}
+
+ def test_booking_faq_matches_visible_answers(self):
+  s=self.pages['agendar/index.html']
+  faq=next(x for x in seo.schemas(s) if x.get('@type')=='FAQPage')
+  visible=re.findall(r'<div class="faq-item"><b>(.*?)</b><p>(.*?)</p></div>',s,re.S)
+  self.assertEqual(len(visible),8)
+  self.assertEqual([(x['name'],x['acceptedAnswer']['text']) for x in faq['mainEntity']],[(seo.plain(q),seo.plain(a)) for q,a in visible])
 
  def test_all_indexable_titles_are_unique_and_descriptions_consistent(self):
   titles=[]
