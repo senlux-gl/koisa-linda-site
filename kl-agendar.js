@@ -377,8 +377,8 @@
       desc.textContent = 'Escolha quando vir à loja. Nossa equipe acompanha você na escolha e na prova dos vestidos.';
     } else {
       if (eyebrow) eyebrow.textContent = 'Prova com hora marcada';
-      title.textContent = 'Vamos conhecer seu vestido de perto?';
-      desc.textContent = 'Leve as referências que encantaram você e compare o caimento na prova. Escolha a unidade, a data e o horário para noiva ou debutante.';
+      title.textContent = 'Agende sua prova de noiva ou debutante';
+      desc.textContent = 'Escolha sua prova em São Francisco, Niterói, ou na Barra da Tijuca, Rio de Janeiro. Veja os dias e horários disponíveis e confira a confirmação ao finalizar.';
     }
     document.body.setAttribute('data-schedule-variant', estado.variante || 'a');
   }
@@ -1027,7 +1027,7 @@
   }
   document.querySelectorAll('.schedule-guide a').forEach(function (a) {
     var id = String(a.getAttribute('href') || '').split('#')[1];
-    if (id === 'duvidas-agendamento' || id === 'sem-hora-marcada') a.setAttribute('href', ancoraDaPagina(id));
+    if (id === 'duvidas-agendamento' || id === 'sem-hora-marcada' || id === 'lojas-agendamento') a.setAttribute('href', ancoraDaPagina(id));
   });
   trackSchedule('KL_Schedule_Experiment_View', { url_has_store: estado.loja ? 'yes' : 'no', url_has_occasion: estado.ocasiao ? 'yes' : 'no' }, 'view:' + location.href);
   desenhar();

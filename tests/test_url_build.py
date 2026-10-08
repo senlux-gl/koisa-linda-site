@@ -45,7 +45,13 @@ class URLBuildTest(unittest.TestCase):
    with self.subTest(alias=alias):
     s=(self.output/alias.lstrip('/')).read_text()
     self.assertIn('id="kl-redirect"',s);self.assertIn('/kl-redirect.js',s)
-    self.assertNotIn('fbq(',s);self.assertNotIn('http-equiv="refresh"',s)
+    self.assertNotIn('fbq(',s);self.assertIn('http-equiv="refresh" content="0; url=',s)
+    self.assertNotIn('noindex',s)
+    refresh=re.search(r'http-equiv="refresh" content="0; url=([^"]+)"',s)[1]
+    destination=re.search(r'id="kl-redirect" href="([^"]+)"',s)[1]
+    self.assertEqual(refresh,destination)
+    self.assertTrue(refresh.startswith('/'))
+    self.assertNotIn('src="/kl-redirect.js" defer',s)
  def test_schema_urls_and_canonicals_agree(self):
   for p in self.pages:
    s=p.read_text()
