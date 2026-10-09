@@ -39,8 +39,8 @@ META = {
  'noivas-experiencia.html': ('Sua experiência na prova de noiva | Koisa Linda', 'Da primeira referência ao caimento: conheça a prova de noiva e o ateliê Koisa Linda. Prepare sua visita em Niterói ou Barra da Tijuca.', None),
  'como-chegar.html': ('Como chegar à Koisa Linda no Downtown, Barra da Tijuca', 'Veja os caminhos até a Koisa Linda no Shopping Downtown: Av. das Américas, 500, Bloco 8, Loja 130. Guia em vídeo e referências para sua visita.', None),
  'index.html': ('Vestidos de noiva e festa em Niterói e Barra | Koisa Linda', 'Aluguel e sob medida de vestidos de noiva, debutante e festa, além de ternos. Conheça o ateliê e as lojas em São Francisco, Niterói, e Barra da Tijuca.', None),
- 'noivas.html': ('Aluguel de vestido de noiva em Niterói e Barra | Koisa Linda', 'Aluguel de noiva do acervo a partir de R$ 2.900 e primeiro aluguel a partir de R$ 5.900. Conheça as inclusões e agende em Niterói ou Barra da Tijuca.', 'Aluguel de vestido de noiva em Niterói e Barra da Tijuca'),
- 'debutantes.html': ('Aluguel de vestido de debutante em Niterói e Barra | Koisa Linda', 'Vestidos de 15 anos para aluguel ou compra. Fechando entrada, valsa e dança, 25% em cada vestido. Agende a prova em Niterói ou Barra da Tijuca.', 'Aluguel de vestido de debutante em Niterói e Barra da Tijuca'),
+ 'noivas.html': ('Aluguel de vestido de noiva em Niterói e Barra | Koisa Linda', 'Vestidos de noiva para aluguel de R$ 990 a R$ 4.900. Consulte modelos e disponibilidade e agende sua prova em Niterói ou Barra da Tijuca.', 'Aluguel de vestido de noiva em Niterói e Barra da Tijuca'),
+ 'debutantes.html': ('Aluguel de vestido de debutante em Niterói e Barra | Koisa Linda', 'Vestidos de debutante para aluguel de R$ 990 a R$ 4.900 por vestido. Veja os horários e agende sua prova em Niterói ou Barra da Tijuca.', 'Aluguel de vestido de debutante em Niterói e Barra da Tijuca'),
  'madrinhas.html': ('Aluguel de vestidos de festa e madrinha | Koisa Linda', 'Vestidos para madrinhas, convidadas e formandas em Niterói e Barra da Tijuca. Explore o catálogo e visite a loja sem agendamento para provar.', 'Qual cor combina com o momento que você vai viver?'),
  'ternos.html': ('Aluguel de ternos em Niterói e Barra da Tijuca | Koisa Linda', 'Compare cores e cortes de ternos para noivos, pais, padrinhos e convidados. Descubra o caimento em Niterói ou Barra da Tijuca, sem agendar.', 'Seu terno começa pelo caimento.'),
  'catalogo.html': ('Catálogo de vestidos, ternos e acessórios | Koisa Linda', 'Explore vestidos de noiva, debutante e festa, ternos e acessórios. Filtre por unidade, cor e tamanho e confirme a disponibilidade com a loja.', None),
@@ -94,16 +94,14 @@ def metadata(s,title,description,image):
 
 
 def rental_offer(source):
- # Approved commercial terms: memory/lara/ofertas-ativas.json, 06/10/2026.
- # Prices are floors, not product prices or promises of availability.
+ # Faixa de aluguel informada e confirmada por Guilherme em 09/10/2026.
+ # Faixa comercial não altera preço individual, estoque, compra ou sob medida.
  bridal=source=='noivas.html'
  occasion='noiva' if bridal else 'debutante'
- title='Do acervo ao primeiro aluguel: o que está incluído' if bridal else 'Entrada, valsa e dança: 25% em cada vestido'
- body=('<p><strong>Aluguel do acervo a partir de R$ 2.900.</strong> Compare os vestidos prontos do nosso acervo e descubra o caimento na prova.</p>'
-       '<p><strong>Primeiro aluguel a partir de R$ 5.900.</strong> Nesse caminho, você é a primeira a usar o vestido.</p>'
-       '<p>Nos dois caminhos estão incluídos ajuste no nosso ateliê, provas quantas forem necessárias, véu, acessórios e o penteado do grande dia. O valor final depende do vestido escolhido e é confirmado na prova. Para compra, consulte o valor com a equipe.</p>') if bridal else (
-       '<p>Fechando os três vestidos da festa de 15 anos, <strong>o desconto de 25% vale em cada um</strong>: entrada, valsa e dança. A condição vale para aluguel ou compra dos três vestidos.</p>'
-       '<p>Estão incluídos acessórios, penteado do grande dia, ajuste no nosso ateliê e provas quantas forem necessárias. Cada vestido tem seu valor; na prova, a consultora apresenta as opções e a conta com o desconto.</p>')
+ title='Vestidos de '+occasion+' para alugar'
+ body=('<p class="kl-rental-price"><strong>De R$ 990 a R$ 4.900</strong><span>Aluguel por vestido</span></p>'
+       '<p>Conheça as opções dessa faixa e escolha seu vestido na prova. O valor varia conforme o modelo; a equipe confirma a disponibilidade para a sua data e as condições da contratação.</p>'
+       '<p>Agende sua prova com a equipe em São Francisco, Niterói, ou na Barra da Tijuca. Escolha a unidade e o horário pelo site.</p>')
  local=''
  for unit,city,address,detail in [
   ('sf','São Francisco, Niterói','Av. Presidente Roosevelt, 37, São Francisco, Niterói/RJ.','Atendimento de segunda a sexta, 9h às 18h, e sábado, 9h às 14h.'),
@@ -190,13 +188,18 @@ def refine(s,source,canonical):
  elif source=='noivas-experiencia.html':crumbs.append(('Noivas','/noivas/'))
  if source in ('noivas.html','debutantes.html'):
   offer=rental_offer(source)
+  # A faixa aparece antes do primeiro CTA, sem criar etapa na agenda.
+  s=re.sub(r'(<p class="lead">.*?</p>)',lambda m:m[1]+'<p class="kl-rental-price kl-rental-price-hero"><strong>Aluguel de R$ 990 a R$ 4.900</strong><span>Por vestido · modelos sujeitos à disponibilidade</span></p>',s,count=1,flags=re.S)
+  s=s.replace('Escolher horário</a>','Agendar minha prova</a>')
   marker='<section class="kl-seo-section kl-collection-preview"'
   s=s.replace(marker,offer+marker,1) if marker in s else insert_end(s,offer)
-  style='<style>.kl-rental-offer{scroll-margin-top:90px}.kl-rental-offer>p{max-width:760px}.kl-rental-units{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px;margin-top:36px}.kl-rental-unit{border-top:1px solid #C89F3C;padding-top:24px;scroll-margin-top:90px}.kl-rental-unit .btn-pri{display:inline-block;background:#722F37;color:#FBF7EF;padding:14px 20px;border-radius:3px;text-decoration:none;font-family:Questrial,sans-serif;font-size:14px;white-space:normal;max-width:100%;box-sizing:border-box;text-align:center}.kl-rental-unit .btn-pri:hover{background:#5a242b}.kl-rental-unit .btn-pri:focus-visible{outline:2px solid #722F37;outline-offset:4px}.kl-rental-unit h3{line-height:1.25}@media(max-width:640px){.kl-rental-units{grid-template-columns:1fr;gap:36px}}</style>'
+  style='<style>.kl-rental-price{margin:20px 0 24px;line-height:1.25}.kl-rental-price strong{display:block;font-family:Questrial,sans-serif;font-size:clamp(23px,3vw,36px);font-weight:400}.kl-rental-price span{display:block;font-size:16px;margin-top:8px}.kl-rental-price-hero strong{font-size:clamp(21px,2.7vw,30px)}.kl-rental-offer{scroll-margin-top:90px}.kl-rental-offer>p{max-width:760px}.kl-rental-units{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px;margin-top:36px}.kl-rental-unit{border-top:1px solid #C89F3C;padding-top:24px;scroll-margin-top:90px}.kl-rental-unit .btn-pri{display:inline-block;background:#722F37;color:#FBF7EF;padding:14px 20px;border-radius:3px;text-decoration:none;font-family:Questrial,sans-serif;font-size:14px;white-space:normal;max-width:100%;box-sizing:border-box;text-align:center}.kl-rental-unit .btn-pri:hover{background:#5a242b}.kl-rental-unit .btn-pri:focus-visible{outline:2px solid #722F37;outline-offset:4px}.kl-rental-unit h3{line-height:1.25}@media(max-width:640px){.kl-rental-units{grid-template-columns:1fr;gap:36px}}</style>'
   s=s.replace('</head>',style+'</head>',1)
  if source=='agendar.html':
+  # Informação de preço no início, sem etapa nem mudança no motor de reserva.
+  s=s.replace('<div class="cartao" id="cartao">','<p class="kl-price-intro" style="text-align:center;line-height:1.45;margin:0 auto 20px;max-width:600px"><strong>Aluguel de R$ 990 a R$ 4.900 por vestido.</strong><br>Opções para noivas e debutantes, conforme modelo e disponibilidade.</p><div class="cartao" id="cartao">',1)
   # Keep the calendar first. Context comes after it; no new step or booking logic.
-  block='<section class="kl-seo-section" id="condicoes-da-prova"><h2>O que você pode conhecer na prova</h2><p><strong>Noivas:</strong> aluguel do acervo a partir de R$ 2.900 e primeiro aluguel a partir de R$ 5.900. Nos dois, ajuste no ateliê, provas quantas forem necessárias, véu, acessórios e penteado do grande dia incluídos. O valor final depende do vestido escolhido.</p><p><strong>Debutantes:</strong> fechando entrada, valsa e dança, 25% de desconto em cada um dos três vestidos, para aluguel ou compra. Acessórios, penteado, ajuste e provas incluídos. Valores apresentados na prova.</p><p>Condições nas unidades São Francisco, Niterói, e Barra da Tijuca. Confira <a href="/noivas/#aluguel-e-condicoes">as opções para noivas</a> e <a href="/debutantes/#aluguel-e-condicoes">os vestidos de debutante</a>.</p></section>'
+  block='<section class="kl-seo-section" id="condicoes-da-prova"><h2>Aluguel de vestidos de noiva e debutante</h2><p><strong>De R$ 990 a R$ 4.900 por vestido.</strong> Conheça as opções dessa faixa nas unidades São Francisco, Niterói, e Barra da Tijuca.</p><p>O valor varia conforme o modelo. A equipe confirma disponibilidade para a sua data e condições da contratação. A faixa se refere ao aluguel; compra e projetos sob medida têm orçamento próprio.</p><p>Confira <a href="/noivas/#aluguel-e-condicoes">os vestidos de noiva</a> e <a href="/debutantes/#aluguel-e-condicoes">os vestidos de debutante</a>.</p></section>'
   s=insert_end(s,block)
  if source in ('index.html','catalogo.html','unidades.html'):s=insert_end(s,category_links())
  if source=='catalogo.html':page_type='CollectionPage'
