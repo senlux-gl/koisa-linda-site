@@ -2139,7 +2139,9 @@
       onRequestClose: requestGalleryClose,
       onFavorite: function (code) { toggleFavorite(code, 'gallery'); },
       isFavorite: function (code) { return favorites.has(code); },
-      onTrack: function () {},
+      onTrack: function (name, context) {
+        trackCatalog(name, catalogContext('gallery', context));
+      },
     });
     if (!gallery.isReady()) return false;
     if (gallerySchedule) gallerySchedule.addEventListener('click', function () {
@@ -2153,7 +2155,7 @@
     });
     if (galleryWhatsapp) galleryWhatsapp.addEventListener('click', function () {
       var product = productForCode(state.openProduct);
-      if (!product) return;
+      if (!product || product.c === 'vestidos-madrinha') return;
       trackCatalog('KL_WhatsApp_Click', catalogContext('gallery', {
         href: galleryWhatsapp.getAttribute('href'),
         productCode: product.k,

@@ -269,6 +269,21 @@ class FakeElement extends FakeEventTarget {
     return child;
   }
 
+  get nextSibling() {
+    if (!this.parentNode) return null;
+    return this.parentNode.childNodes[this.parentNode.childNodes.indexOf(this) + 1] || null;
+  }
+
+  insertBefore(child, reference) {
+    if (reference == null) return this.appendChild(child);
+    if (reference.parentNode !== this) throw new Error('reference not found');
+    if (child === reference) return child;
+    if (child.parentNode) child.parentNode.removeChild(child);
+    child.parentNode = this;
+    this.childNodes.splice(this.childNodes.indexOf(reference), 0, child);
+    return child;
+  }
+
   removeChild(child) {
     const index = this.childNodes.indexOf(child);
     if (index < 0) throw new Error('child not found');
@@ -342,8 +357,10 @@ function matchesSimple(element, selector) {
   if (selector.startsWith('#')) return element.getAttribute('id') === selector.slice(1);
   if (selector.startsWith('.')) return element.classList.contains(selector.slice(1));
   if (selector.startsWith('[data-') && selector.endsWith(']')) {
-    const attribute = selector.slice(1, -1);
-    return Object.prototype.hasOwnProperty.call(element.dataset, dataProperty(attribute));
+    const match = selector.match(/^\[([^=]+)(?:="([^"]*)")?\]$/);
+    return Boolean(match && (match[2] === undefined
+      ? element.getAttribute(match[1]) !== null
+      : element.getAttribute(match[1]) === match[2]));
   }
   return element.tagName === selector.toUpperCase();
 }

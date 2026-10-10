@@ -357,6 +357,7 @@
       : (/agendar (uma )?visita|visita/i.test(text) ? 'visita' : '');
     if (intent) track('KL_Schedule_Intent', { store: store, intent: intent });
   }
+  var recentUnitSelections = {};
   function catalog(eventName, context) {
     context = context || {};
     var allowed = {
@@ -373,6 +374,8 @@
       KL_Try_On_Click: true,
       KL_Catalog_Empty: true,
       KL_Catalog_Schedule_Click: true,
+      KL_Unit_Selector_Open: true,
+      KL_Unit_Selected: true,
     };
     if (!allowed[eventName]) return;
     if (eventName === 'KL_WhatsApp_Click' && context.href) return contactClick(context);
@@ -386,6 +389,19 @@
       favorite_count: safeCount(context.favoriteCount, 10000),
       ui_source: enumValue(context.source, CATALOG_SOURCES),
     });
+    if (eventName === 'KL_Unit_Selector_Open' || eventName === 'KL_Unit_Selected') {
+      params.funnel_step = eventName === 'KL_Unit_Selector_Open' ? 'unit_selector_open' : 'unit_selected';
+      params.product_unit = product ? enumValue(product.un, CATALOG_UNITS) : undefined;
+      if (eventName === 'KL_Unit_Selected') {
+        if (context.unit !== 'barra' && context.unit !== 'sf') return;
+        params.selected_unit = context.unit;
+        params.store = context.unit === 'barra' ? 'barra' : 'sao_francisco';
+        var selectionKey = String(context.productCode || '') + ':' + context.unit;
+        var selectedAt = now();
+        if (recentUnitSelections[selectionKey] !== undefined && selectedAt - recentUnitSelections[selectionKey] < 3000) return;
+        recentUnitSelections[selectionKey] = selectedAt;
+      }
+    }
     if (eventName === 'KL_Catalog_Search' && context.productCode && product) {
       params.product_code = clean(product.k, 24);
     }
