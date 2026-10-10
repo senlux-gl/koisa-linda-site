@@ -55,7 +55,13 @@ test('galeria atualiza a agenda ao navegar e remove destino antigo em categoria 
   assert.equal(whatsapp.classList.contains('gallery-secondary'), false);
   assert.equal(schedule.classList.contains('gallery-primary'), false);
   assert.equal(schedule.classList.contains('gallery-secondary'), true);
-  assert.equal(whatsapp.href, Actions.productWhatsAppHref(products[2], Actions.CONTACTS));
+  assert.equal(whatsapp.getAttribute('href'), '#gallery-unit-selector');
+  assert.equal(whatsapp.getAttribute('aria-expanded'), 'false');
+  whatsapp.click();
+  assert.equal(whatsapp.getAttribute('aria-expanded'), 'true');
+  const chosen = dialog.querySelector('[data-kl-unit-contact="sf"]');
+  assert.equal(chosen.getAttribute('href'), Actions.productWhatsAppHref(products[2], Actions.CONTACTS, 'sf'));
+  assert.match(decodeURIComponent(chosen.getAttribute('href')), /São Francisco/);
   next.click();
   assert.equal(schedule.hidden, false);
   assert.equal(schedule.getAttribute('href'), Actions.productScheduleHref(products[3]));

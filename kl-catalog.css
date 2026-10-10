@@ -1349,3 +1349,11 @@
     scroll-behavior:auto!important;
   }
 }
+
+/* Festa: escolha explícita da unidade antes do contato. */
+.gallery-unit-selector[hidden]{display:none}
+.gallery-unit-selector{margin:16px 0;padding:20px;border:1px solid #C89F3C;background:#FBF7EF;border-radius:8px}
+.gallery-unit-selector h3{font-family:'Playfair Display',serif;font-style:italic;color:#722F37;font-size:24px;line-height:1.25;margin:0 0 12px}
+.gallery-unit-selector p{font-size:16px;line-height:1.5;margin:0 0 16px}
+.gallery-unit-selector a{display:flex;justify-content:center;min-height:48px;margin:10px 0;padding:12px;text-align:center;white-space:normal}
+.gallery-unit-back{background:transparent;border:0;text-decoration:underline;color:#722F37;font:inherit;padding:12px 0;cursor:pointer}

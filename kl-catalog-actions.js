@@ -90,8 +90,8 @@
             : 'peça do catálogo';
   }
 
-  function productMessage(product) {
-    var unit = unitOf(product);
+  function productMessage(product, selectedUnit) {
+    var unit = selectedUnit === 'barra' || selectedUnit === 'sf' ? selectedUnit : unitOf(product);
     var code = normalizeCode(product && product.k);
     return 'Olá! Vim pelo catálogo da Koisa Linda e gostei deste ' + categoryIntent(product)
       + ' para provar na unidade ' + unitLabel(unit) + ': ' + code + '.\n'
@@ -110,11 +110,12 @@
       || productWhatsAppHref(product, contacts);
   }
 
-  function productWhatsAppHref(product, contacts) {
+  function productWhatsAppHref(product, contacts, selectedUnit) {
     contacts = contacts || CONTACTS;
-    var unit = unitOf(product);
+    if (selectedUnit != null && selectedUnit !== 'barra' && selectedUnit !== 'sf') return 'unidades.html';
+    var unit = selectedUnit || unitOf(product);
     return unit && contacts[unit]
-      ? whatsappHref(contacts[unit], productMessage(product))
+      ? whatsappHref(contacts[unit], productMessage(product, unit))
       : 'unidades.html';
   }
 

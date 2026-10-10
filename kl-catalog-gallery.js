@@ -190,6 +190,67 @@
       listeners.push([target, type, handler]);
     }
 
+    // The first click is intent only. The chosen store owns the outgoing contact.
+    var unitSelector = documentRef.createElement('section');
+    unitSelector.setAttribute('id', 'gallery-unit-selector');
+    unitSelector.className = 'gallery-unit-selector';
+    unitSelector.setAttribute('aria-labelledby', 'gallery-unit-selector-title');
+    unitSelector.hidden = true;
+    var selectorTitle = documentRef.createElement('h3');
+    selectorTitle.setAttribute('id', 'gallery-unit-selector-title');
+    selectorTitle.textContent = 'Em qual unidade você quer provar?';
+    unitSelector.appendChild(selectorTitle);
+    var selectorNote = documentRef.createElement('p');
+    selectorNote.textContent = 'Escolha a loja para falar sobre este vestido. A equipe confirma a disponibilidade.';
+    unitSelector.appendChild(selectorNote);
+    var unitLinks = {};
+    ['barra', 'sf'].forEach(function (selectedUnit) {
+      var link = documentRef.createElement('a');
+      link.className = 'gallery-secondary';
+      link.setAttribute('data-kl-unit-contact', selectedUnit);
+      link.setAttribute('data-kl-track-manual', 'true');
+      link.setAttribute('target', '_blank');
+      link.setAttribute('rel', 'noopener');
+      link.textContent = selectedUnit === 'barra' ? 'Barra da Tijuca · Downtown' : 'São Francisco · Niterói';
+      unitSelector.appendChild(link);
+      unitLinks[selectedUnit] = link;
+      listen(link, 'click', function () {
+        var product = products[activeIndex];
+        if (!product || product.c !== 'vestidos-madrinha' || unitSelector.hidden) return;
+        var context = { productCode: product.k, category: product.c, unit: selectedUnit,
+          source: 'gallery', href: link.getAttribute('href') };
+        options.onTrack('KL_Unit_Selected', context);
+        options.onTrack('KL_WhatsApp_Click', context);
+      });
+    });
+    var backToProduct = documentRef.createElement('button');
+    backToProduct.type = 'button';
+    backToProduct.className = 'gallery-unit-back';
+    backToProduct.setAttribute('data-kl-track-manual', 'true');
+    backToProduct.textContent = 'Voltar ao vestido';
+    unitSelector.appendChild(backToProduct);
+    listen(backToProduct, 'click', function () {
+      unitSelector.hidden = true;
+      whatsapp.setAttribute('aria-expanded', 'false');
+      whatsapp.focus();
+    });
+    function openUnits(event) {
+      var product = products[activeIndex];
+      if (!product || product.c !== 'vestidos-madrinha') return;
+      if (event && event.preventDefault) event.preventDefault();
+      if (!unitSelector.hidden) return;
+      unitSelector.hidden = false;
+      whatsapp.setAttribute('aria-expanded', 'true');
+      options.onTrack('KL_Unit_Selector_Open', { productCode: product.k,
+        category: product.c, unit: core.unitOf(product), source: 'gallery' });
+      unitLinks[core.unitOf(product) === 'sf' ? 'sf' : 'barra'].focus();
+      unitSelector.scrollIntoView({ block: 'start', behavior: 'auto' });
+    }
+    listen(whatsapp, 'click', openUnits);
+    listen(whatsapp, 'keydown', function (event) {
+      if (event.key === ' ') openUnits(event);
+    });
+
     function loadImage(url) {
       return new Promise(function (resolve, reject) {
         var ImageConstructor = typeof globalThis !== 'undefined' && globalThis.Image;
@@ -275,6 +336,23 @@
         setClass(schedule, 'gallery-secondary', festa);
       }
       placeFestaActions(festa);
+      unitSelector.hidden = true;
+      if (festa) {
+        whatsapp.setAttribute('href', '#gallery-unit-selector');
+        whatsapp.removeAttribute('target');
+        whatsapp.setAttribute('role', 'button');
+        whatsapp.setAttribute('aria-controls', 'gallery-unit-selector');
+        whatsapp.setAttribute('aria-expanded', 'false');
+        whatsapp.parentNode.insertBefore(unitSelector, whatsapp.nextSibling || null);
+        ['barra', 'sf'].forEach(function (selectedUnit) {
+          unitLinks[selectedUnit].setAttribute('href', actions.productWhatsAppHref(product, actions.CONTACTS, selectedUnit));
+        });
+      } else {
+        whatsapp.setAttribute('target', '_blank');
+        whatsapp.removeAttribute('role');
+        whatsapp.removeAttribute('aria-controls');
+        whatsapp.removeAttribute('aria-expanded');
+      }
       var tryOnHref = actions.tryOnHref(product);
       tryOn.hidden = !tryOnHref;
       if (tryOnHref) tryOn.href = tryOnHref;
