@@ -41,7 +41,8 @@ META = {
  'index.html': ('Vestidos de noiva e festa em Niterói e Barra | Koisa Linda', 'Aluguel e sob medida de vestidos de noiva, debutante e festa, além de ternos. Conheça o ateliê e as lojas em São Francisco, Niterói, e Barra da Tijuca.', None),
  # Rascunho 12/10/2026: o H1 passa a ser a Jussara (copy NOIVAS-COPY-V1 §2); a palavra de busca fica na linha acima do título.
  'noivas.html': ('Aluguel de vestido de noiva em Niterói e Barra | Koisa Linda', 'Aluguel de vestido de noiva de R$ 990 a R$ 4.900 em São Francisco, Niterói, e na Barra. A estilista Jussara Pessanha atende noivas. Marque sua prova.', None),
- 'debutantes.html': ('Aluguel de vestido de debutante em Niterói e Barra | Koisa Linda', 'Vestidos de debutante para aluguel de R$ 990 a R$ 4.900 por vestido. Veja os horários e agende sua prova em Niterói ou Barra da Tijuca.', 'Aluguel de vestido de debutante em Niterói e Barra da Tijuca'),
+ # Rascunho 12/10/2026: debutante sem preço em reais, com os 25% nos três (decisão do Guilherme); H1 com a Jussara.
+ 'debutantes.html': ('Aluguel de vestido de debutante em Niterói e Barra | Koisa Linda', 'Vestidos de debutante para alugar ou comprar em São Francisco, Niterói, e na Barra. Fechando os três vestidos, 25% de desconto em cada um. Marque a prova.', None),
  'madrinhas.html': ('Aluguel de vestidos de festa e madrinha | Koisa Linda', 'Vestidos para madrinhas, convidadas e formandas em Niterói e Barra da Tijuca. Explore o catálogo e visite a loja sem agendamento para provar.', 'Qual cor combina com o momento que você vai viver?'),
  'ternos.html': ('Aluguel de ternos em Niterói e Barra da Tijuca | Koisa Linda', 'Compare cores e cortes de ternos para noivos, pais, padrinhos e convidados. Descubra o caimento em Niterói ou Barra da Tijuca, sem agendar.', 'Seu terno começa pelo caimento.'),
  'catalogo.html': ('Catálogo de vestidos, ternos e acessórios | Koisa Linda', 'Explore vestidos de noiva, debutante e festa, ternos e acessórios. Filtre por unidade, cor e tamanho e confirme a disponibilidade com a loja.', None),
@@ -93,6 +94,8 @@ def metadata(s,title,description,image):
  tags=[('name','description',description),('property','og:title',title),('property','og:description',description),('property','og:image',image),('property','og:image:alt',title),('name','twitter:card','summary_large_image'),('name','twitter:title',title),('name','twitter:description',description),('name','twitter:image',image)]
  return s.replace('</head>',''.join(f'<meta {kind}="{key}" content="{escape(value,quote=True)}">' for kind,key,value in tags)+'</head>',1)
 
+
+RENTAL_OFFER_PAGES = ()
 
 def rental_offer(source):
  # Faixa de aluguel informada e confirmada por Guilherme em 09/10/2026.
@@ -183,14 +186,15 @@ def refine(s,source,canonical):
    selected=[k for k in campaign if k in pages and products.get(k,{}).get('c')==category] or selected
   block='<section class="kl-seo-section kl-collection-preview" id="modelos"><p class="kl-section-label">Uma primeira seleção</p><h2>Encontre suas referências</h2><p>Conheça as peças do acervo. A equipe confirma a disponibilidade para a sua data.</p>'+cards(selected,pages)+'<a class="kl-collection-link" href="/catalogo/?cat='+category+'">Ver toda a coleção <span aria-hidden="true">→</span></a><p class="kl-collection-index"><a href="/p/index.html">Explorar todas as fichas do acervo</a></p></section>'
   # Rascunho 12/10/2026: a /noivas/ nova troca a grade de 6 códigos pelo fluxo de 4 toques (copy §12, item 8).
-  if source!='noivas.html':
+  if source not in ('noivas.html','debutantes.html'):
    s=s.replace('<!-- kl-collection-preview -->',block,1) if '<!-- kl-collection-preview -->' in s else insert_end(s,block)
   page_type='CollectionPage'
   if source=='noivas.html':
    s=re.sub(r'<section class="kl-cortes">.*?</section>','<section class="kl-seo-section"><h2>Encontre seu estilo de vestido de noiva</h2><p>Escolha a unidade para conhecer os modelos do catálogo e preparar a sua prova.</p><h3>São Francisco · Niterói</h3>'+style_links('niteroi')+'<h3>Barra da Tijuca</h3>'+style_links('barra-da-tijuca')+'</section>',s,count=1,flags=re.S)
  elif source=='noivas-experiencia.html':crumbs.append(('Noivas','/noivas/'))
- # Rascunho 12/10/2026: a /noivas/ nova traz a própria faixa de oferta e o próprio bloco de lojas.
- if source=='debutantes.html':
+ # Rascunho 12/10/2026: /noivas/ e /debutantes/ novas trazem a própria oferta e o próprio bloco de lojas
+ # (debutante sem preço em reais). Nenhuma página usa rental_offer hoje; ela fica para quem voltar a usá-la.
+ if source in RENTAL_OFFER_PAGES:
   offer=rental_offer(source)
   # A faixa aparece antes do primeiro CTA, sem criar etapa na agenda.
   s=re.sub(r'(<p class="lead">.*?</p>)',lambda m:m[1]+'<p class="kl-rental-price kl-rental-price-hero"><strong>Aluguel de R$ 990 a R$ 4.900</strong><span>Por vestido · modelos sujeitos à disponibilidade</span></p>',s,count=1,flags=re.S)

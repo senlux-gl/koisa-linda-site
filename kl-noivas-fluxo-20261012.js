@@ -1,4 +1,6 @@
-/* Koisa Linda · /noivas/ · fluxo de 4 toques com 3 datas reais de prova (rascunho 12/10/2026).
+/* Koisa Linda · /noivas/ e /debutantes/ · fluxo de 4 toques com 3 datas reais de prova (rascunho 12/10/2026).
+ *
+ * A ocasião vem do HTML: <div id="nf-fluxo" data-ocasiao="noiva|debutante">. Sem o atributo, é noiva.
  *
  * O que este arquivo faz:
  *  1. Quatro perguntas em botões (data do casamento, caminho, loja, estilo). Cada toque mostra
@@ -26,14 +28,16 @@
 
   var API = 'https://n8n.janotattec.com.br/webhook/kl-agenda';
   var JANELA_DIAS = 14;
-  var OCASIAO = 'noiva';
+  var OCASIAO = raiz.getAttribute('data-ocasiao') === 'debutante' ? 'debutante' : 'noiva';
+  var ROTA = OCASIAO === 'debutante' ? 'debutantes' : 'noivas';
+  var DETALHE = OCASIAO === 'debutante' ? '15 anos' : 'vestido de noiva';
 
   var LOJAS = {
     saofrancisco: { un: 'sf', curto: 'São Francisco', nome: 'São Francisco', cidade: 'niteroi', whatsapp: '5521970858787' },
     barra: { un: 'barra', curto: 'Barra', nome: 'Barra da Tijuca', cidade: 'barra-da-tijuca', whatsapp: '5521966475383' }
   };
 
-  var PERGUNTAS = [
+  var PERGUNTAS_NOIVA = [
     {
       id: 'data', titulo: 'Quando é o casamento?',
       opcoes: [
@@ -73,6 +77,45 @@
       ]
     }
   ];
+
+  var PERGUNTAS_DEBUTANTE = [
+    {
+      id: 'data', titulo: 'Quando é a festa?',
+      opcoes: [
+        ['3m', 'Até 3 meses', 'em até 3 meses'],
+        ['6m', '3 a 6 meses', 'de 3 a 6 meses'],
+        ['12m', '6 meses a 1 ano', 'de 6 meses a 1 ano'],
+        ['12m_mais', 'Mais de 1 ano', 'daqui a mais de 1 ano'],
+        ['sem_data', 'Sem data', 'ainda sem data']
+      ]
+    },
+    {
+      id: 'vestidos', titulo: 'Quantos vestidos?',
+      opcoes: [
+        ['tres', 'Os três: entrada, valsa e dança', 'os três vestidos (entrada, valsa e dança)'],
+        ['um', 'Só um', 'um vestido'],
+        ['nao_sei', 'Ainda não sei', 'ainda não sabemos quantos vestidos']
+      ]
+    },
+    {
+      id: 'loja', titulo: 'Qual loja?',
+      opcoes: [
+        ['saofrancisco', 'São Francisco, Niterói', 'São Francisco'],
+        ['barra', 'Barra da Tijuca', 'Barra']
+      ]
+    },
+    {
+      id: 'estilo', titulo: 'Qual estilo?',
+      opcoes: [
+        ['princesa', 'Princesa', 'princesa'],
+        ['brilho', 'Com brilho', 'com brilho'],
+        ['curto', 'Curto para dançar', 'curtos para dançar'],
+        ['renda', 'Com renda', 'com renda'],
+        ['nao_sei', 'Ainda não sei', 'ainda não sei']
+      ]
+    }
+  ];
+  var PERGUNTAS = OCASIAO === 'debutante' ? PERGUNTAS_DEBUTANTE : PERGUNTAS_NOIVA;
 
   var estado = {
     passo: 0,
@@ -123,13 +166,13 @@
     var params = {
       schedule_experience: '20260906-prova-contexto',
       has_model_reference: 'no',
-      schedule_variant: 'noivas_fluxo_3_datas',
-      variant: 'noivas',
+      schedule_variant: ROTA + '_fluxo_3_datas',
+      variant: ROTA,
       loja: l,
       store: l,
       ocasiao: OCASIAO,
       step: String(estado.passo + 1),
-      page_path: location.pathname || '/noivas/'
+      page_path: location.pathname || '/' + ROTA + '/'
     };
     Object.keys(extra).forEach(function (k) { if (extra[k] !== undefined && extra[k] !== '') params[k] = extra[k]; });
     try {
@@ -149,7 +192,7 @@
     } catch (e) {}
   }
   function passoFluxo(step, valor) {
-    trackSchedule('KL_Noivas_Flow_Step', { flow_step: step, value: valor || undefined });
+    trackSchedule(OCASIAO === 'debutante' ? 'KL_Debutantes_Flow_Step' : 'KL_Noivas_Flow_Step', { flow_step: step, value: valor || undefined });
   }
 
   /* Clique em qualquer botão de agendar da página (data-nf-agendar="origem"). */
@@ -163,7 +206,7 @@
   /* ── origem e cadastro: cópia fiel do kl-agendar.js ─────────────────────── */
   function attributionDoLead() {
     if (window.KLTracking && typeof window.KLTracking.getAttribution === 'function') return window.KLTracking.getAttribution();
-    var entry = { landing_path: location.pathname || '/noivas/', captured_at: new Date().toISOString() };
+    var entry = { landing_path: location.pathname || '/' + ROTA + '/', captured_at: new Date().toISOString() };
     try { if (document.referrer) entry.referrer = new URL(document.referrer).origin; } catch (e) {}
     ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'utm_id', 'gclid', 'fbclid'].forEach(function (key) {
       var value = qsParam(key);
@@ -207,11 +250,16 @@
   /* As respostas do fluxo, no mesmo formato curto "Rótulo: valor · Rótulo: valor" que o
    * kl-agendar.js usa para o perfil opcional. Vão no campo notas (até 400). */
   function notasDoFluxo() {
-    var r = estado.respostas, partes = ['Página de noivas'];
-    var d = opcao('data', r.data), c = opcao('caminho', r.caminho), e = opcao('estilo', r.estilo);
-    if (d) partes.push('Casamento: ' + d[2]);
-    if (c) partes.push('Procura: ' + c[2]);
-    if (e) partes.push('Estilo: ' + e[2]);
+    var r = estado.respostas;
+    var rotulos = OCASIAO === 'debutante'
+      ? { data: 'Festa', vestidos: 'Vestidos', estilo: 'Estilo' }
+      : { data: 'Casamento', caminho: 'Procura', estilo: 'Estilo' };
+    var partes = [OCASIAO === 'debutante' ? 'Página de debutantes' : 'Página de noivas'];
+    PERGUNTAS.forEach(function (p) {
+      if (!rotulos[p.id]) return;
+      var o = opcao(p.id, r[p.id]);
+      if (o) partes.push(rotulos[p.id] + ': ' + o[2]);
+    });
     return partes.join(' · ').slice(0, 400);
   }
 
@@ -221,8 +269,8 @@
     return {
       schema_version: '2026-08-27.site_lead.v1',
       source: 'site',
-      source_detail: 'noivas_fluxo_3_datas',
-      variant: 'noivas',
+      source_detail: ROTA + '_fluxo_3_datas',
+      variant: ROTA,
       stage: 'lead_form_completed',
       nome: estado.lead.nome || '',
       telefone: estado.lead.telefone || '',
@@ -237,7 +285,7 @@
       sobrenome_confirmacao: '',
       attribution: attribution,
       landing_page: location.origin + (entry.landing_path || location.pathname),
-      page_path: location.pathname || '/noivas/',
+      page_path: location.pathname || '/' + ROTA + '/',
       referrer: (function () { try { return document.referrer ? new URL(document.referrer).origin : ''; } catch (e) { return ''; } })(),
       session_id: sessionIdDaVisita(),
       utm_source: entry.utm_source || '',
@@ -287,8 +335,8 @@
       consentimento: true,
       aberto_em: estado.abertoEm,
       origem: origem(),
-      experimento_agendamento: 'noivas_fluxo_3_datas',
-      variante_agendamento: 'noivas',
+      experimento_agendamento: ROTA + '_fluxo_3_datas',
+      variante_agendamento: ROTA,
       preferencia_atendimento: '',
       formulario_primeiro: false,
       lead_id: estado.lead_id || (function () { try { return sessionStorage.getItem('kl_site_lead_id') || ''; } catch (e) { return ''; } })(),
@@ -393,6 +441,8 @@
   function linkEstilo() {
     var l = loja(), e = estado.respostas.estilo;
     if (!l || !e) return '';
+    // Debutante não tem página de estilo no ar: vai para o catálogo de debutante da loja.
+    if (OCASIAO === 'debutante') return '/catalogo/?cat=vestidos-debutante&un=' + l.un;
     if (e === 'nao_sei') return '/catalogo/?cat=vestidos-noiva&un=' + l.un;
     return '/noivas/' + e + '-' + l.cidade + '/';
   }
@@ -403,11 +453,12 @@
   function textoLinkEstilo() {
     var l = loja();
     if (!l) return '';
+    if (OCASIAO === 'debutante') return 'Ver vestidos de debutante';
     return estado.respostas.estilo === 'nao_sei' ? 'Ver o acervo de noivas' : 'Ver vestidos ' + nomeEstilo();
   }
   function linkAgenda(origemUi) {
     var l = loja();
-    return '/agendar/?ocasiao=noiva' + (l ? '&un=' + l.un : '') + '&ui_source=' + origemUi;
+    return '/agendar/?ocasiao=' + OCASIAO + (l ? '&un=' + l.un : '') + '&ui_source=' + origemUi;
   }
   function linkWhats(texto) {
     var l = loja() || LOJAS.saofrancisco;
@@ -415,7 +466,16 @@
   }
   function mensagemWhats() {
     var r = estado.respostas;
-    var d = opcao('data', r.data), c = opcao('caminho', r.caminho);
+    var d = opcao('data', r.data);
+    if (OCASIAO === 'debutante') {
+      var v = opcao('vestidos', r.vestidos);
+      var t = 'Olá! Vim pela página de debutantes do site.';
+      if (d) t += ' A festa é ' + d[2] + '.';
+      if (v) t += ' Interesse: ' + v[2] + '.';
+      if (r.estilo) t += ' Estilo: ' + nomeEstilo() + '.';
+      return t;
+    }
+    var c = opcao('caminho', r.caminho);
     var txt = 'Olá! Sou noiva e vim pela página de noivas do site.';
     if (d) txt += ' Meu casamento é ' + d[2] + '.';
     if (c) txt += ' Quero ' + c[2] + '.';
@@ -426,6 +486,7 @@
   /* ── ganhos de cada toque (copy aprovada, Q1 = sim) ──────────────────────── */
   function ganhos(id, valor) {
     var l = loja();
+    if (OCASIAO === 'debutante') return ganhosDebutante(id, valor, l);
     if (id === 'data') {
       if (valor === '3m') return ['Acervo pronto: o caminho mais rápido.'];
       if (valor === 'sem_data') return ['Dá para provar antes de ter data.'];
@@ -442,8 +503,41 @@
     }
     return [];
   }
+  /* Debutante: fala com a mãe e a filha, a menina no centro. Oferta de memory/lara/ofertas-ativas.json
+   * (chave debutante, 12/10): 25% em cada um fechando os três; acessórios e penteado do grande dia,
+   * ajuste no ateliê e provas incluídos. Sem preço em reais nesta página (decisão do Guilherme). */
+  function ganhosDebutante(id, valor, l) {
+    if (id === 'data') {
+      if (valor === '3m') return ['Acervo pronto: o caminho mais rápido.'];
+      if (valor === 'sem_data') return ['Dá para provar antes de ter data.'];
+      return ['A loja confere os vestidos para a data.'];
+    }
+    if (id === 'vestidos') {
+      if (valor === 'tres') return ['25% em cada um dos três.'];
+      if (valor === 'um') return ['Ajuste no ateliê e provas incluídos.'];
+      return ['Fechando os três, 25% em cada um.'];
+    }
+    if (id === 'loja' && l) return ['Consultora da loja, com hora marcada.'];
+    if (id === 'estilo') {
+      if (valor === 'nao_sei') return ['A consultora ajuda vocês a escolher.'];
+      return ['A consultora separa vestidos ' + nomeEstilo() + '.'];
+    }
+    return [];
+  }
+  function itemDebutante(id, r, l) {
+    if (id === 'data' && r.data) return r.data === 'sem_data' ? 'Prova antes da data' : 'Data conferida';
+    if (id === 'vestidos' && r.vestidos) {
+      if (r.vestidos === 'tres') return '25% em cada vestido';
+      if (r.vestidos === 'um') return 'Ajuste e provas incluídos';
+      return '25% fechando os três';
+    }
+    if (id === 'loja' && l) return l.un === 'sf' ? 'Consultora em São Francisco' : 'Consultora na Barra';
+    if (id === 'estilo' && r.estilo) return r.estilo === 'nao_sei' ? 'Estilo escolhido na prova' : 'Vestidos ' + nomeEstilo() + ' separados';
+    return '';
+  }
   function itemCartao(id) {
     var r = estado.respostas, l = loja();
+    if (OCASIAO === 'debutante') return itemDebutante(id, r, l);
     if (id === 'data' && r.data) return r.data === 'sem_data' ? 'Prova antes da data' : 'Data conferida';
     if (id === 'caminho' && r.caminho) {
       if (r.caminho === 'acervo') return 'Ajuste e provas incluídos';
@@ -536,14 +630,14 @@
       passoFluxo('5_datas_vistas', String(datas.length));
       html += '<div class="nf-datas-bloco"><p class="nf-datas-t">Loja ' + esc(l.nome) + '</p>' +
         '<div class="nf-datas">' + datas.map(function (d, k) {
-          return '<button type="button" class="nf-data" data-kl-track-manual="true" data-nf-data="' + k + '" data-nf-agendar="noivas_fluxo_data">' +
+          return '<button type="button" class="nf-data" data-kl-track-manual="true" data-nf-data="' + k + '" data-nf-agendar="' + ROTA + '_fluxo_data">' +
             '<span class="nf-data-tipo">' + esc(d.tipo) + '</span><span class="nf-data-dia">' + esc(d.rotulo) + '</span><span class="nf-data-hora">' + esc(hora(d.hora)) + '</span></button>';
         }).join('') + '</div>' +
-        '<p class="nf-outros"><a href="' + esc(linkAgenda('noivas_fluxo_outros_horarios')) + '" data-nf-agendar="noivas_fluxo_outros_horarios">Ver outros horários</a></p></div>';
+        '<p class="nf-outros"><a href="' + esc(linkAgenda(ROTA + '_fluxo_outros_horarios')) + '" data-nf-agendar="' + ROTA + '_fluxo_outros_horarios">Ver outros horários</a></p></div>';
     } else if (esperando) {
       html += '<p class="nf-texto nf-carregando" role="status">Consultando a agenda da loja ' + esc(l.nome) + '…</p>';
     } else {
-      html += '<div class="nf-acoes"><a class="nf-btn" href="' + esc(linkAgenda('noivas_fluxo_prova')) + '" data-nf-agendar="noivas_fluxo_prova">Marcar minha prova</a></div>';
+      html += '<div class="nf-acoes"><a class="nf-btn" href="' + esc(linkAgenda(ROTA + '_fluxo_prova')) + '" data-nf-agendar="' + ROTA + '_fluxo_prova">Marcar minha prova</a></div>';
     }
 
     html += '<div class="nf-alternativas">' +
@@ -681,7 +775,7 @@
     corpo.innerHTML = '<h2 class="nf-final-t" tabindex="-1">Quase lá</h2>' +
       '<p class="nf-texto">O pedido não saiu. Mande pelo WhatsApp, já com o horário.</p>' +
       '<div class="nf-acoes"><a class="nf-btn" target="_blank" rel="noopener" href="' +
-      esc(linkWhats('Olá! Sou ' + nome + '. Vim pela página de noivas do site e quero agendar uma prova de vestido de noiva na unidade ' + l.nome + ' em ' + quando + '. ' + notasDoFluxo() + '.')) +
+      esc(linkWhats('Olá! Sou ' + nome + '. Vim pela página de ' + ROTA + ' do site e quero agendar uma prova de ' + DETALHE + ' na unidade ' + l.nome + ' em ' + quando + '. ' + notasDoFluxo() + '.')) +
       '">Enviar pelo WhatsApp</a></div>';
     focar('.nf-final-t');
   }
@@ -704,7 +798,7 @@
       '<div class="nf-acoes"><a class="nf-btn" href="' + esc(linkEstilo()) + '">' + esc(textoLinkEstilo()) + '</a>' +
       '<a class="nf-btn nf-btn-leve" target="_blank" rel="noopener" href="' + esc(linkWhats(duvida)) + '">Dúvidas no WhatsApp</a></div></div>';
     var fichaUrl = String(c.ficha_url || '');
-    if (confirmado && /^https:\/\/koisalinda\.com\.br\/noivas\/sua-prova\/#[a-f0-9]{64}$/.test(fichaUrl)) {
+    if (confirmado && OCASIAO === 'noiva' && /^https:\/\/koisalinda\.com\.br\/noivas\/sua-prova\/#[a-f0-9]{64}$/.test(fichaUrl)) {
       var ficha = document.createElement('p');
       ficha.className = 'nf-texto';
       ficha.innerHTML = '<a class="nf-link" rel="noreferrer" referrerpolicy="no-referrer">Preparar minha prova (opcional)</a>';
@@ -739,7 +833,7 @@
   document.querySelectorAll('[data-nf-ir-fluxo]').forEach(function (a) {
     a.addEventListener('click', function (ev) {
       ev.preventDefault();
-      trackSchedule('KL_Noivas_Flow_Return', { ui_source: a.getAttribute('data-nf-ir-fluxo') });
+      trackSchedule(OCASIAO === 'debutante' ? 'KL_Debutantes_Flow_Return' : 'KL_Noivas_Flow_Return', { ui_source: a.getAttribute('data-nf-ir-fluxo') });
       raiz.scrollIntoView({ behavior: window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
       setTimeout(function () { focar('.nf-pergunta, .nf-final-t'); }, 400);
     });

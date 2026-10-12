@@ -239,3 +239,17 @@ footer .nf-rodape-links a{color:var(--nf-baunilha);min-height:44px;display:inlin
 .nf-datas-bloco{margin-top:16px}
 .nf-debutantes .nf-rotulo{font-size:12.5px;margin-top:4px}
 .nf-jussara .nf-eyebrow{color:var(--nf-ruby);font-size:11.5px;margin-bottom:14px}
+/* /debutantes/: duas fotos sem rosto + a voz da mãe */
+.nf-deb-grade{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.1fr);gap:14px;align-items:stretch;margin-top:8px}
+.nf-deb-grade figure{margin:0}
+.nf-deb-grade img{display:block;width:100%;height:100%;aspect-ratio:3/4;object-fit:cover;border-radius:4px}
+.nf-deb-citacao{display:flex;flex-direction:column;justify-content:center;padding:24px;background:var(--nf-papel);border:1px solid var(--nf-linha);border-radius:10px}
+.nf-deb-citacao blockquote{margin:0 0 12px;font-family:var(--nf-serif);font-style:italic;font-size:22px;line-height:1.35}
+.nf-deb-citacao figcaption{font-family:var(--nf-sans);font-size:13px;letter-spacing:1px;color:var(--nf-suave)}
+@media(max-width:960px){.nf-deb-grade{grid-template-columns:repeat(2,minmax(0,1fr))}.nf-deb-citacao{grid-column:span 2}}
+/* faixa de oferta numa linha só */
+.hero.nf-hero .nf-oferta{max-width:none;display:inline-flex}
+.nf-oferta-curta{display:none}
+@media(min-width:961px){.hero.nf-hero .nf-oferta strong{white-space:nowrap}}
+@media(max-width:600px){.nf-oferta-longa{display:none}.nf-oferta-curta{display:inline}}
+.nf-oferta strong span{font-family:var(--nf-sans);font-size:inherit;opacity:1}
