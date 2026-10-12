@@ -197,7 +197,7 @@ def render(s, source, canonical, preview=False):
  s=re.sub(r'(kl-(?:site-enhance)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261007agenda1',s)
  s=re.sub(r'(kl-vsl\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261007agenda1',s)
  s=re.sub(r'(kl-(?:qualification)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261001perfil2',s)
- s=re.sub(r'(kl-(?:tracking)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261010units1',s)
+ s=re.sub(r'(kl-(?:tracking)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261012pixelfila',s)
  s=re.sub(r'(kl-catalog\.css)(?:\?[^"\'<>\s]*)?',r'\1?v=20261010units1',s)
  s=re.sub(r'(kl-catalog-data\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261007festa',s)
  # Tiny synchronous routing helpers must run before page scripts, but need no extra round-trip.
