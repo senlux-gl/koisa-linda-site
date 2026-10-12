@@ -35,32 +35,32 @@
 
   var PERGUNTAS = [
     {
-      id: 'data', titulo: 'Quando é o seu casamento?',
+      id: 'data', titulo: 'Quando é o casamento?',
       opcoes: [
-        ['3m', 'Em até 3 meses', 'em até 3 meses'],
-        ['6m', 'De 3 a 6 meses', 'de 3 a 6 meses'],
-        ['12m', 'De 6 meses a 1 ano', 'de 6 meses a 1 ano'],
+        ['3m', 'Até 3 meses', 'em até 3 meses'],
+        ['6m', '3 a 6 meses', 'de 3 a 6 meses'],
+        ['12m', '6 meses a 1 ano', 'de 6 meses a 1 ano'],
         ['12m_mais', 'Mais de 1 ano', 'daqui a mais de 1 ano'],
-        ['sem_data', 'Ainda sem data', 'ainda sem data']
+        ['sem_data', 'Sem data', 'ainda sem data']
       ]
     },
     {
-      id: 'caminho', titulo: 'Como você quer o seu vestido?',
+      id: 'caminho', titulo: 'Como quer o vestido?',
       opcoes: [
-        ['acervo', 'Escolher no acervo', 'escolher um vestido do acervo'],
-        ['desenhar', 'Desenhar o meu', 'desenhar o meu vestido'],
-        ['ajuda', 'Quero ajuda para decidir', 'ajuda para decidir entre acervo e desenho']
+        ['acervo', 'Do acervo', 'escolher um vestido do acervo'],
+        ['desenhar', 'Desenhado pela Jussara', 'desenhar o meu vestido'],
+        ['ajuda', 'Me ajude a decidir', 'ajuda para decidir entre acervo e desenho']
       ]
     },
     {
-      id: 'loja', titulo: 'Qual loja fica melhor para você?',
+      id: 'loja', titulo: 'Qual loja?',
       opcoes: [
         ['saofrancisco', 'São Francisco, Niterói', 'São Francisco'],
         ['barra', 'Barra da Tijuca', 'Barra']
       ]
     },
     {
-      id: 'estilo', titulo: 'Qual estilo chama a sua atenção?',
+      id: 'estilo', titulo: 'Qual estilo?',
       opcoes: [
         ['princesa', 'Princesa', 'princesa'],
         ['sereia', 'Sereia', 'sereia'],
@@ -98,7 +98,7 @@
     return p ? p.opcoes.filter(function (o) { return o[0] === valor; })[0] : null;
   }
   function loja() { return LOJAS[estado.respostas.loja] || null; }
-  function hora(h) { return String(h || '').replace(':', 'h'); }
+  function hora(h) { return String(h || '').replace(/^0/, '').replace(':', 'h'); }
   function qsParam(nome) {
     try { return new URLSearchParams(location.search).get(nome) || ''; } catch (e) { return ''; }
   }
@@ -209,9 +209,9 @@
   function notasDoFluxo() {
     var r = estado.respostas, partes = ['Página de noivas'];
     var d = opcao('data', r.data), c = opcao('caminho', r.caminho), e = opcao('estilo', r.estilo);
-    if (d) partes.push('Casamento: ' + d[1].toLowerCase());
-    if (c) partes.push('Procura: ' + c[1].toLowerCase());
-    if (e) partes.push('Estilo: ' + e[1].toLowerCase());
+    if (d) partes.push('Casamento: ' + d[2]);
+    if (c) partes.push('Procura: ' + c[2]);
+    if (e) partes.push('Estilo: ' + e[2]);
     return partes.join(' · ').slice(0, 400);
   }
 
@@ -328,28 +328,42 @@
   function contarHorarios(agenda) {
     return diasNaJanela(agenda).reduce(function (n, d) { return n + horariosDoDia(d).length; }, 0);
   }
-  /* O dia mais perto, um do meio e o mais longe: dias diferentes, um horário em cada
-   * (o primeiro livre do dia). Com menos de 3 dias livres, mostra os que existem. */
+  /* O dia mais perto, um do meio e o mais longe, dias diferentes. Os horários variam para
+   * qualificar melhor: o mais perto no primeiro horário livre, o do meio à tarde e o mais
+   * longe no último horário da manhã. Sem horário daquele período, usa o primeiro livre. Sempre real. */
+  function primeiroDoPeriodo(d, periodo) {
+    var lista = horariosDoDia(d);
+    var filtro = lista.filter(function (h) { return periodo === 'tarde' ? h >= '12:00' : h < '12:00'; });
+    // de manhã, o último horário da manhã: assim não repete o primeiro horário da data mais próxima
+    if (periodo === 'manha') return filtro[filtro.length - 1] || lista[0];
+    return filtro[0] || lista[0];
+  }
   function tresDatas(agenda) {
     var dias = diasNaJanela(agenda);
     if (!dias.length) return [];
     var idx = [0, Math.floor((dias.length - 1) / 2), dias.length - 1];
+    var periodos = ['primeiro', 'tarde', 'manha'];
     var vistos = {}, out = [];
-    var rotulos = ['A mais próxima', 'No meio do caminho', 'A mais distante'];
+    var rotulos = ['Mais próxima', 'No meio', 'Mais distante'];
     idx.forEach(function (i, k) {
       if (vistos[i]) return;
       vistos[i] = true;
       var d = dias[i];
-      out.push({ data: d.data, hora: horariosDoDia(d)[0], rotulo: d.rotulo || d.data, dia_semana: d.dia_semana || '', tipo: rotulos[k] });
+      var h = periodos[k] === 'primeiro' ? horariosDoDia(d)[0] : primeiroDoPeriodo(d, periodos[k]);
+      out.push({ data: d.data, hora: h, rotulo: d.rotulo || d.data, dia_semana: d.dia_semana || '', tipo: rotulos[k], opcao: ['proxima', 'meio', 'distante'][k] });
     });
     return out;
   }
+  var LIMITE_NUMERO = 15;
   function fraseEscassez() {
     var l = loja();
     if (!l || !estado.agenda) return '';
+    var dias = diasNaJanela(estado.agenda);
+    if (!dias.length) return '';
+    var frase = 'Próximo horário livre: ' + (dias[0].rotulo || dias[0].data) + ', ' + hora(horariosDoDia(dias[0])[0]) + '.';
     var n = contarHorarios(estado.agenda);
-    if (!n) return '';
-    return (n === 1 ? 'Resta 1 horário' : 'Restam ' + n + ' horários') + ' de prova nos próximos 14 dias na loja ' + l.nome + '.';
+    if (n < LIMITE_NUMERO) frase += ' ' + (n === 1 ? 'Resta 1 horário' : 'Restam ' + n + ' horários') + ' em 14 dias.';
+    return frase;
   }
   function buscarAgendaDaLoja() {
     var chave = estado.respostas.loja;
@@ -389,7 +403,7 @@
   function textoLinkEstilo() {
     var l = loja();
     if (!l) return '';
-    return estado.respostas.estilo === 'nao_sei' ? 'Ver o acervo de noivas da loja ' + l.curto : 'Ver os vestidos ' + nomeEstilo() + ' da loja ' + l.curto;
+    return estado.respostas.estilo === 'nao_sei' ? 'Ver o acervo de noivas' : 'Ver vestidos ' + nomeEstilo();
   }
   function linkAgenda(origemUi) {
     var l = loja();
@@ -413,44 +427,37 @@
   function ganhos(id, valor) {
     var l = loja();
     if (id === 'data') {
-      var g = [];
-      if (valor !== 'sem_data') g.push('Sua data entra na conversa: a equipe confere a disponibilidade do vestido para o seu dia antes da prova.');
-      if (valor === '3m') g.push('Com o casamento perto, o acervo é o caminho mais rápido: vestidos prontos para provar e ajustar.');
-      if (valor === 'sem_data') g.push('Sem pressa: você pode provar antes de fechar a data e voltar quando ela estiver marcada.');
-      return g;
+      if (valor === '3m') return ['Acervo pronto: o caminho mais rápido.'];
+      if (valor === 'sem_data') return ['Dá para provar antes de ter data.'];
+      return ['A loja confere o vestido para a sua data.'];
     }
     if (id === 'caminho') {
-      if (valor === 'acervo') return ['Aluguel de R$ 990 a R$ 4.900 por vestido, conforme o modelo, e o ateliê da Koisa Linda ajusta o vestido no seu corpo. Com as provas que forem necessárias até o caimento ficar certo.'];
-      if (valor === 'desenhar') return ['A Jussara parte das suas referências para desenhar o seu vestido. A criação tem orçamento próprio, apresentado antes de você contratar.'];
-      return ['Na prova, uma consultora compara os dois caminhos com você, no espelho.'];
+      if (valor === 'acervo') return ['Ajuste no ateliê e provas incluídos.'];
+      if (valor === 'desenhar') return ['Orçamento próprio, antes de contratar.'];
+      return ['A consultora compara os dois com você.'];
     }
-    if (id === 'loja' && l) {
-      return ['A consultora da loja ' + l.curto + ' recebe você com hora marcada e escolhe o modelo com você.', 'A Jussara atende pessoalmente, conforme a agenda dela.'];
-    }
-    if (id === 'estilo' && l) {
-      if (estado.respostas.caminho === 'desenhar') {
-        return [valor === 'nao_sei' ? 'Leve as referências que você já salvou: elas abrem a conversa do desenho com a Jussara.' : 'Leve referências de ' + nomeEstilo() + ': elas abrem a conversa do desenho com a Jussara.'];
-      }
-      return [valor === 'nao_sei' ? 'Separamos o acervo de noivas da loja ' + l.curto + ' para você ver agora.' : 'Separamos os vestidos ' + nomeEstilo() + ' do acervo da loja ' + l.curto + ' para você ver agora.'];
+    if (id === 'loja' && l) return ['Consultora da loja, com hora marcada.'];
+    if (id === 'estilo' && l && estado.respostas.caminho === 'desenhar') {
+      return [valor === 'nao_sei' ? 'Leve suas referências para a Jussara.' : 'Leve referências ' + nomeEstilo() + ' para a Jussara.'];
     }
     return [];
   }
   function itemCartao(id) {
     var r = estado.respostas, l = loja();
-    if (id === 'data' && r.data) return 'Disponibilidade conferida para a sua data';
+    if (id === 'data' && r.data) return r.data === 'sem_data' ? 'Prova antes da data' : 'Data conferida';
     if (id === 'caminho' && r.caminho) {
-      if (r.caminho === 'acervo') return 'Aluguel de R$ 990 a R$ 4.900 com ajuste no ateliê';
-      if (r.caminho === 'desenhar') return 'Vestido desenhado pela Jussara, com orçamento antes de contratar';
-      return 'Consultora para comparar os dois caminhos';
+      if (r.caminho === 'acervo') return 'Ajuste e provas incluídos';
+      if (r.caminho === 'desenhar') return 'Desenho da Jussara';
+      return 'Consultora para decidir';
     }
-    if (id === 'loja' && l) return 'Consultora da loja ' + l.curto + ' e o WhatsApp dela';
-    if (id === 'estilo' && r.estilo && l) return r.estilo === 'nao_sei' ? 'Acervo de noivas da loja ' + l.curto + ', separado para você' : 'Vestidos ' + nomeEstilo() + ' da loja ' + l.curto + ', separados para você';
+    if (id === 'loja' && l) return l.un === 'sf' ? 'Consultora em São Francisco' : 'Consultora na Barra';
+    if (id === 'estilo' && r.estilo && l) return r.estilo === 'nao_sei' ? 'Acervo de noivas separado' : 'Vestidos ' + nomeEstilo() + ' separados';
     return '';
   }
   function cartaoSeparado(titulo) {
     var itens = PERGUNTAS.map(function (p) { return itemCartao(p.id); }).filter(Boolean);
     if (!itens.length) return '';
-    return '<aside class="nf-separado" aria-live="polite"><p class="nf-separado-t">' + esc(titulo || 'O que já está separado para você') + '</p><ul>' +
+    return '<aside class="nf-separado" aria-live="polite"><p class="nf-separado-t">' + esc(titulo || 'Separado para você') + '</p><ul>' +
       itens.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul></aside>';
   }
 
@@ -481,14 +488,14 @@
       }).join('') + '</div>';
     if (atual) {
       var g = ganhos(p.id, atual);
-      html += '<div class="nf-ganho" role="status"><p class="nf-ganho-t">Separado para você</p>' + g.map(function (t) { return '<p>' + esc(t) + '</p>'; }).join('') +
+      html += '<div class="nf-ganho" role="status">' + g.map(function (t) { return '<p>' + esc(t) + '</p>'; }).join('') +
         (p.id === 'loja' ? '<p class="nf-escassez" data-nf-escassez' + (fraseEscassez() ? '' : ' hidden') + '>' + esc(fraseEscassez()) + '</p>' : '') +
-        (p.id === 'estilo' ? '<p><a class="nf-link" href="' + esc(linkEstilo()) + '">' + esc(textoLinkEstilo()) + '</a></p>' : '') +
+        (p.id === 'estilo' && estado.respostas.caminho !== 'desenhar' ? '<p><a class="nf-link" href="' + esc(linkEstilo()) + '">' + esc(textoLinkEstilo()) + '</a></p>' : '') +
         '</div>' +
-        '<div class="nf-acoes"><button type="button" class="nf-btn" data-kl-track-manual="true" data-nf-seguir>' + (i === 3 ? 'Ver os horários da prova' : 'Próxima pergunta') + '</button></div>';
+        '<div class="nf-acoes"><button type="button" class="nf-btn" data-kl-track-manual="true" data-nf-seguir>' + (i === 3 ? 'Ver horários' : 'Continuar') + '</button></div>';
     }
     if (i > 0) html += '<button type="button" class="nf-voltar" data-kl-track-manual="true" data-nf-voltar>Voltar</button>';
-    html += cartaoSeparado();
+    if (i > 0) html += cartaoSeparado();
     corpo.innerHTML = html;
 
     corpo.querySelectorAll('[data-nf-op]').forEach(function (b) {
@@ -523,13 +530,11 @@
     var datas = estado.agenda ? tresDatas(estado.agenda) : [];
     var esperando = !estado.agenda && !estado.agendaFalhou;
     // As datas vêm antes do cartão: no celular, o cartão de 4 itens empurrava os horários para fora da tela.
-    var html = '<h2 class="nf-final-t" tabindex="-1">Está tudo separado para você.</h2>' +
-      '<p class="nf-texto nf-texto-final">Agora escolha como prefere seguir. A loja recebe as suas respostas e você não precisa repetir nada.</p>';
+    var html = '<h2 class="nf-final-t" tabindex="-1">Escolha o horário da sua prova.</h2>';
 
     if (datas.length) {
       passoFluxo('5_datas_vistas', String(datas.length));
-      html += '<div class="nf-datas-bloco"><p class="nf-datas-t">Horários livres para a sua prova na loja ' + esc(l.nome) + '</p>' +
-        '<p class="nf-escassez" data-nf-escassez>' + esc(fraseEscassez()) + '</p>' +
+      html += '<div class="nf-datas-bloco"><p class="nf-datas-t">Loja ' + esc(l.nome) + '</p>' +
         '<div class="nf-datas">' + datas.map(function (d, k) {
           return '<button type="button" class="nf-data" data-kl-track-manual="true" data-nf-data="' + k + '" data-nf-agendar="noivas_fluxo_data">' +
             '<span class="nf-data-tipo">' + esc(d.tipo) + '</span><span class="nf-data-dia">' + esc(d.rotulo) + '</span><span class="nf-data-hora">' + esc(hora(d.hora)) + '</span></button>';
@@ -542,10 +547,10 @@
     }
 
     html += '<div class="nf-alternativas">' +
-      '<a class="nf-link" target="_blank" rel="noopener" href="' + esc(linkWhats(mensagemWhats())) + '">Prefere conversar antes? Falar agora com a loja ' + esc(l.curto) + '</a>';
+      '<a class="nf-link" target="_blank" rel="noopener" href="' + esc(linkWhats(mensagemWhats())) + '">Prefere conversar? WhatsApp da loja</a>';
     if (estado.respostas.caminho === 'desenhar') {
-      html += '<a class="nf-link" href="/agendar/perfil/?rota=jussara&amp;ocasiao=noiva&amp;un=' + l.un + '">Pedir a análise do meu vestido com a Jussara</a>' +
-        '<small>O encontro com a Jussara para criação é reservado com um sinal. A equipe informa valor e condições antes de qualquer pagamento.</small>';
+      html += '<a class="nf-link" href="/agendar/perfil/?rota=jussara&amp;ocasiao=noiva&amp;un=' + l.un + '">Análise do vestido com a Jussara</a>' +
+        '<small>Reservada com sinal; o valor vem antes.</small>';
     }
     html += '<a class="nf-link" href="' + esc(linkEstilo()) + '">' + esc(textoLinkEstilo()) + '</a></div>' +
       cartaoSeparado() +
@@ -556,7 +561,7 @@
       b.addEventListener('click', function () {
         var d = datas[Number(b.getAttribute('data-nf-data'))];
         estado.escolha = d;
-        trackSchedule('KL_Schedule_Time_Select', { selected_day: d.data, period: d.hora < '12:00' ? 'manha' : 'tarde', date_option: ['proxima', 'meio', 'distante'][Number(b.getAttribute('data-nf-data'))] });
+        trackSchedule('KL_Schedule_Time_Select', { selected_day: d.data, period: d.hora < '12:00' ? 'manha' : 'tarde', date_option: d.opcao });
         passoFluxo('6_data_escolhida', d.data);
         desenharFormulario();
       });
@@ -568,16 +573,15 @@
     var l = loja(), d = estado.escolha;
     trackSchedule('KL_Schedule_Form_Start', {}, 'form:' + estado.respostas.loja + ':' + OCASIAO + ':' + d.data + ':' + d.hora);
     passoFluxo('7_formulario');
-    corpo.innerHTML = '<h2 class="nf-final-t" tabindex="-1">Só falta saber quem esperar.</h2>' +
-      '<p class="nf-resumo">Prova de noiva · loja ' + esc(l.nome) + ' · <b>' + esc(d.rotulo) + ', ' + esc(hora(d.hora)) + '</b></p>' +
+    corpo.innerHTML = '<h2 class="nf-final-t" tabindex="-1">Quem a loja vai esperar?</h2>' +
+      '<p class="nf-resumo"><b>' + esc(d.rotulo) + ', ' + esc(hora(d.hora)) + '</b> · ' + esc(l.nome) + '</p>' +
       '<form class="nf-form" novalidate>' +
-      '<div class="nf-campo" data-c="nome"><label for="nf-nome">Seu nome</label><input id="nf-nome" type="text" autocomplete="name" maxlength="80" required></div>' +
-      '<div class="nf-campo" data-c="tel"><label for="nf-tel">WhatsApp com DDD<span>Para a equipe falar com você sobre a prova.</span></label>' +
+      '<div class="nf-campo" data-c="nome"><label for="nf-nome">Nome</label><input id="nf-nome" type="text" autocomplete="name" maxlength="80" required></div>' +
+      '<div class="nf-campo" data-c="tel"><label for="nf-tel">WhatsApp com DDD</label>' +
       '<input id="nf-tel" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(21) 90000-0000" required><small class="nf-erro">Confira o número com DDD.</small></div>' +
       '<label class="nf-mel" aria-hidden="true">Não preencha<input id="nf-mel" type="text" tabindex="-1" autocomplete="off"></label>' +
-      '<label class="nf-aceite"><input id="nf-aceite" type="checkbox" required><span>Autorizo a Koisa Linda a usar meu nome e WhatsApp para confirmar e organizar esta prova. <a href="/privacidade/" target="_blank" rel="noopener">Como cuidamos dos seus dados</a>.</span></label>' +
-      '<small class="nf-erro" id="nf-erro-aceite">Precisamos do seu aceite para registrar a prova.</small>' +
-      '<p class="nf-nota">Ao enviar, você verá se a prova está confirmada ou se o pedido aguarda a confirmação da equipe.</p>' +
+      '<label class="nf-aceite"><input id="nf-aceite" type="checkbox" required><span>Autorizo o uso do meu nome e WhatsApp para esta prova. <a href="/privacidade/" target="_blank" rel="noopener">Privacidade</a></span></label>' +
+      '<small class="nf-erro" id="nf-erro-aceite">Marque o aceite para enviar.</small>' +
       '<div class="nf-acoes"><button type="submit" class="nf-btn" data-kl-track-manual="true" id="nf-enviar">Pedir este horário</button>' +
       '<button type="button" class="nf-voltar" data-kl-track-manual="true" data-nf-voltar>Trocar horário</button></div></form>';
     var tel = corpo.querySelector('#nf-tel');
@@ -675,8 +679,7 @@
     var l = loja();
     var quando = quandoTexto();
     corpo.innerHTML = '<h2 class="nf-final-t" tabindex="-1">Quase lá</h2>' +
-      '<p class="nf-texto">Não consegui enviar o seu pedido para a loja. Seus dados não se perderam: é só tocar no botão que a mensagem vai pronta, com o horário que você escolheu.</p>' +
-      '<p class="nf-resumo">' + esc(quando) + ' · loja ' + esc(l.nome) + '</p>' +
+      '<p class="nf-texto">O pedido não saiu. Mande pelo WhatsApp, já com o horário.</p>' +
       '<div class="nf-acoes"><a class="nf-btn" target="_blank" rel="noopener" href="' +
       esc(linkWhats('Olá! Sou ' + nome + '. Vim pela página de noivas do site e quero agendar uma prova de vestido de noiva na unidade ' + l.nome + ' em ' + quando + '. ' + notasDoFluxo() + '.')) +
       '">Enviar pelo WhatsApp</a></div>';
@@ -695,20 +698,16 @@
     passoFluxo('8_pedido_enviado', confirmado ? 'confirmed' : 'pending_approval');
     corpo.innerHTML = '<div class="nf-pronto">' +
       '<div class="nf-selo" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>' +
-      '<h2 class="nf-final-t" tabindex="-1">' + esc(confirmado ? 'Prova confirmada' : 'Pedido enviado, aguardando confirmação') + '</h2>' +
-      '<p class="nf-quando">' + esc(quando) + ' · loja ' + esc(l.nome) + '</p>' +
-      (c.mensagem ? '<p class="nf-texto">' + esc(c.mensagem) + '</p>' : '') +
-      '<p class="nf-texto">' + (confirmado
-        ? 'Seu horário está confirmado. A equipe da loja <b>' + esc(l.nome) + '</b> espera você e já recebeu as suas respostas.'
-        : 'Fique de olho no WhatsApp da loja <b>' + esc(l.nome) + '</b>: é por lá que a equipe confirma o seu pedido antes da prova. As suas respostas já foram junto.') + '</p>' +
-      cartaoSeparado('O que a loja já sabe sobre você') +
+      '<h2 class="nf-final-t" tabindex="-1">' + esc(confirmado ? 'Prova confirmada.' : 'Pedido enviado.') + '</h2>' +
+      '<p class="nf-quando">' + esc(quando) + ' · ' + esc(l.nome) + '</p>' +
+      '<p class="nf-texto">' + (confirmado ? 'A loja espera você e já tem as suas respostas.' : 'A loja confirma pelo WhatsApp, já com as suas respostas.') + '</p>' +
       '<div class="nf-acoes"><a class="nf-btn" href="' + esc(linkEstilo()) + '">' + esc(textoLinkEstilo()) + '</a>' +
-      '<a class="nf-btn nf-btn-leve" target="_blank" rel="noopener" href="' + esc(linkWhats(duvida)) + '">Tirar dúvidas pelo WhatsApp</a></div></div>';
+      '<a class="nf-btn nf-btn-leve" target="_blank" rel="noopener" href="' + esc(linkWhats(duvida)) + '">Dúvidas no WhatsApp</a></div></div>';
     var fichaUrl = String(c.ficha_url || '');
     if (confirmado && /^https:\/\/koisalinda\.com\.br\/noivas\/sua-prova\/#[a-f0-9]{64}$/.test(fichaUrl)) {
       var ficha = document.createElement('p');
       ficha.className = 'nf-texto';
-      ficha.innerHTML = 'Conte suas preferências para a equipe preparar a sua prova. A ficha é opcional. <a class="nf-link" rel="noreferrer" referrerpolicy="no-referrer">Preparar minha prova</a>';
+      ficha.innerHTML = '<a class="nf-link" rel="noreferrer" referrerpolicy="no-referrer">Preparar minha prova (opcional)</a>';
       ficha.querySelector('a').href = fichaUrl;
       corpo.querySelector('.nf-pronto').appendChild(ficha);
     }
