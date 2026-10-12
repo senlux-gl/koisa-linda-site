@@ -27,6 +27,7 @@ PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-qualification.js', 'kl-qualificatio
 CAPTURE_VERSION = '20260906google1'
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-guia-noiva.js', 'kl-guia-noiva.css'}
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-booking-links.js', 'kl-consultoria.css', 'kl-consultoria.js', 'kl-consultoria-config.json'}
+PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-noivas-fluxo-20261012.js', 'kl-noivas-fluxo-20261012.css'}
 CAPTURE_EXCLUDED = frozenset(('consultoria.html', 'agendar.html', 'agendar-prova.html', 'agendar-perfil.html', 'privacidade.html', 'peca.html', 'provar.html', '404.html', 'guia-da-noiva.html'))
 CAPTURE_CATEGORIES = {
  'noivas.html':'vestidos-noiva', 'noivas-experiencia.html':'vestidos-noiva',
