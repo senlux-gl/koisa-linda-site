@@ -423,18 +423,25 @@
   function hookFbqForExistingEvents() {
     if (window.__klFbqHooked || typeof window.fbq !== 'function') return;
     var original = window.fbq;
+    /* Se o fbevents.js terminar de carregar depois deste embrulho, ele instala o callMethod no
+     * embrulho (window.fbq), não no stub original; aí o stub empilharia numa fila que ninguém lê
+     * e todo evento posterior se perderia. Encaminha para quem tem o callMethod. (12/10/2026) */
+    function send(args) {
+      if (!original.callMethod && wrapped.callMethod) return wrapped.callMethod.apply(wrapped, args);
+      return original.apply(window, args);
+    }
     function wrapped() {
       var args = Array.prototype.slice.call(arguments);
-      var ret = original.apply(window, args);
+      var ret = send(args);
       try {
         if (args[0] === 'track' && args[1] === 'ViewContent') {
           var p = args[2] || {};
           var code = clean(p.content_name || '', 24);
           var d = getProductByCode(code);
-          original('trackCustom', 'KL_Product_View', baseParams(Object.assign({ source_event: 'ViewContent' }, productParams(d), {
+          send(['trackCustom', 'KL_Product_View', baseParams(Object.assign({ source_event: 'ViewContent' }, productParams(d), {
             product_code: code || (d && d.k) || '',
             content_category: clean(p.content_category || (d && d.c) || '', 40)
-          })));
+          }))]);
         }
       } catch (e) {}
       return ret;
