@@ -71,7 +71,10 @@ class SEOBuildTest(unittest.TestCase):
     self.assertIn('Confirme com a equipe a disponibilidade',s)
 
  def test_categories_expose_crawlable_product_links_and_both_city_style_groups(self):
-  for path in ['noivas/','debutantes/','madrinhas/','ternos/']:
+  # Rascunho 12/10/2026: /noivas/ e /debutantes/ novas trocam a grade de 6 códigos pelo fluxo de 4 toques
+  # (decisão aberta para o Guilherme; voltar a grade é uma linha em seo_site.py).
+  # Os 14 links de estilo por loja continuam rastreáveis e conferidos abaixo.
+  for path in ['madrinhas/','ternos/']:
    s=self.pages[path+'index.html']
    self.assertGreaterEqual(len(re.findall(r'<a href="/p/[^/]+\.html"',s)),6)
   noivas=self.pages['noivas/index.html']
