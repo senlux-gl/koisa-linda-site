@@ -504,8 +504,8 @@
     return [];
   }
   /* Debutante: fala com a mãe e a filha, a menina no centro. Oferta de memory/lara/ofertas-ativas.json
-   * (chave debutante, 12/10): 25% em cada um fechando os três; acessórios e penteado do grande dia,
-   * ajuste no ateliê e provas incluídos. Sem preço em reais nesta página (decisão do Guilherme). */
+   * (chave debutante, 12/10): 25% em cada um fechando os três; ajuste no ateliê e provas incluídos.
+   * Acessórios e penteado saíram da página por decisão do Guilherme (12/10). Sem preço em reais nesta página (decisão do Guilherme). */
   function ganhosDebutante(id, valor, l) {
     if (id === 'data') {
       if (valor === '3m') return ['Acervo pronto: o caminho mais rápido.'];
