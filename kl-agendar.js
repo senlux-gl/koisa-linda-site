@@ -318,12 +318,14 @@
       body: JSON.stringify(leadPayloadD('lead_form_completed'))
       });
     }).then(function (r) {
-      return r.json().then(function (d) { if (!r.ok || !d || d.ok !== true) throw new Error((d && d.reason) || ('http ' + r.status)); return d; });
+      return r.json().then(function (d) { if (!r.ok || !d || d.ok !== true || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(d.lead_id || ''))) throw new Error('invalid_receipt'); return d; });
     }).then(function (d) {
       estado.lead_id = d.lead_id || '';
       estado.leadSalvo = !!estado.lead_id;
       try { if (estado.lead_id) sessionStorage.setItem('kl_site_lead_id', estado.lead_id); } catch (e) {}
-      trackSchedule('KL_Lead_Form_Success', { duplicate: d.duplicate ? 'yes' : 'no' }, 'leadsuccess:' + estado.lead_id);
+      var newReceipt = !window.KLTracking || !window.KLTracking.firstReceipt || window.KLTracking.firstReceipt('lead', estado.lead_id);
+      if (newReceipt) trackSchedule('KL_Lead_Form_Success', { duplicate: d.duplicate ? 'yes' : 'no', flow_step: 'cadastro', flow_action: 'receipt', event_id: 'lead:' + estado.lead_id }, 'leadsuccess:' + estado.lead_id);
+      else trackSchedule('KL_Lead_Form_Reused', { duplicate: 'yes', flow_step: 'cadastro', flow_action: 'receipt' });
       return d;
     }).catch(function (err) {
       trackSchedule('KL_Lead_Form_Error', { reason: 'request_failed' });
@@ -331,9 +333,20 @@
     });
   }
 
+  function measurementMode() {
+    if (window.KLTracking && window.KLTracking.measurementMode) return window.KLTracking.measurementMode();
+    return qsParam('utm_source') === 'qa' || qsParam('src') === 'qa' || qsParam('measurement_mode') === 'qa' || /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'qa' : 'live';
+  }
+  function requestReceipt(c, status) {
+    if (window.KLTracking && window.KLTracking.receiptId) return window.KLTracking.receiptId('appointment', c, status);
+    var id = String(c.appointment_id || '');
+    return status >= 200 && status < 300 && /^(confirmed|pending_approval|pedido_registrado)$/.test(c.status || '') && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) ? id : '';
+  }
   function trackSchedule(nome, extra, onceKey) {
     extra = extra || {};
     var params = {
+      measurement_mode: measurementMode(),
+      funnel_sector: 'prova_agendada',
       schedule_experience: '20260906-prova-contexto',
       has_model_reference: referenciaModelo() ? 'yes' : 'no',
       schedule_variant: nomeVariante(),
@@ -345,6 +358,7 @@
       page_path: location.pathname || '/agendar.html'
     };
     Object.keys(extra).forEach(function (k) { if (extra[k] !== undefined && extra[k] !== '') params[k] = extra[k]; });
+    if (window.KLTracking && window.KLTracking.measurementParams) params = window.KLTracking.measurementParams(nome, params);
     try {
       var key = onceKey ? nome + ':' + onceKey : '';
       window.__klScheduleSent = window.__klScheduleSent || {};
@@ -358,7 +372,7 @@
         window.__klGA4EventQueue = window.__klGA4EventQueue || [];
         if (window.__klGA4EventQueue.length < 100) window.__klGA4EventQueue.push({ name: nome, params: params });
       }
-      if (typeof window.fbq === 'function') window.fbq('trackCustom', nome, params);
+      if (params.measurement_mode !== 'qa' && typeof window.fbq === 'function') window.fbq('trackCustom', nome, params, params.event_id ? { eventID: params.event_id } : undefined);
     } catch (e) {}
   }
 
@@ -844,7 +858,14 @@
       .then(function (r) { return r.json().then(function (d) { return { status: r.status, corpo: d }; }); })
       .then(function (r) {
         marcarEnvio(false);
-        if (r.corpo && r.corpo.ok === true) { trackSchedule('KL_Schedule_Request_Success', { status: String(r.status) }); return pronto(r.corpo); }
+        if (r.corpo && r.corpo.ok === true) {
+          var receipt = requestReceipt(r.corpo, r.status);
+          if (receipt) {
+            var first = !window.KLTracking || !window.KLTracking.firstReceipt || window.KLTracking.firstReceipt('request', receipt);
+            trackSchedule(first ? 'KL_Schedule_Request_Success' : 'KL_Schedule_Request_Reused', { status: String(r.status), appointment_status: r.corpo.status, duplicate: r.corpo.duplicado ? 'yes' : 'no', flow_step: 'pedido_recebido', flow_action: 'receipt', event_id: 'request:' + receipt });
+          } else trackSchedule('KL_Schedule_Receipt_Unverified', { flow_step: 'pedido_recebido', flow_action: 'error' });
+          return pronto(r.corpo);
+        }
         if (r.status === 409) { delete consultasAgenda[estado.loja + ':' + estado.ocasiao]; trackSchedule('KL_Schedule_Request_Conflict', { status: String(r.status) }); alerta(r.corpo.mensagem); return ir(estado.variante === 'd' ? 3 : 2); }
         if (botao) { botao.disabled = false; botao.textContent = estado.variante === 'd' ? 'Pedir este horário' : 'Pedir este horário'; }
         trackSchedule('KL_Schedule_Request_Error', { status: String(r.status) });
@@ -994,7 +1015,7 @@
     if (!Array.isArray(sent)) sent = [];
     if (sent.indexOf(eventKey) > -1) return;
     if (confirmed) {
-      try { if (typeof window.fbq === 'function') window.fbq('track', 'Schedule', { content_category: estado.ocasiao }, { eventID: appointmentId }); } catch (e) {}
+      try { if (measurementMode() !== 'qa' && typeof window.fbq === 'function') window.fbq('track', 'Schedule', { content_category: estado.ocasiao }, { eventID: appointmentId }); } catch (e) {}
       trackSchedule('agendamento_site', { appointment_status: 'confirmed' }, eventKey);
     } else if (status === 'pending_approval' || status === 'pedido_registrado') {
       trackSchedule('KL_Schedule_Pending_Approval', { appointment_status: 'pending_approval' }, eventKey);

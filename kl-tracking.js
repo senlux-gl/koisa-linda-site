@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var VERSION = '20260906-attribution-v2';
+  var VERSION = '20261013-funnel-v1';
   var GA4_ID = 'G-D6HYW29TS4';
   var PIXEL_READY_TIMEOUT = 8000;
   var SCROLL_DEPTHS = [25, 50, 75, 90];
@@ -241,12 +241,55 @@
     return sessionId;
   }
   function gaEvent(name, params) {
+    params = measurementParams(name, params || {});
     if (entryUiSource) params = Object.assign({ entry_ui_source: entryUiSource }, params);
     if (window.__klGA4Ready && typeof window.gtag === 'function') window.gtag('event', name, params);
     else {
       window.__klGA4EventQueue = window.__klGA4EventQueue || [];
       if (window.__klGA4EventQueue.length < 100) window.__klGA4EventQueue.push({ name: name, params: params });
     }
+  }
+  function measurementMode() {
+    try {
+      var query = new URLSearchParams(location.search);
+      if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) || /\.pages\.dev$/.test(location.hostname) ||
+          query.get('src') === 'qa' || query.get('measurement_mode') === 'qa' || query.get('utm_source') === 'qa') return 'qa';
+      var attr = getAttribution();
+      if ((attr.last || {}).utm_source === 'qa' || (attr.first || {}).utm_source === 'qa') return 'qa';
+    } catch (e) {}
+    return 'live';
+  }
+  function measurementParams(name, params) {
+    var p = Object.assign({}, params);
+    var rawStore = p.store || p.loja || p.selected_unit || p.catalog_unit || '';
+    p.funnel_store = rawStore === 'barra' ? 'barra' : /^(sf|saofrancisco|sao_francisco)$/.test(rawStore) ? 'saofrancisco' : 'unselected';
+    var category = p.content_category || p.catalog_category || '';
+    var occasion = p.ocasiao || (category === 'vestidos-noiva' ? 'noiva' : category === 'vestidos-debutante' ? 'debutante' : category === 'vestidos-madrinha' ? 'festa' : '');
+    if (occasion) p.ocasiao = occasion;
+    p.funnel_sector = /^(noiva|debutante)$/.test(occasion) || /KL_(Schedule|Lead_Form|Noivas_Flow|Debutantes_Flow)/.test(name)
+      ? 'prova_agendada' : occasion === 'festa' ? 'festa' : 'site';
+    p.measurement_mode = measurementMode();
+    if (!p.flow_step && p.funnel_step) p.flow_step = p.funnel_step;
+    if (!p.flow_step && /^KL_(Catalog|Product|Filter|Favorite|Unit|WhatsApp)/.test(name)) p.flow_step = name.replace(/^KL_/, '').toLowerCase();
+    if (!p.flow_action) p.flow_action = /Error|Conflict/.test(name) ? 'error' : /Success|agendamento_site/.test(name) ? 'receipt' : /Submit/.test(name) ? 'submit' : /Click|Selected|Select|Change|Toggle/.test(name) ? 'select' : 'view';
+    return p;
+  }
+  function receiptId(kind, body, httpStatus) {
+    if (!body || body.ok !== true || !(Number(httpStatus) >= 200 && Number(httpStatus) < 300)) return '';
+    var id = String(body[kind === 'lead' ? 'lead_id' : 'appointment_id'] || '');
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return '';
+    if (kind !== 'lead' && !/^(confirmed|pending_approval|pedido_registrado)$/.test(String(body.status || ''))) return '';
+    return id;
+  }
+  function firstReceipt(kind, id) {
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id || ''))) return false;
+    var key = kind + ':' + id;
+    var seen = window.__klVerifiedReceipts || [];
+    try { seen = seen.concat(JSON.parse(readStorage('kl_verified_receipts') || '[]')); } catch (e) {}
+    if (seen.indexOf(key) !== -1) return false;
+    window.__klVerifiedReceipts = seen.concat(key).slice(-100);
+    try { sessionStorage.setItem('kl_verified_receipts', JSON.stringify(window.__klVerifiedReceipts)); } catch (e) {}
+    return true;
   }
   // Explicit, optional linking of this visit to later service outcomes.
   // A KL session is not a GA client ID. Never derive either ID from contact data.
@@ -277,7 +320,7 @@
     });
   }
   function track(name, params, opts) {
-    params = baseParams(params || {});
+    params = measurementParams(name, baseParams(params || {}));
     if (opts && opts.onceKey) {
       if (sentOnce[opts.onceKey]) return;
       sentOnce[opts.onceKey] = true;
@@ -289,6 +332,7 @@
       recentEvents[recentKey] = t;
     } catch (e) {}
     try { gaEvent(name, params); } catch (e) {}
+    if (params.measurement_mode === 'qa') return;
     if (typeof window.fbq === 'function') {
       window.fbq('trackCustom', name, params);
       if (window.__KL_TRACKING_DEBUG__) {
@@ -305,6 +349,7 @@
    * fica sem sinal nenhum de conversão. Dedupe por href+janela de 3s, igual ao KL_WhatsApp_Click,
    * pra um clique nunca contar duas vezes. */
   function standard(name, params, onceKey) {
+    if (measurementMode() === 'qa') return;
     if (typeof window.fbq !== 'function') return;
     if (onceKey) {
       if (sentOnce['std:' + onceKey]) return;
@@ -432,6 +477,7 @@
     }
     function wrapped() {
       var args = Array.prototype.slice.call(arguments);
+      if (measurementMode() === 'qa' && /^(track|trackCustom)$/.test(args[0])) return;
       var ret = send(args);
       try {
         if (args[0] === 'track' && args[1] === 'ViewContent') {
@@ -665,7 +711,7 @@
     bindCatalogFilterPatches();
     track('KL_Page_Context', { url_has_query: location.search ? 'yes' : 'no' }, { onceKey: 'page:' + location.href });
   }
-  window.KLTracking = Object.freeze({ catalog: catalog, getAttribution: getAttribution, getPersistedAttribution: getPersistedAttribution, getSessionId: getSessionId, getGoogleIdentity: getGoogleIdentity, gaEvent: gaEvent });
+  window.KLTracking = Object.freeze({ catalog: catalog, getAttribution: getAttribution, getPersistedAttribution: getPersistedAttribution, getSessionId: getSessionId, getGoogleIdentity: getGoogleIdentity, gaEvent: gaEvent, measurementParams: measurementParams, measurementMode: measurementMode, receiptId: receiptId, firstReceipt: firstReceipt });
   getAttribution();
   getSessionId();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
