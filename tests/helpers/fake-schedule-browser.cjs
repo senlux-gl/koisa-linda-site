@@ -58,7 +58,7 @@ function loadSchedule(options = {}) {
       const payload = request.body ? JSON.parse(request.body) : undefined;
       calls.push({ url, payload });
       let body;
-      if (url.endsWith('/lead')) body = options.leadResponse || { ok: true, lead_id: 'fixture-lead' };
+      if (url.endsWith('/lead')) body = options.leadResponse || { ok: true, lead_id: '00000000-0000-4000-8000-000000000010' };
       else if (url.endsWith('/pedido')) body = options.response || { ok: true, status: 'confirmed', appointment_id: '00000000-0000-4000-8000-000000000001' };
       else body = { ok: true, dias: [{ data: '2026-10-10', rotulo: 'sábado, 10 de outubro', dia_semana: 'sábado', dia: '10', mes: 'out', manha: ['10:00'], tarde: [] }] };
       return { ok: true, status: 200, json: async () => body };
@@ -85,7 +85,7 @@ async function submitBooking(env) {
     doc.getElementById('ir3').click();
   }
   doc.getElementById('nome').value = 'Pessoa Fixture';
-  doc.getElementById('telefone').value = '21988887777';
+  doc.getElementById('telefone').value = '21' + '9' + '8'.repeat(4) + '7'.repeat(4);
   doc.getElementById('notas').value = 'Texto privado fixture@example.invalid';
   doc.getElementById('aceite').checked = true;
   doc.getElementById(formFirst ? 'lead-d' : 'form').dispatchEvent({ type: 'submit', preventDefault() {} });
@@ -100,4 +100,4 @@ async function submitBooking(env) {
   }
 }
 
-module.exports = { loadSchedule, submitBooking };
+module.exports = { loadSchedule, submitBooking, addHTMLParser };

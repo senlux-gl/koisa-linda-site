@@ -160,10 +160,21 @@
   }
 
   /* ── medição: mesmos nomes e parâmetros do trackSchedule do kl-agendar.js ─ */
+  function measurementMode() {
+    if (window.KLTracking && window.KLTracking.measurementMode) return window.KLTracking.measurementMode();
+    return qsParam('utm_source') === 'qa' || qsParam('src') === 'qa' || qsParam('measurement_mode') === 'qa' || /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'qa' : 'live';
+  }
+  function requestReceipt(c, status) {
+    if (window.KLTracking && window.KLTracking.receiptId) return window.KLTracking.receiptId('appointment', c, status);
+    var id = String(c.appointment_id || '');
+    return status >= 200 && status < 300 && /^(confirmed|pending_approval|pedido_registrado)$/.test(c.status || '') && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) ? id : '';
+  }
   function trackSchedule(nome, extra, onceKey) {
     extra = extra || {};
     var l = estado.respostas.loja || undefined;
     var params = {
+      measurement_mode: measurementMode(),
+      funnel_sector: 'prova_agendada',
       schedule_experience: '20260906-prova-contexto',
       has_model_reference: 'no',
       schedule_variant: ROTA + '_fluxo_3_datas',
@@ -175,6 +186,7 @@
       page_path: location.pathname || '/' + ROTA + '/'
     };
     Object.keys(extra).forEach(function (k) { if (extra[k] !== undefined && extra[k] !== '') params[k] = extra[k]; });
+    if (window.KLTracking && window.KLTracking.measurementParams) params = window.KLTracking.measurementParams(nome, params);
     try {
       var key = onceKey ? nome + ':' + onceKey : '';
       window.__klScheduleSent = window.__klScheduleSent || {};
@@ -188,11 +200,14 @@
         window.__klGA4EventQueue = window.__klGA4EventQueue || [];
         if (window.__klGA4EventQueue.length < 100) window.__klGA4EventQueue.push({ name: nome, params: params });
       }
-      if (typeof window.fbq === 'function') window.fbq('trackCustom', nome, params);
+      if (params.measurement_mode !== 'qa' && typeof window.fbq === 'function') window.fbq('trackCustom', nome, params, params.event_id ? { eventID: params.event_id } : undefined);
     } catch (e) {}
   }
   function passoFluxo(step, valor) {
     trackSchedule(OCASIAO === 'debutante' ? 'KL_Debutantes_Flow_Step' : 'KL_Noivas_Flow_Step', { flow_step: step, value: valor || undefined });
+  }
+  function medirFluxo(action, step, choice) {
+    trackSchedule('KL_Flow_' + action, { flow_action: action.toLowerCase(), flow_step: step, flow_choice: choice || undefined }, action === 'View' ? 'flowview:' + step : undefined);
   }
 
   /* Clique em qualquer botão de agendar da página (data-nf-agendar="origem"). */
@@ -309,12 +324,17 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(leadPayload())
     }).then(function (r) {
-      return r.json().then(function (d) { if (!r.ok || !d || d.ok !== true) throw new Error((d && d.reason) || ('http ' + r.status)); return d; });
+      return r.json().then(function (d) {
+        if (!r.ok || !d || d.ok !== true || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(d.lead_id || ''))) throw new Error('invalid_receipt');
+        return d;
+      });
     }).then(function (d) {
       estado.lead_id = d.lead_id || '';
       estado.leadSalvo = !!estado.lead_id;
       try { if (estado.lead_id) sessionStorage.setItem('kl_site_lead_id', estado.lead_id); } catch (e) {}
-      trackSchedule('KL_Lead_Form_Success', { duplicate: d.duplicate ? 'yes' : 'no' }, 'leadsuccess:' + estado.lead_id);
+      var newReceipt = !window.KLTracking || !window.KLTracking.firstReceipt || window.KLTracking.firstReceipt('lead', estado.lead_id);
+      if (newReceipt) trackSchedule('KL_Lead_Form_Success', { duplicate: d.duplicate ? 'yes' : 'no', flow_step: 'cadastro', flow_action: 'receipt', event_id: 'lead:' + estado.lead_id }, 'leadsuccess:' + estado.lead_id);
+      else trackSchedule('KL_Lead_Form_Reused', { duplicate: 'yes', flow_step: 'cadastro', flow_action: 'receipt' });
       return d;
     }).catch(function () {
       trackSchedule('KL_Lead_Form_Error', { reason: 'request_failed' });
@@ -574,6 +594,7 @@
   function desenharPergunta(i) {
     estado.passo = i;
     var p = PERGUNTAS[i];
+    medirFluxo('View', p.id);
     var atual = estado.respostas[p.id];
     var html = progresso(i) + '<h2 class="nf-pergunta" tabindex="-1">' + esc(p.titulo) + '</h2>' +
       '<div class="nf-opcoes' + (p.opcoes.length > 5 ? ' nf-opcoes-grade' : '') + '" role="group" aria-label="' + esc(p.titulo) + '">' +
@@ -597,6 +618,7 @@
         var valor = b.getAttribute('data-nf-op');
         var mudouLoja = p.id === 'loja' && estado.respostas.loja !== valor;
         estado.respostas[p.id] = valor;
+        medirFluxo('Answer', p.id, valor);
         if (mudouLoja) { estado.escolha = null; }
         passoFluxo((i + 1) + '_' + p.id, valor);
         if (p.id === 'loja') {
@@ -609,16 +631,18 @@
     });
     var seguir = corpo.querySelector('[data-nf-seguir]');
     if (seguir) seguir.addEventListener('click', function () {
+      medirFluxo('Advance', p.id);
       if (i < 3) desenharPergunta(i + 1); else desenharFinal();
       focar('.nf-pergunta, .nf-final-t');
       trazerParaVista();
     });
     var voltar = corpo.querySelector('[data-nf-voltar]');
-    if (voltar) voltar.addEventListener('click', function () { desenharPergunta(i - 1); focar('.nf-pergunta'); });
+    if (voltar) voltar.addEventListener('click', function () { medirFluxo('Back', p.id); desenharPergunta(i - 1); focar('.nf-pergunta'); });
   }
 
   function desenharFinal() {
     estado.passo = 4;
+    medirFluxo('View', 'horarios');
     estado.escolha = null;
     var l = loja();
     var datas = estado.agenda ? tresDatas(estado.agenda) : [];
@@ -655,6 +679,7 @@
       b.addEventListener('click', function () {
         var d = datas[Number(b.getAttribute('data-nf-data'))];
         estado.escolha = d;
+        medirFluxo('Answer', 'horarios', d.opcao);
         trackSchedule('KL_Schedule_Time_Select', { selected_day: d.data, period: d.hora < '12:00' ? 'manha' : 'tarde', date_option: d.opcao });
         passoFluxo('6_data_escolhida', d.data);
         desenharFormulario();
@@ -665,6 +690,7 @@
 
   function desenharFormulario() {
     var l = loja(), d = estado.escolha;
+    medirFluxo('View', 'cadastro');
     trackSchedule('KL_Schedule_Form_Start', {}, 'form:' + estado.respostas.loja + ':' + OCASIAO + ':' + d.data + ':' + d.hora);
     passoFluxo('7_formulario');
     corpo.innerHTML = '<h2 class="nf-final-t" tabindex="-1">Quem a loja vai esperar?</h2>' +
@@ -687,6 +713,11 @@
     });
     corpo.querySelector('[data-nf-voltar]').addEventListener('click', function () { desenharFinal(); focar('.nf-final-t'); });
     corpo.querySelector('form').addEventListener('submit', enviar);
+    ['#nf-nome', '#nf-tel'].forEach(function (selector) {
+      corpo.querySelector(selector).addEventListener('input', function () {
+        trackSchedule('KL_Flow_Input_Start', { flow_step: 'cadastro', flow_action: 'input_start' }, 'input-start');
+      });
+    });
     focar('#nf-nome');
   }
 
@@ -707,6 +738,7 @@
     corpo.querySelector('#nf-erro-aceite').style.display = aceite ? 'none' : 'block';
     if (!aceite) faltou = true;
     if (faltou) {
+      trackSchedule('KL_Flow_Validation_Error', { flow_step: 'cadastro', flow_action: 'validation_error', flow_choice: (nome.length < 2 ? 'nome_' : '') + (tel.length < 10 || tel.length > 11 ? 'telefone_' : '') + (!aceite ? 'aceite' : '') });
       var primeiro = corpo.querySelector('.nf-campo.erro input') || corpo.querySelector('#nf-aceite');
       if (primeiro) primeiro.focus();
       return;
@@ -736,7 +768,14 @@
       .then(function (r) { return r.json().then(function (c) { return { status: r.status, corpo: c }; }); })
       .then(function (r) {
         estado.enviando = false;
-        if (r.corpo && r.corpo.ok === true) { trackSchedule('KL_Schedule_Request_Success', { status: String(r.status) }); return pronto(r.corpo); }
+        if (r.corpo && r.corpo.ok === true) {
+          var receipt = requestReceipt(r.corpo, r.status);
+          if (receipt) {
+            var first = !window.KLTracking || !window.KLTracking.firstReceipt || window.KLTracking.firstReceipt('request', receipt);
+            trackSchedule(first ? 'KL_Schedule_Request_Success' : 'KL_Schedule_Request_Reused', { status: String(r.status), appointment_status: r.corpo.status, duplicate: r.corpo.duplicado ? 'yes' : 'no', flow_step: 'pedido_recebido', flow_action: 'receipt', event_id: 'request:' + receipt });
+          } else trackSchedule('KL_Schedule_Receipt_Unverified', { flow_step: 'pedido_recebido', flow_action: 'error' });
+          return pronto(r.corpo);
+        }
         if (r.status === 409) {
           delete consultas[estado.respostas.loja];
           trackSchedule('KL_Schedule_Request_Conflict', { status: String(r.status) });
@@ -819,7 +858,7 @@
     if (!Array.isArray(sent)) sent = [];
     if (sent.indexOf(eventKey) > -1) return;
     if (confirmado) {
-      try { if (typeof window.fbq === 'function') window.fbq('track', 'Schedule', { content_category: OCASIAO }, { eventID: appointmentId }); } catch (e) {}
+      try { if (measurementMode() !== 'qa' && typeof window.fbq === 'function') window.fbq('track', 'Schedule', { content_category: OCASIAO }, { eventID: appointmentId }); } catch (e) {}
       trackSchedule('agendamento_site', { appointment_status: 'confirmed' }, eventKey);
     } else if (status === 'pending_approval' || status === 'pedido_registrado') {
       trackSchedule('KL_Schedule_Pending_Approval', { appointment_status: 'pending_approval' }, eventKey);
