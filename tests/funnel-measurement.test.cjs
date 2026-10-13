@@ -32,6 +32,15 @@ test('selected SF store is normalized without changing legacy Meta conversion pa
   }
   assert.equal(t.measurementParams('KL_Flow_Answer',{ocasiao:'debutante',flow_step:'vestidos',flow_choice:'tres'}).funnel_sector,'prova_agendada');
 });
+test('GA4 keeps registered funnel dimensions within its 25-parameter limit', () => {
+  const e=loadTracking(); const extra={};
+  for(let i=0;i<35;i++)extra['extra_'+i]='extra';
+  Object.assign(extra,{ocasiao:'festa',store:'sao_francisco',content_category:'vestidos-madrinha',product_code:'MD-001',flow_step:'unit_selected',flow_choice:'sf',ui_source:'gallery'});
+  e.window.KLTracking.gaEvent('KL_Unit_Selected',extra);
+  const p=e.gtagCalls.at(-1)[2];
+  assert.ok(Object.keys(p).length<=25);
+  assert.equal(p.product_code,'MD-001');assert.equal(p.funnel_store,'saofrancisco');assert.equal(p.measurement_mode,'live');assert.equal(p.flow_step,'unit_selected');
+});
 test('QA is classified and cannot create the festa custom conversion or Lead in Meta', () => {
   const e=loadTracking({search:'?utm_source=qa',products:[{k:'MD-001',c:'vestidos-madrinha',un:'barra'}]});
   e.window.KLTracking.catalog('KL_Unit_Selected',{productCode:'MD-001',unit:'barra',source:'gallery'});

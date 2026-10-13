@@ -243,6 +243,15 @@
   function gaEvent(name, params) {
     params = measurementParams(name, params || {});
     if (entryUiSource) params = Object.assign({ entry_ui_source: entryUiSource }, params);
+    // GA4 accepts at most 25 event parameters. Keep the funnel dimensions first;
+    // the richer Meta payload and the full attribution in the CRM stay separate.
+    var approved = {};
+    var priority = ['flow_step', 'flow_action', 'flow_choice', 'funnel_sector', 'funnel_store', 'measurement_mode', 'ocasiao', 'content_category', 'product_code', 'ui_source', 'appointment_status', 'duplicate', 'event_id', 'page_path', 'conversion_stage', 'entry_ui_source', 'store', 'loja'];
+    priority.concat(Object.keys(params)).forEach(function (key) {
+      if (Object.prototype.hasOwnProperty.call(approved, key) || Object.keys(approved).length >= 25 || params[key] === undefined || params[key] === null || params[key] === '') return;
+      approved[key] = typeof params[key] === 'string' ? params[key].slice(0, key === 'page_title' ? 300 : 100) : params[key];
+    });
+    params = approved;
     if (window.__klGA4Ready && typeof window.gtag === 'function') window.gtag('event', name, params);
     else {
       window.__klGA4EventQueue = window.__klGA4EventQueue || [];
