@@ -26,15 +26,16 @@ PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-visit-free.js', 'kl-visit-free.css'
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-qualification.js', 'kl-qualification.css', 'kl-profile-handoff.js', 'kl-vsl.js'}
 CAPTURE_VERSION = '20260906google1'
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-guia-noiva.js', 'kl-guia-noiva.css'}
-PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-booking-links.js', 'kl-consultoria.css', 'kl-consultoria.js', 'kl-consultoria-config.json'}
+# 17/10/2026: a consultoria para lojistas saiu de cena; seus assets deixam o artefato público.
+PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-booking-links.js'}
 PUBLIC_ROOT_FILES = PUBLIC_ROOT_FILES | {'kl-noivas-fluxo-20261012.js', 'kl-noivas-fluxo-20261012.css'}
-CAPTURE_EXCLUDED = frozenset(('consultoria.html', 'agendar.html', 'agendar-prova.html', 'agendar-perfil.html', 'privacidade.html', 'peca.html', 'provar.html', '404.html', 'guia-da-noiva.html'))
+CAPTURE_EXCLUDED = frozenset(('agendar.html', 'agendar-prova.html', 'agendar-perfil.html', 'privacidade.html', 'peca.html', 'provar.html', '404.html', 'guia-da-noiva.html'))
 CAPTURE_CATEGORIES = {
  'noivas.html':'vestidos-noiva', 'noivas-experiencia.html':'vestidos-noiva',
  'debutantes.html':'vestidos-debutante', 'madrinhas.html':'vestidos-madrinha', 'ternos.html':'ternos',
 }
 BASE_ROUTES = {
- 'consultoria.html':'/consultoria/', 'index.html':'/', 'catalogo.html':'/catalogo/', 'agendar.html':'/agendar/', 'agendar-prova.html':'/agendar/prova/', 'agendar-perfil.html':'/agendar/perfil/',
+ 'index.html':'/', 'catalogo.html':'/catalogo/', 'agendar.html':'/agendar/', 'agendar-prova.html':'/agendar/prova/', 'agendar-perfil.html':'/agendar/perfil/',
  'noivas.html':'/noivas/', 'noivas-experiencia.html':'/noivas/experiencia/',
  'debutantes.html':'/debutantes/', 'madrinhas.html':'/madrinhas/', 'ternos.html':'/ternos/',
  'sobre.html':'/sobre/', 'servicos.html':'/servicos/', 'unidades.html':'/unidades/',
@@ -49,7 +50,7 @@ for p in sorted(ROOT.glob('vestido-de-noiva-*.html')):
 ALIASES = {}
 for p in sorted(ROOT.rglob('*')):
  if p.is_file()  and p.suffix.lower() in ('.html','.htm','.php'):
-  if p.relative_to(ROOT).as_posix() in ROUTES or p.name=='404.html' or any(x.startswith('.') or x in ('_site','_preview','tools','tests','docs','p') for x in p.relative_to(ROOT).parts): continue
+  if p.relative_to(ROOT).as_posix() in ROUTES or p.name in ('404.html','consultoria.html') or any(x.startswith('.') or x in ('_site','_preview','tools','tests','docs','p') for x in p.relative_to(ROOT).parts): continue
   s=p.read_text()
   if len(s)<2000:
    m=re.search(r'location\.replace\([\'"]([^\'"]+)',s)
@@ -145,19 +146,7 @@ def add_capture(s, source):
  assets+=''.join(f'<script defer src="/{asset}?v={CAPTURE_VERSION}"></script>' for asset in ('kl-capture-popup.js','kl-capture.js'))
  return s.replace('</head>',assets+'</head>',1)
 
-def add_consultoria_navigation(s, source):
- # Integrate the new tab into existing full navigation without changing store routes.
- def add(m):
-  body=m[2]
-  if re.search(r'href=["\'][^"\']*(?:/consultoria/|consultoria\.html)', body):
-   body=re.sub(r'(<a\b[^>]*href=["\'][^"\']*(?:/consultoria/|consultoria\.html)[^>]*>)Consultoria(</a>)',r'\1Para lojistas\2',body)
-   return m[1]+body+m[3]
-  current=' class="cur" aria-current="page"' if source=='consultoria.html' else ''
-  return m[1]+body+'<a href="/consultoria/"'+current+'>Para lojistas</a>'+m[3]
- return re.sub(r'(<nav\b[^>]*class=["\'](?:menu|mnav)["\'][^>]*>)(.*?)(</nav>)',add,s,flags=re.S)
-
 def render(s, source, canonical, preview=False):
- s=add_consultoria_navigation(s,source)
  if source in ('agendar.html','agendar-prova.html','agendar-perfil.html'):
   s=s.replace('<head>', '<head><script src="/kl-profile-handoff.js?v=20261001perfil"></script>',1)
  s=add_capture(s,source)
@@ -189,8 +178,6 @@ def render(s, source, canonical, preview=False):
  if family in ('produto','estilo') or source=='p/index.html':
   s=s.replace('</header>', '<nav class="kl-entry-nav" aria-label="Navegação principal"><a href="/catalogo/">Catálogo</a><a href="/unidades/">Lojas</a></nav></header>', 1)
  s=s.replace('</head>', '<link rel="stylesheet" href="/kl-layout.css?v=20260908aida"></head>', 1)
- if source=='consultoria.html':
-  s=s.replace('</head>', '<link rel="stylesheet" href="/kl-consultoria.css"></head>', 1)
  s=re.sub(r'(kl-(?:catalog-actions|catalog-tryon|catalog-gallery|catalog-app|catalog-clean|site-enhance|schedule-context|agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261007festa',s)
  s=re.sub(r'(kl-(?:catalog-actions|catalog-gallery|catalog-app)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261010units1',s)
  s=re.sub(r'(kl-(?:agendar)\.js)(?:\?[^"\'<>\s]*)?',r'\1?v=20261008seo1',s)
@@ -242,6 +229,10 @@ def build(output, preview=False):
   destination=public_url(target,alias.lstrip('/'))
   write(alias.lstrip('/'),redirect_page(destination))
  write('provar/index.html',redirect_page('/prova-virtual/'))
+ # 17/10/2026: /consultoria/ saiu do ar. Os dois endereços antigos servem a página de
+ # transição da fonte (noindex, canônico na home), sem menu, captura ou analytics.
+ retired=(ROOT/'consultoria.html').read_text()
+ for rel in ('consultoria/index.html','consultoria.html'):write(rel,retired)
  write('404.html',render((ROOT/'404.html').read_text(),'404.html','/404.html',preview))
  # A single redirect module: query + fragment survive, and redirect targets cannot leave the site.
  shutil.copy2(ROOT/'kl-redirect.js',output/'kl-redirect.js')
