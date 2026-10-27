@@ -9,7 +9,7 @@
 <link rel="icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arapey:ital@0;1&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Questrial&display=swap">
-<link rel="stylesheet" href="../clube.css?v=1">
+<link rel="stylesheet" href="../clube.css?v=2">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 </head>
 <body>
@@ -41,6 +41,12 @@
       <div id="situacao" class="aviso info oculto" style="text-align:left"></div>
     </div>
 
+    <div class="cartao oculto" id="cartao-codigo" style="text-align:center">
+      <div class="eyebrow" style="color:var(--muted)">Seu código do Clube</div>
+      <div class="codigo-grande" id="codigo"></div>
+      <div class="dica">Na loja, é só falar esse código para usar seu traje.</div>
+    </div>
+
     <div class="metricas">
       <div class="metrica"><div class="r">Válido até</div><div class="v" style="font-size:22px" id="validade"></div></div>
       <div class="metrica"><div class="r">Plano</div><div class="v" style="font-size:22px" id="plano"></div></div>
@@ -58,7 +64,7 @@
 </main>
 
 <script type="module">
-import { cliente, DEMO, FORMAS, LOJAS, data, esc } from '../clube.js?v=1'
+import { cliente, DEMO, FORMAS, LOJAS, data, esc } from '../clube.js?v=2'
 
 const $ = (id) => document.getElementById(id)
 const mostra = (el, sim = true) => el.classList.toggle('oculto', !sim)
@@ -78,6 +84,7 @@ async function abrir() {
   $('ola').textContent = `Olá, ${r.nome}`
   $('saldo').textContent = r.pode_usar ? r.saldo : 0
   $('saldo-de').textContent = `de ${r.usos_no_plano} no seu plano · ${r.usos_usados} já ${r.usos_usados === 1 ? 'usado' : 'usados'}`
+  $('codigo').textContent = r.codigo || ''; mostra($('cartao-codigo'), !!r.codigo)
   $('validade').textContent = data(r.validade)
   $('plano').textContent = FORMAS[r.forma_pagamento]?.rotulo || '—'
   const avisos = {

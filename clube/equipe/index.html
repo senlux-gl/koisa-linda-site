@@ -8,7 +8,7 @@
 <link rel="icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arapey:ital@0;1&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Questrial&display=swap">
-<link rel="stylesheet" href="../clube.css?v=1">
+<link rel="stylesheet" href="../clube.css?v=2">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 </head>
 <body>
@@ -44,12 +44,17 @@
       <label style="max-width:320px">Quem está atendendo agora<input id="quem-atende" placeholder="seu nome"></label>
     </div>
 
-    <div class="metricas" id="metricas"></div>
+    <form id="form-codigo" class="cartao campo-codigo">
+      <label>Código da cliente<input id="codigo" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" placeholder="6 letras e números"></label>
+      <div class="botoes" style="margin-top:10px"><button class="btn pri" type="submit">Usar o Clube</button></div>
+    </form>
     <div id="msg-erro" class="aviso erro oculto"></div>
     <div id="msg-ok" class="aviso ok oculto"></div>
 
+    <div class="metricas" id="metricas"></div>
+
     <div class="botoes" style="margin-top:0">
-      <input id="busca" placeholder="Buscar por nome ou telefone" style="flex:1;min-width:220px">
+      <input id="busca" placeholder="Buscar por nome, telefone ou código" style="flex:1;min-width:220px">
       <button id="btn-nova" class="btn pri oculto" type="button">+ Nova assinante</button>
     </div>
 
@@ -81,7 +86,7 @@
 </main>
 
 <script type="module">
-import { cliente, DEMO, FORMAS, SITUACOES, LOJAS, data, dinheiro, esc, novaChave, linkCliente, telefoneE164 } from '../clube.js?v=1'
+import { cliente, DEMO, FORMAS, SITUACOES, LOJAS, data, dinheiro, esc, novaChave, linkCliente, telefoneE164, normalizaCodigo } from '../clube.js?v=2'
 
 const sb = cliente()
 const $ = (id) => document.getElementById(id)
@@ -93,7 +98,11 @@ if (DEMO) mostra($('aviso-demo'))
 function aviso(tipo, texto) {
   const el = tipo === 'erro' ? $('msg-erro') : $('msg-ok')
   el.textContent = texto || ''; mostra(el, !!texto)
-  if (texto) { mostra(tipo === 'erro' ? $('msg-ok') : $('msg-erro'), false) }
+  if (!texto) return
+  mostra(tipo === 'erro' ? $('msg-ok') : $('msg-erro'), false)
+  // No celular o aviso fica no alto e a baixa lá embaixo: traz o aviso para a tela.
+  const r = el.getBoundingClientRect()
+  if (r.top < 0 || r.bottom > innerHeight) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 
 const QUEM = 'kl-clube:quem-atende'
@@ -150,18 +159,32 @@ async function carregar() {
 function desenhaLista() {
   const termo = $('busca').value.trim().toLowerCase(), dig = termo.replace(/\D/g, '')
   const lista = !termo ? assinantes : assinantes.filter((a) => a.nome.toLowerCase().includes(termo)
-    || (a.acompanhante || '').toLowerCase().includes(termo) || (dig.length >= 4 && String(a.telefone_e164 || '').includes(dig)))
+    || (a.acompanhante || '').toLowerCase().includes(termo) || (dig.length >= 4 && String(a.telefone_e164 || '').includes(dig))
+    || (a.codigo || '').toLowerCase().includes(termo))
   $('lista').innerHTML = lista.length ? lista.map((a) => `
     <button class="item" data-id="${a.id}" ${aberta?.id === a.id ? 'aria-current="true"' : ''}>
       <span><span class="nome">${esc(a.nome)}</span>${a.acompanhante ? ` <span class="dica">com ${esc(a.acompanhante)}</span>` : ''}
-        <br><span class="dica">${esc(FORMAS[a.forma_pagamento]?.rotulo || a.forma_pagamento)} · até ${data(a.validade)}${perfil.todas ? ' · ' + esc(LOJAS[a.store_id]?.nome || a.store_id) : ''}</span></span>
+        <br><span class="dica">${a.codigo ? `${esc(a.codigo)} · ` : ''}${esc(FORMAS[a.forma_pagamento]?.rotulo || a.forma_pagamento)} · até ${data(a.validade)}${perfil.todas ? ' · ' + esc(LOJAS[a.store_id]?.nome || a.store_id) : ''}</span></span>
       ${a.pode_usar ? `<span class="selo ${a.saldo > 0 ? 'ok' : ''}">${a.saldo} de ${Math.min(a.usos_total, a.usos_liberados)}</span>`
                     : `<span class="selo alerta">${a.situacao === 'ativa' ? 'vencida' : esc(SITUACOES[a.situacao] || a.situacao)}</span>`}
     </button>`).join('')
-    : `<div class="cartao dica">${assinantes.length ? 'Ninguém com esse nome ou telefone.' : 'Ainda não há assinantes. Quem assinar o Clube aparece aqui.'}</div>`
+    : `<div class="cartao dica">${assinantes.length ? 'Ninguém com esse nome, telefone ou código.' : 'Ainda não há assinantes. Quem assinar o Clube aparece aqui.'}</div>`
   $('lista').querySelectorAll('.item').forEach((b) => b.onclick = () => abrir(b.dataset.id))
 }
 $('busca').addEventListener('input', desenhaLista)
+
+// A cliente fala o código na loja: abre a ficha dela direto na baixa.
+$('form-codigo').addEventListener('submit', async (e) => {
+  e.preventDefault(); aviso('erro', ''); aviso('ok', '')
+  const c = normalizaCodigo($('codigo').value)
+  if (!c) return
+  let a = assinantes.find((x) => x.codigo === c)
+  if (!a) { await carregar(); a = assinantes.find((x) => x.codigo === c) }
+  if (!a) { aviso('erro', `Código ${c} não encontrado${perfil.todas ? '' : ' nesta loja'}. Confira com a cliente.`); return }
+  $('codigo').value = ''
+  await abrir(a.id, true)
+  ;($('form-baixa') || $('detalhe')).scrollIntoView({ behavior: 'smooth', block: 'start' })
+})
 
 async function abrir(id, manterAviso) {
   if (aberta?.id === id && !manterAviso) { aberta = null; mostra($('detalhe'), false); desenhaLista(); return }
@@ -173,9 +196,10 @@ async function abrir(id, manterAviso) {
 
 function desenhaDetalhe(usos) {
   const a = aberta, total = Math.min(a.usos_total, a.usos_liberados), link = linkCliente(a.token)
-  const zapTexto = `Oi, ${a.nome.split(' ')[0]}! Aqui está o seu Clube Koisa Linda, com o seu saldo de trajes: ${link}`
+  const zapTexto = `Oi, ${a.nome.split(' ')[0]}! Aqui está o seu Clube Koisa Linda.${a.codigo ? ` Seu código é ${a.codigo}: na loja, é só falar esse código.` : ''} Saldo e histórico: ${link}`
   const zap = a.telefone_e164 ? `https://wa.me/${a.telefone_e164.replace(/\D/g, '')}?text=${encodeURIComponent(zapTexto)}` : null
   $('detalhe').innerHTML = `
+    ${a.codigo ? `<div class="eyebrow">Código ${esc(a.codigo)}</div>` : ''}
     <h2>${esc(a.nome)}${a.acompanhante ? ` <span class="dica">com ${esc(a.acompanhante)}</span>` : ''}</h2>
     <div class="metricas">
       <div class="metrica"><div class="r">Saldo</div><div class="v">${a.saldo} de ${total}</div>${a.usos_liberados < a.usos_total ? `<div class="n">${a.usos_total} no plano, ${a.usos_liberados} liberados</div>` : ''}</div>
@@ -192,16 +216,17 @@ function desenhaDetalhe(usos) {
       <h2 style="font-size:20px">Dar baixa de um traje</h2>
       <div class="campos">
         <label>Quem vai usar<input name="quem" value="${esc(a.nome)}" required></label>
+        <label>Pedido no Clariai (opcional)<input name="pedido" autocomplete="off" placeholder="nº do pedido"></label>
         <label>Peça (código ou descrição)<input name="peca" placeholder="MD-073, terno marinho…"></label>
         <label>Data da festa (opcional)<input name="festa" type="date"></label>
       </div>
       <div class="botoes" id="baixa-botoes"><button class="btn pri" type="submit">Dar baixa</button></div>
     </form>` : `<div class="aviso info">${!a.pode_usar ? `Assinatura ${a.situacao === 'ativa' ? 'vencida' : esc(SITUACOES[a.situacao])}: não dá para usar agora.` : 'Sem saldo: todos os usos liberados já foram usados.'}</div>`}
     <h2 style="font-size:20px;margin-top:20px">Histórico</h2>
-    ${usos.length ? `<table><thead><tr><th>Quando</th><th>Quem usou</th><th>Peça</th><th>Deu baixa</th><th></th></tr></thead><tbody>
+    ${usos.length ? `<table><thead><tr><th>Quando</th><th>Quem usou</th><th>Peça</th><th>Clariai</th><th>Deu baixa</th><th></th></tr></thead><tbody>
       ${usos.map((u) => `<tr class="${u.estornado ? 'estornado' : ''}">
         <td data-r="Quando">${data(u.criado_em)}${u.data_evento ? `<div class="dica">festa ${data(u.data_evento)}</div>` : ''}</td>
-        <td data-r="Quem usou">${esc(u.beneficiario)}</td><td data-r="Peça">${esc(u.peca || '—')}</td><td data-r="Deu baixa">${esc(u.registrado_por)}</td>
+        <td data-r="Quem usou">${esc(u.beneficiario)}</td><td data-r="Peça">${esc(u.peca || '—')}</td><td data-r="Clariai">${esc(u.pedido_clariai || '—')}</td><td data-r="Deu baixa">${esc(u.registrado_por)}</td>
         <td>${u.estornado ? `<span class="selo">estornado: ${esc(u.motivo_estorno || '')}</span>`
           : podeGerir ? (estornando === u.id
             ? `<span style="display:flex;gap:6px;flex-wrap:wrap"><input id="motivo" placeholder="motivo" style="width:150px"><button class="btn peq pri" data-estornar="${u.id}">Estornar</button><button class="btn peq" data-voltar="1">Voltar</button></span>`
@@ -225,7 +250,7 @@ function desenhaDetalhe(usos) {
   const fb = $('form-baixa')
   if (fb) fb.onsubmit = (e) => {
     e.preventDefault(); aviso('erro', '')
-    const f = new FormData(fb), quem = String(f.get('quem') || '').trim()
+    const f = new FormData(fb), quem = String(f.get('quem') || '').trim(), pedido = String(f.get('pedido') || '').trim()
     if (!quem) { aviso('erro', 'Diga quem vai usar o traje.'); return }
     if (!quemRegistra()) { aviso('erro', 'Escreva lá em cima quem está atendendo antes de dar baixa.'); return }
     $('baixa-botoes').innerHTML = `<span class="dica">Confirma? ${esc(quem)} usa 1 traje e o saldo fica ${a.saldo - 1}.</span>
@@ -234,9 +259,10 @@ function desenhaDetalhe(usos) {
     $('confirmar').onclick = async () => {
       $('confirmar').disabled = true
       const { error } = await sb.rpc('clube_registrar_uso', { p_assinante: a.id, p_beneficiario: quem,
-        p_peca: String(f.get('peca') || '').trim() || null, p_data_evento: f.get('festa') || null, p_registrado_por: quemRegistra(), p_chave: chave })
+        p_peca: String(f.get('peca') || '').trim() || null, p_data_evento: f.get('festa') || null, p_registrado_por: quemRegistra(), p_chave: chave,
+        ...(pedido ? { p_pedido_clariai: pedido } : {}) })
       if (error) { aviso('erro', error.message); $('voltar').click(); return }
-      aviso('ok', `Baixa registrada${quem !== a.nome ? ` para ${quem}` : ''}. Saldo de ${a.nome}: ${a.saldo - 1}.`)
+      aviso('ok', `Baixa registrada${quem !== a.nome ? ` para ${quem}` : ''}. Saldo de ${a.nome}: ${a.saldo - 1}. ${pedido ? `Pedido ${pedido} anotado. ` : ''}Agora lance o pagamento no Clariai como Clube.`)
       await carregar(); await abrir(a.id, true)
     }
   }

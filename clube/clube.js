@@ -33,6 +33,9 @@ export const dinheiro = (v) => v == null ? '—' : Number(v).toLocaleString('pt-
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 export const novaChave = () => globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`
 export const linkCliente = (token) => `https://koisalinda.com.br/clube/minha/#${token}`
+/** Código que a cliente fala na loja: maiúsculo, sem espaço nem traço. */
+export const normalizaCodigo = (v) => String(v ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+const ALFABETO = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 
 /** Telefone digitado do jeito que a loja anota vira +55DDDNÚMERO; inválido devolve undefined. */
 export function telefoneE164(v) {
@@ -56,11 +59,11 @@ function demo() {
   const dia = (n) => new Date(hoje.getTime() + n * 86400000).toISOString().slice(0, 10)
   const linkDemo = (nome) => `demo-${nome}-`.padEnd(64, '0')
   const A = [
-    { id: 'c1', store_id: 'barra', nome: 'Marina Fontes', telefone_e164: null, acompanhante: 'Rafael', forma_pagamento: 'pix_avista', valor: 1188, inicio: dia(-40), validade: dia(325), usos_total: 5, usos_liberados: 5, situacao: 'ativa', token: linkDemo('marina'), observacao: null },
-    { id: 'c2', store_id: 'barra', nome: 'Helena Castro', telefone_e164: null, acompanhante: null, forma_pagamento: 'cartao_mensal', valor: 149, inicio: dia(-10), validade: dia(355), usos_total: 5, usos_liberados: 1, situacao: 'ativa', token: linkDemo('helena'), observacao: 'Mensal: um uso liberado por enquanto.' },
+    { id: 'c1', store_id: 'barra', nome: 'Marina Fontes', telefone_e164: null, acompanhante: 'Rafael', forma_pagamento: 'pix_avista', valor: 1188, inicio: dia(-40), validade: dia(325), usos_total: 5, usos_liberados: 5, situacao: 'ativa', token: linkDemo('marina'), codigo: 'MRN4F7', observacao: null },
+    { id: 'c2', store_id: 'barra', nome: 'Helena Castro', telefone_e164: null, acompanhante: null, forma_pagamento: 'cartao_mensal', valor: 149, inicio: dia(-10), validade: dia(355), usos_total: 5, usos_liberados: 1, situacao: 'ativa', token: linkDemo('helena'), codigo: 'HLN8K2', observacao: 'Mensal: um uso liberado por enquanto.' },
   ]
   const U = [
-    { id: 'u1', assinante_id: 'c1', store_id: 'barra', beneficiario: 'Marina Fontes', peca: 'MD-073', data_evento: dia(-20), registrado_por: 'Letícia', estornado: false, criado_em: new Date(hoje - 25 * 864e5).toISOString() },
+    { id: 'u1', assinante_id: 'c1', store_id: 'barra', beneficiario: 'Marina Fontes', peca: 'MD-073', pedido_clariai: '4521', data_evento: dia(-20), registrado_por: 'Letícia', estornado: false, criado_em: new Date(hoje - 25 * 864e5).toISOString() },
     { id: 'u2', assinante_id: 'c1', store_id: 'barra', beneficiario: 'Rafael', peca: 'terno marinho', data_evento: dia(-20), registrado_por: 'Letícia', estornado: false, criado_em: new Date(hoje - 25 * 864e5).toISOString() },
   ]
   const comSaldo = () => A.map((a) => {
@@ -80,7 +83,7 @@ function demo() {
       order: (c, o) => { linhas.sort((a, b) => (a[c] > b[c] ? 1 : -1) * (o?.ascending === false ? -1 : 1)); return q },
       maybeSingle: () => Promise.resolve({ data: linhas[0] || null, error: null }),
       single: () => Promise.resolve({ data: linhas[0] || null, error: null }),
-      insert: (l) => { A.unshift({ id: `d${Date.now()}`, usos_total: 5, usos_liberados: 5, token: linkDemo(Date.now()), ...l }); return Promise.resolve({ error: null }) },
+      insert: (l) => { A.unshift({ id: `d${Date.now()}`, usos_total: 5, usos_liberados: 5, token: linkDemo(Date.now()), codigo: Array.from({ length: 6 }, () => ALFABETO[Math.floor(Math.random() * 32)]).join(''), ...l }); return Promise.resolve({ error: null }) },
       update: (campos) => ({ eq: (c, v) => { A.filter((l) => l[c] === v).forEach((l) => Object.assign(l, campos)); return Promise.resolve({ error: null }) } }),
       then: (f) => Promise.resolve({ data: linhas, error: null }).then(f),
     }
@@ -99,7 +102,7 @@ function demo() {
       if (nome === 'clube_minha_assinatura') {
         const a = comSaldo().find((x) => x.token === p.p_token)
         if (!a) return { data: null, error: null }
-        return { data: { nome: a.nome.split(' ')[0], loja: a.store_id, forma_pagamento: a.forma_pagamento, inicio: a.inicio,
+        return { data: { nome: a.nome.split(' ')[0], codigo: a.codigo, loja: a.store_id, forma_pagamento: a.forma_pagamento, inicio: a.inicio,
           validade: a.validade, situacao: a.situacao, usos_no_plano: Math.min(a.usos_total, a.usos_liberados), usos_usados: a.usos_usados,
           saldo: a.saldo, pode_usar: a.pode_usar, historico: U.filter((u) => u.assinante_id === a.id && !u.estornado)
             .map((u) => ({ quando: new Date(u.criado_em).toLocaleDateString('sv-SE'), quem: u.beneficiario, peca: u.peca, festa: u.data_evento })) }, error: null }
@@ -110,7 +113,7 @@ function demo() {
         if (!a?.pode_usar) return { data: null, error: { message: 'assinatura não pode usar agora' } }
         if (a.saldo <= 0) return { data: null, error: { message: 'sem saldo' } }
         const u = { id: `u${Date.now()}`, assinante_id: a.id, store_id: a.store_id, beneficiario: p.p_beneficiario, peca: p.p_peca,
-          data_evento: p.p_data_evento, registrado_por: p.p_registrado_por, chave: p.p_chave, estornado: false, criado_em: new Date().toISOString() }
+          data_evento: p.p_data_evento, registrado_por: p.p_registrado_por, chave: p.p_chave, pedido_clariai: p.p_pedido_clariai || null, estornado: false, criado_em: new Date().toISOString() }
         U.unshift(u); return { data: u, error: null }
       }
       if (nome === 'clube_estornar_uso') {
