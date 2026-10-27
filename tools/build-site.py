@@ -5,7 +5,7 @@ HTML sources remain at the root. Publish the output directory, never the source 
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit, urljoin, unquote
 from html import escape, unescape
-import argparse, json, re, shutil, importlib.util
+import argparse, json, os, re, shutil, sys, importlib.util
 
 ROOT = Path(__file__).resolve().parent.parent
 ORIGIN = 'https://koisalinda.com.br'
@@ -210,6 +210,14 @@ def build(output, preview=False):
  # Allowlist of public assets. No backups, credentials, tests or source documentation.
  for directory in ('img','videos','fonts'):
   if (ROOT/directory).exists():shutil.copytree(ROOT/directory,output/directory,dirs_exist_ok=True,ignore=shutil.ignore_patterns('_originais-antes-otimizacao'))
+ # clube/ (27/10/2026): telas privadas do Clube KL (equipe e cliente), copiadas como estão:
+ # noindex, sem captura, analytics ou enriquecimento de SEO. A chave pública do Supabase da KL
+ # vem de KL_SUPABASE_ANON_KEY (variável do Actions); sem ela o Clube fica fora e o resto sai.
+ anon=os.environ.get('KL_SUPABASE_ANON_KEY','').strip()
+ if anon.count('.')==2:
+  shutil.copytree(ROOT/'clube',output/'clube',dirs_exist_ok=True)
+  js=output/'clube/clube.js';js.write_text(js.read_text().replace('__ANON_KEY__',anon))
+ else:print('aviso: KL_SUPABASE_ANON_KEY ausente; clube/ fora desta publicação',file=sys.stderr)
  for p in ROOT.iterdir():
   if p.is_file() and p.name in PUBLIC_ROOT_FILES:
    if p.suffix in ('.css','.js','.txt','.json'):

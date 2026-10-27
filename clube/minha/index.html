@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Meu Clube Koisa Linda</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arapey:ital@0;1&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Questrial&display=swap">
+<link rel="stylesheet" href="../clube.css?v=1">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<header class="topo-clube">
+  <div class="marca">KOISA LINDA<small>CLUBE</small></div>
+</header>
+<main style="max-width:620px">
+  <div id="aviso-demo" class="aviso info oculto"><strong>Demonstração.</strong> Dados inventados.</div>
+  <p id="carregando" class="dica">Carregando seu Clube…</p>
+
+  <section id="nao-achei" class="oculto">
+    <div class="eyebrow">Clube Koisa Linda</div>
+    <h1>Não encontramos este link</h1>
+    <p class="sub">Pode ser que o link tenha chegado cortado. Fale com a loja e a gente manda de novo.</p>
+    <div class="botoes">
+      <a class="btn pri" href="https://wa.me/5521970858787" target="_blank" rel="noreferrer">São Francisco</a>
+      <a class="btn" href="https://wa.me/5521966475383" target="_blank" rel="noreferrer">Barra</a>
+    </div>
+  </section>
+
+  <section id="painel" class="oculto">
+    <div class="eyebrow">Clube Koisa Linda</div>
+    <h1 id="ola"></h1>
+
+    <div class="cartao" style="text-align:center">
+      <div class="eyebrow" style="color:var(--muted)">Trajes disponíveis</div>
+      <div class="saldo-grande" id="saldo"></div>
+      <div class="dica" id="saldo-de"></div>
+      <div id="situacao" class="aviso info oculto" style="text-align:left"></div>
+    </div>
+
+    <div class="metricas">
+      <div class="metrica"><div class="r">Válido até</div><div class="v" style="font-size:22px" id="validade"></div></div>
+      <div class="metrica"><div class="r">Plano</div><div class="v" style="font-size:22px" id="plano"></div></div>
+    </div>
+
+    <p class="sub" style="margin-top:4px">Qualquer vestido de festa e qualquer terno da Koisa Linda, até os bordados, para você e para quem vai com você. Não inclui vestido de noiva nem de debutante. Ajustes à parte.</p>
+
+    <div class="botoes"><a class="btn pri" id="zap" target="_blank" rel="noreferrer">Escolher meu próximo traje</a></div>
+
+    <div class="cartao">
+      <h2>Trajes que você já usou</h2>
+      <div id="historico"></div>
+    </div>
+  </section>
+</main>
+
+<script type="module">
+import { cliente, DEMO, FORMAS, LOJAS, data, esc } from '../clube.js?v=1'
+
+const $ = (id) => document.getElementById(id)
+const mostra = (el, sim = true) => el.classList.toggle('oculto', !sim)
+if (DEMO) mostra($('aviso-demo'))
+
+async function abrir() {
+  const token = decodeURIComponent(location.hash.slice(1)).trim()
+  let r = null
+  if (token.length >= 32) {
+    const { data: d, error } = await cliente().rpc('clube_minha_assinatura', { p_token: token })
+    if (!error) r = d
+  }
+  mostra($('carregando'), false)
+  if (!r) { mostra($('nao-achei')); return }
+
+  const loja = LOJAS[r.loja] || LOJAS.saofrancisco
+  $('ola').textContent = `Olá, ${r.nome}`
+  $('saldo').textContent = r.pode_usar ? r.saldo : 0
+  $('saldo-de').textContent = `de ${r.usos_no_plano} no seu plano · ${r.usos_usados} já ${r.usos_usados === 1 ? 'usado' : 'usados'}`
+  $('validade').textContent = data(r.validade)
+  $('plano').textContent = FORMAS[r.forma_pagamento]?.rotulo || '—'
+  const avisos = {
+    aguardando_pagamento: 'Estamos esperando a confirmação do pagamento. Assim que entrar, seus trajes ficam liberados.',
+    pausada: 'Seu Clube está pausado. Fale com a loja para retomar.',
+    cancelada: 'Este Clube foi cancelado.', encerrada: 'Este Clube chegou ao fim. Fale com a loja para renovar.',
+  }
+  const aviso = !r.pode_usar ? (avisos[r.situacao] || 'Seu Clube venceu. Fale com a loja para renovar.')
+    : r.saldo === 0 ? (r.usos_no_plano < 5 ? 'Você já usou os trajes liberados até agora. Os próximos são liberados com as mensalidades.' : 'Você já usou todos os trajes do plano. Fale com a loja para renovar.') : ''
+  $('situacao').textContent = aviso; mostra($('situacao'), !!aviso)
+
+  const msg = `Oi! Sou ${r.nome}, do Clube Koisa Linda. Quero escolher meu próximo traje.`
+  $('zap').href = `https://wa.me/${loja.zap}?text=${encodeURIComponent(msg)}`
+  if (!r.pode_usar || r.saldo === 0) { $('zap').textContent = `Falar com a loja ${loja.nome}`; $('zap').href = `https://wa.me/${loja.zap}?text=${encodeURIComponent(`Oi! Sou ${r.nome}, do Clube Koisa Linda.`)}` }
+
+  const h = r.historico || []
+  $('historico').innerHTML = h.length ? `<table><thead><tr><th>Quando</th><th>Quem usou</th><th>Peça</th></tr></thead><tbody>
+    ${h.map((u) => `<tr><td data-r="Quando">${data(u.quando)}${u.festa ? `<div class="dica">festa ${data(u.festa)}</div>` : ''}</td>
+      <td data-r="Quem usou">${esc(u.quem)}</td><td data-r="Peça">${esc(u.peca || '—')}</td></tr>`).join('')}</tbody></table>`
+    : '<p class="dica">Nenhum ainda. Seu primeiro traje está esperando por você.</p>'
+  mostra($('painel'))
+}
+window.addEventListener('hashchange', () => location.reload())
+abrir()
+</script>
+</body>
+</html>

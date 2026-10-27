@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Clube Koisa Linda · Equipe</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arapey:ital@0;1&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Questrial&display=swap">
+<link rel="stylesheet" href="../clube.css?v=1">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<header class="topo-clube">
+  <div class="marca">KOISA LINDA<small>CLUBE · EQUIPE</small></div>
+  <div class="quem oculto" id="quem"></div>
+</header>
+<main>
+  <div id="aviso-demo" class="aviso info oculto"><strong>Demonstração.</strong> Dados inventados; nada aqui vai para o banco da loja.</div>
+
+  <!-- entrar -->
+  <section id="tela-login" class="oculto">
+    <div class="eyebrow">Clube Koisa Linda</div>
+    <h1>Entrar</h1>
+    <p class="sub">Use o mesmo e-mail e senha da loja.</p>
+    <form id="form-login" class="cartao" style="max-width:420px">
+      <div class="campos" style="grid-template-columns:1fr">
+        <label>E-mail<input id="login-email" type="email" autocomplete="username" required></label>
+        <label>Senha<input id="login-senha" type="password" autocomplete="current-password" required></label>
+      </div>
+      <div class="botoes"><button class="btn pri" type="submit">Entrar</button></div>
+      <div id="login-erro" class="aviso erro oculto"></div>
+    </form>
+  </section>
+
+  <!-- painel -->
+  <section id="tela-painel" class="oculto">
+    <div class="eyebrow">Clube Koisa Linda</div>
+    <h1>Assinantes</h1>
+    <p class="sub">5 trajes por ano para o casal: qualquer vestido de festa e qualquer terno. Não inclui vestido de noiva nem de debutante. Ajustes à parte.</p>
+
+    <div id="estacao" class="cartao oculto" style="padding:14px 16px">
+      <label style="max-width:320px">Quem está atendendo agora<input id="quem-atende" placeholder="seu nome"></label>
+    </div>
+
+    <div class="metricas" id="metricas"></div>
+    <div id="msg-erro" class="aviso erro oculto"></div>
+    <div id="msg-ok" class="aviso ok oculto"></div>
+
+    <div class="botoes" style="margin-top:0">
+      <input id="busca" placeholder="Buscar por nome ou telefone" style="flex:1;min-width:220px">
+      <button id="btn-nova" class="btn pri oculto" type="button">+ Nova assinante</button>
+    </div>
+
+    <form id="form-nova" class="cartao oculto">
+      <h2>Nova assinante</h2>
+      <div class="campos">
+        <label>Nome<input name="nome" required></label>
+        <label>Telefone com DDD<input name="telefone" inputmode="tel" placeholder="21987654321"></label>
+        <label>Acompanhante (opcional)<input name="acompanhante"></label>
+        <label>Forma de pagamento<select name="forma">
+          <option value="pix_avista">Pix à vista · R$ 1.188</option>
+          <option value="cartao_12x">Cartão em 12x · R$ 1.500</option>
+          <option value="cartao_mensal">Cartão todo mês · R$ 149</option></select></label>
+        <label id="campo-loja">Loja<select name="loja"><option value="barra">Barra</option><option value="saofrancisco">São Francisco</option></select></label>
+        <label>Início<input name="inicio" type="date"></label>
+        <label>Código do pagamento no Asaas (opcional)<input name="asaas" placeholder="pay_… ou sub_…"></label>
+      </div>
+      <p class="dica">Validade de um ano a partir do início, com os 5 usos liberados. Depois de salvar, copie o link e mande para a cliente.</p>
+      <div class="botoes">
+        <button class="btn pri" type="submit">Cadastrar</button>
+        <button class="btn" type="button" id="btn-cancela-nova">Cancelar</button>
+      </div>
+    </form>
+
+    <div class="lista" id="lista"></div>
+
+    <div id="detalhe" class="cartao oculto"></div>
+  </section>
+</main>
+
+<script type="module">
+import { cliente, DEMO, FORMAS, SITUACOES, LOJAS, data, dinheiro, esc, novaChave, linkCliente, telefoneE164 } from '../clube.js?v=1'
+
+const sb = cliente()
+const $ = (id) => document.getElementById(id)
+const mostra = (el, sim = true) => el.classList.toggle('oculto', !sim)
+let perfil = null, podeGerir = false, assinantes = [], aberta = null, chave = novaChave(), confirmando = false, estornando = null
+
+if (DEMO) mostra($('aviso-demo'))
+
+function aviso(tipo, texto) {
+  const el = tipo === 'erro' ? $('msg-erro') : $('msg-ok')
+  el.textContent = texto || ''; mostra(el, !!texto)
+  if (texto) { mostra(tipo === 'erro' ? $('msg-ok') : $('msg-erro'), false) }
+}
+
+const QUEM = 'kl-clube:quem-atende'
+function quemRegistra() {
+  if (perfil?.papel === 'loja') return ($('quem-atende').value || '').trim() || null
+  return perfil?.nome || perfil?.email || null
+}
+
+async function iniciar() {
+  const { data: { session } } = await sb.auth.getSession()
+  if (!session) { mostra($('tela-login')); mostra($('tela-painel'), false); mostra($('quem'), false); return }
+  const { data: p, error } = await sb.from('app_users').select('user_id,store_id,papel,consultant_id,ativo').eq('user_id', session.user.id).maybeSingle()
+  if (error || !p || p.ativo === false) {
+    mostra($('tela-login')); $('login-erro').textContent = 'Seu login ainda não tem acesso ao Clube. Fale com a gerência.'
+    mostra($('login-erro')); await sb.auth.signOut(); return
+  }
+  let nome = null
+  if (p.consultant_id) { const { data: c } = await sb.from('consultants').select('name').eq('id', p.consultant_id).maybeSingle(); nome = c?.name || null }
+  perfil = { ...p, email: session.user.email, nome }
+  const { data: gere } = await sb.rpc('kl_pode', { p_permissao: 'equipe' })
+  const { data: todas } = await sb.rpc('kl_pode', { p_permissao: 'todas_lojas' })
+  podeGerir = !!gere; perfil.todas = !!todas
+  $('quem').innerHTML = `${esc(nome || session.user.email)}<br>${esc(perfil.todas ? 'as duas lojas' : (LOJAS[p.store_id]?.nome || p.store_id))} · <button id="sair">sair</button>`
+  $('sair').onclick = async () => { await sb.auth.signOut(); location.reload() }
+  mostra($('quem')); mostra($('tela-login'), false); mostra($('tela-painel'))
+  mostra($('btn-nova'), podeGerir); mostra($('campo-loja'), perfil.todas)
+  if (p.papel === 'loja') { mostra($('estacao')); try { $('quem-atende').value = localStorage.getItem(QUEM) || '' } catch {} }
+  await carregar()
+}
+
+$('quem-atende').addEventListener('input', (e) => { try { localStorage.setItem(QUEM, e.target.value) } catch {} })
+
+$('form-login').addEventListener('submit', async (e) => {
+  e.preventDefault(); mostra($('login-erro'), false)
+  const { error } = await sb.auth.signInWithPassword({ email: $('login-email').value.trim(), password: $('login-senha').value })
+  if (error) { $('login-erro').textContent = 'E-mail ou senha não conferem.'; mostra($('login-erro')); return }
+  await iniciar()
+})
+
+async function carregar() {
+  const { data: d, error } = await sb.from('v_clube_assinantes').select('*').order('nome')
+  if (error) { aviso('erro', error.message); return [] }
+  assinantes = d || []
+  const ativas = assinantes.filter((a) => a.pode_usar).length
+  const usados = assinantes.reduce((s, a) => s + (a.usos_usados || 0), 0)
+  const semSaldo = assinantes.filter((a) => a.pode_usar && a.saldo === 0).length
+  $('metricas').innerHTML = [['Assinantes ativas', ativas, ''], ['Trajes usados', usados, ''],
+    ['Sem saldo', semSaldo, semSaldo ? 'oferecer renovação' : 'todas com saldo']]
+    .map(([r, v, n]) => `<div class="metrica"><div class="r">${r}</div><div class="v">${v}</div>${n ? `<div class="n">${n}</div>` : ''}</div>`).join('')
+  desenhaLista()
+  return assinantes
+}
+
+function desenhaLista() {
+  const termo = $('busca').value.trim().toLowerCase(), dig = termo.replace(/\D/g, '')
+  const lista = !termo ? assinantes : assinantes.filter((a) => a.nome.toLowerCase().includes(termo)
+    || (a.acompanhante || '').toLowerCase().includes(termo) || (dig.length >= 4 && String(a.telefone_e164 || '').includes(dig)))
+  $('lista').innerHTML = lista.length ? lista.map((a) => `
+    <button class="item" data-id="${a.id}" ${aberta?.id === a.id ? 'aria-current="true"' : ''}>
+      <span><span class="nome">${esc(a.nome)}</span>${a.acompanhante ? ` <span class="dica">com ${esc(a.acompanhante)}</span>` : ''}
+        <br><span class="dica">${esc(FORMAS[a.forma_pagamento]?.rotulo || a.forma_pagamento)} · até ${data(a.validade)}${perfil.todas ? ' · ' + esc(LOJAS[a.store_id]?.nome || a.store_id) : ''}</span></span>
+      ${a.pode_usar ? `<span class="selo ${a.saldo > 0 ? 'ok' : ''}">${a.saldo} de ${Math.min(a.usos_total, a.usos_liberados)}</span>`
+                    : `<span class="selo alerta">${a.situacao === 'ativa' ? 'vencida' : esc(SITUACOES[a.situacao] || a.situacao)}</span>`}
+    </button>`).join('')
+    : `<div class="cartao dica">${assinantes.length ? 'Ninguém com esse nome ou telefone.' : 'Ainda não há assinantes. Quem assinar o Clube aparece aqui.'}</div>`
+  $('lista').querySelectorAll('.item').forEach((b) => b.onclick = () => abrir(b.dataset.id))
+}
+$('busca').addEventListener('input', desenhaLista)
+
+async function abrir(id, manterAviso) {
+  if (aberta?.id === id && !manterAviso) { aberta = null; mostra($('detalhe'), false); desenhaLista(); return }
+  aberta = assinantes.find((a) => a.id === id); chave = novaChave(); confirmando = false; estornando = null
+  if (!manterAviso) { aviso('erro', ''); aviso('ok', '') }
+  const { data: usos } = await sb.from('clube_usos').select('*').eq('assinante_id', id).order('criado_em', { ascending: false })
+  desenhaDetalhe(usos || []); desenhaLista()
+}
+
+function desenhaDetalhe(usos) {
+  const a = aberta, total = Math.min(a.usos_total, a.usos_liberados), link = linkCliente(a.token)
+  const zapTexto = `Oi, ${a.nome.split(' ')[0]}! Aqui está o seu Clube Koisa Linda, com o seu saldo de trajes: ${link}`
+  const zap = a.telefone_e164 ? `https://wa.me/${a.telefone_e164.replace(/\D/g, '')}?text=${encodeURIComponent(zapTexto)}` : null
+  $('detalhe').innerHTML = `
+    <h2>${esc(a.nome)}${a.acompanhante ? ` <span class="dica">com ${esc(a.acompanhante)}</span>` : ''}</h2>
+    <div class="metricas">
+      <div class="metrica"><div class="r">Saldo</div><div class="v">${a.saldo} de ${total}</div>${a.usos_liberados < a.usos_total ? `<div class="n">${a.usos_total} no plano, ${a.usos_liberados} liberados</div>` : ''}</div>
+      <div class="metrica"><div class="r">Plano</div><div class="v" style="font-size:20px">${esc(FORMAS[a.forma_pagamento]?.rotulo || '')}</div><div class="n">${dinheiro(a.valor)}</div></div>
+      <div class="metrica"><div class="r">Validade</div><div class="v" style="font-size:20px">${data(a.validade)}</div><div class="n">desde ${data(a.inicio)} · ${esc(SITUACOES[a.situacao] || a.situacao)}</div></div>
+    </div>
+    ${a.observacao ? `<div class="aviso info">${esc(a.observacao)}</div>` : ''}
+    <div class="botoes" style="margin-top:4px">
+      <button class="btn peq" id="copiar-link" type="button">Copiar link da cliente</button>
+      ${zap ? `<a class="btn peq" href="${zap}" target="_blank" rel="noreferrer">Mandar link no WhatsApp</a>` : ''}
+    </div>
+    ${a.pode_usar && a.saldo > 0 ? `
+    <form id="form-baixa" style="margin-top:18px">
+      <h2 style="font-size:20px">Dar baixa de um traje</h2>
+      <div class="campos">
+        <label>Quem vai usar<input name="quem" value="${esc(a.nome)}" required></label>
+        <label>Peça (código ou descrição)<input name="peca" placeholder="MD-073, terno marinho…"></label>
+        <label>Data da festa (opcional)<input name="festa" type="date"></label>
+      </div>
+      <div class="botoes" id="baixa-botoes"><button class="btn pri" type="submit">Dar baixa</button></div>
+    </form>` : `<div class="aviso info">${!a.pode_usar ? `Assinatura ${a.situacao === 'ativa' ? 'vencida' : esc(SITUACOES[a.situacao])}: não dá para usar agora.` : 'Sem saldo: todos os usos liberados já foram usados.'}</div>`}
+    <h2 style="font-size:20px;margin-top:20px">Histórico</h2>
+    ${usos.length ? `<table><thead><tr><th>Quando</th><th>Quem usou</th><th>Peça</th><th>Deu baixa</th><th></th></tr></thead><tbody>
+      ${usos.map((u) => `<tr class="${u.estornado ? 'estornado' : ''}">
+        <td data-r="Quando">${data(u.criado_em)}${u.data_evento ? `<div class="dica">festa ${data(u.data_evento)}</div>` : ''}</td>
+        <td data-r="Quem usou">${esc(u.beneficiario)}</td><td data-r="Peça">${esc(u.peca || '—')}</td><td data-r="Deu baixa">${esc(u.registrado_por)}</td>
+        <td>${u.estornado ? `<span class="selo">estornado: ${esc(u.motivo_estorno || '')}</span>`
+          : podeGerir ? (estornando === u.id
+            ? `<span style="display:flex;gap:6px;flex-wrap:wrap"><input id="motivo" placeholder="motivo" style="width:150px"><button class="btn peq pri" data-estornar="${u.id}">Estornar</button><button class="btn peq" data-voltar="1">Voltar</button></span>`
+            : `<button class="btn peq" data-abrir-estorno="${u.id}">estornar</button>`) : ''}</td></tr>`).join('')}
+      </tbody></table>` : '<p class="dica">Nenhum traje usado ainda.</p>'}
+    ${podeGerir ? `
+    <form id="form-ajuste" style="margin-top:18px">
+      <h2 style="font-size:20px">Ajustar assinatura</h2>
+      <div class="campos">
+        <label>Situação<select name="situacao">${Object.entries(SITUACOES).map(([k, v]) => `<option value="${k}" ${k === a.situacao ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+        <label>Usos liberados (de ${a.usos_total})<input name="liberados" type="number" min="0" max="20" value="${a.usos_liberados}"></label>
+        <label>Observação<input name="obs" value="${esc(a.observacao || '')}"></label>
+      </div>
+      <div class="botoes"><button class="btn" type="submit">Salvar ajuste</button></div>
+    </form>` : ''}`
+  mostra($('detalhe'))
+  $('copiar-link').onclick = async () => {
+    try { await navigator.clipboard.writeText(link); aviso('ok', 'Link copiado. Cole na conversa da cliente.') }
+    catch { prompt('Copie o link da cliente:', link) }
+  }
+  const fb = $('form-baixa')
+  if (fb) fb.onsubmit = (e) => {
+    e.preventDefault(); aviso('erro', '')
+    const f = new FormData(fb), quem = String(f.get('quem') || '').trim()
+    if (!quem) { aviso('erro', 'Diga quem vai usar o traje.'); return }
+    if (!quemRegistra()) { aviso('erro', 'Escreva lá em cima quem está atendendo antes de dar baixa.'); return }
+    $('baixa-botoes').innerHTML = `<span class="dica">Confirma? ${esc(quem)} usa 1 traje e o saldo fica ${a.saldo - 1}.</span>
+      <button class="btn pri" type="button" id="confirmar">Confirmar baixa</button><button class="btn" type="button" id="voltar">Voltar</button>`
+    $('voltar').onclick = () => { $('baixa-botoes').innerHTML = '<button class="btn pri" type="submit">Dar baixa</button>' }
+    $('confirmar').onclick = async () => {
+      $('confirmar').disabled = true
+      const { error } = await sb.rpc('clube_registrar_uso', { p_assinante: a.id, p_beneficiario: quem,
+        p_peca: String(f.get('peca') || '').trim() || null, p_data_evento: f.get('festa') || null, p_registrado_por: quemRegistra(), p_chave: chave })
+      if (error) { aviso('erro', error.message); $('voltar').click(); return }
+      aviso('ok', `Baixa registrada${quem !== a.nome ? ` para ${quem}` : ''}. Saldo de ${a.nome}: ${a.saldo - 1}.`)
+      await carregar(); await abrir(a.id, true)
+    }
+  }
+  $('detalhe').querySelectorAll('[data-abrir-estorno]').forEach((b) => b.onclick = () => { estornando = b.dataset.abrirEstorno; desenhaDetalhe(usos) })
+  $('detalhe').querySelectorAll('[data-voltar]').forEach((b) => b.onclick = () => { estornando = null; desenhaDetalhe(usos) })
+  $('detalhe').querySelectorAll('[data-estornar]').forEach((b) => b.onclick = async () => {
+    const motivo = ($('motivo').value || '').trim()
+    if (!motivo) { aviso('erro', 'Diga o motivo do estorno.'); return }
+    const { error } = await sb.rpc('clube_estornar_uso', { p_uso: b.dataset.estornar, p_motivo: motivo, p_quem: quemRegistra() || perfil.email })
+    if (error) { aviso('erro', error.message); return }
+    aviso('ok', 'Uso estornado. Ele continua no histórico, mas voltou para o saldo.')
+    await carregar(); await abrir(a.id, true)
+  })
+  const fa = $('form-ajuste')
+  if (fa) fa.onsubmit = async (e) => {
+    e.preventDefault()
+    const f = new FormData(fa), lib = Number(f.get('liberados'))
+    if (!Number.isInteger(lib) || lib < 0 || lib > 20) { aviso('erro', 'Usos liberados vai de 0 a 20.'); return }
+    const { error } = await sb.from('clube_assinantes').update({ situacao: f.get('situacao'), usos_liberados: lib,
+      observacao: String(f.get('obs') || '').trim() || null, atualizado_em: new Date().toISOString() }).eq('id', a.id)
+    if (error) { aviso('erro', error.message); return }
+    aviso('ok', 'Assinatura ajustada.'); await carregar(); await abrir(a.id, true)
+  }
+}
+
+$('btn-nova').onclick = () => {
+  const f = $('form-nova'); f.reset(); f.inicio.value = new Date().toLocaleDateString('sv-SE')
+  f.loja.value = perfil.store_id || 'barra'; mostra(f); f.nome.focus()
+}
+$('btn-cancela-nova').onclick = () => mostra($('form-nova'), false)
+$('form-nova').addEventListener('submit', async (e) => {
+  e.preventDefault(); aviso('erro', '')
+  const f = $('form-nova'), tel = telefoneE164(f.telefone.value)
+  if (!f.nome.value.trim()) { aviso('erro', 'O nome é obrigatório.'); return }
+  if (tel === undefined) { aviso('erro', 'Telefone com DDD, só números (ex.: 21987654321).'); return }
+  const inicio = f.inicio.value || new Date().toLocaleDateString('sv-SE')
+  const validade = new Date(`${inicio}T12:00:00`); validade.setFullYear(validade.getFullYear() + 1)
+  const { error } = await sb.from('clube_assinantes').insert({
+    store_id: perfil.todas ? f.loja.value : perfil.store_id, nome: f.nome.value.trim(), telefone_e164: tel,
+    acompanhante: f.acompanhante.value.trim() || null, forma_pagamento: f.forma.value, valor: FORMAS[f.forma.value].valor,
+    asaas_ref: f.asaas.value.trim() || null, inicio, validade: validade.toISOString().slice(0, 10), situacao: 'ativa',
+    criado_por: quemRegistra() || perfil.email })
+  if (error) { aviso('erro', /duplicate|unique/i.test(error.message) ? 'Esse pagamento do Asaas já está cadastrado.' : error.message); return }
+  aviso('ok', `${f.nome.value.trim()} entrou no Clube. Abra a ficha dela para copiar o link.`)
+  mostra(f, false); await carregar()
+})
+
+sb.auth.onAuthStateChange((evento) => { if (evento === 'SIGNED_OUT') { perfil = null } })
+iniciar()
+</script>
+</body>
+</html>
